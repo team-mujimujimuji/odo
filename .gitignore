@@ -1,0 +1,27 @@
+# Android / Gradle
+.gradle/
+build/
+/local.properties
+/captures/
+.externalNativeBuild/
+.cxx/
+*.iml
+.idea/
+.kotlin/
+
+# 서명 키는 저장소 밖에 둔다
+*.jks
+*.keystore
+keystore.properties
+
+# 개인정보·내부 작업 파일은 제출 저장소에 넣지 않는다(검토 보고서 §5.4)
+/*.md
+!/README.md
+!/NOTICE.md
+ODO_CONTEXT.md
+.setup/
+docs/review/
+docs/proposal/
+docs/env-setup-research.md
+
+.DS_Store
