@@ -1,0 +1,27 @@
+package com.mujimujimuji.odo.sim
+
+import com.mujimujimuji.odo.engine.ProfileState
+import com.mujimujimuji.odo.engine.Streak
+import java.time.LocalDate
+
+/**
+ * fake 빌드의 데모 시작값(대본 §8-1: 레벨 4, 이번 주 안전 42 km).
+ * 어제 42 km 트립 1회, 누적 820 XP, 업적 3개 해금. "데모 초기화"가 이 값으로 되돌린다.
+ */
+object DemoSeed {
+    const val YESTERDAY_TRIP_KM = 42
+    val unlocked: Set<String> = setOf("first_trip", "safe_10", "place_yeoju_rest")
+
+    fun profile(today: LocalDate): ProfileState {
+        val yesterday = today.minusDays(1)
+        return ProfileState(
+            totalXp = 820,
+            totalSafeKm = YESTERDAY_TRIP_KM,
+            tripCount = 1,
+            streak = Streak(days = 1, lastDate = yesterday),
+            dayDate = yesterday,
+            dayXp = 300,
+            daySafeKm = YESTERDAY_TRIP_KM,
+        )
+    }
+}

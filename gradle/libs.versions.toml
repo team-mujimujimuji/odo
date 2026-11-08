@@ -9,6 +9,7 @@ composeBom = "2024.10.01"
 room = "2.6.1"
 coroutines = "1.8.1"
 junit = "4.13.2"
+orgJson = "20240303"
 pleosVehicle = "2.3.2"
 pleosFusedLocation = "1.1.3"
 pleosNaviHelper = "3.0.5"
@@ -31,6 +32,7 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+org-json = { group = "org.json", name = "json", version.ref = "orgJson" }
 pleos-vehicle = { group = "ai.pleos.playground", name = "Vehicle", version.ref = "pleosVehicle" }
 pleos-fused-location = { group = "ai.pleos.playground", name = "FusedLocation", version.ref = "pleosFusedLocation" }
 pleos-navi-helper = { group = "ai.pleos.playground", name = "NaviHelper", version.ref = "pleosNaviHelper" }

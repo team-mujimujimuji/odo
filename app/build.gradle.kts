@@ -73,5 +73,6 @@ dependencies {
     implementation(libs.pleos.stt)
 
     testImplementation(libs.junit)
+    testImplementation(libs.org.json) // JVM 테스트에서 android.jar의 org.json 스텁 대신 실제 구현
     testImplementation(libs.kotlinx.coroutines.test)
 }
