@@ -18,6 +18,11 @@ object LevelTable {
 
     val maxLevel: Int = anchors.last().level
 
+    /** 미니카 색상 5종이 열리는 레벨(표의 레벨 5). */
+    val colorUnlockLevel: Int = anchors[1].level
+
+    fun anchorAt(level: Int): Anchor? = anchors.firstOrNull { it.level == level }
+
     /** 레벨에 도달하는 데 필요한 누적 XP. */
     fun xpForLevel(level: Int): Int {
         require(level >= 1) { "level must be >= 1" }
