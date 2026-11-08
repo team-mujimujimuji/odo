@@ -34,6 +34,14 @@ class SegmentAndXpTest {
     }
 
     @Test
+    fun `주행거리 신호가 멈춰 있으면 속도로 센다`() {
+        val acc = SegmentAccumulator(SEOUL)
+        val done = (0..100).flatMap { acc.onSample(snap(it.toDouble(), 36.0).copy(odometerKm = 0.0), false) }
+        assertEquals(1, done.size)
+        assertEquals(1000.0, acc.totalMeters, 1e-6)
+    }
+
+    @Test
     fun `이벤트가 난 구간만 위험 구간이 된다`() {
         val acc = SegmentAccumulator(SEOUL)
         val done = (0..300).flatMap { acc.onSample(snap(it.toDouble(), 36.0), it == 150) }

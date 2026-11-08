@@ -26,6 +26,8 @@ class SegmentAccumulator(private val zone: ZoneId) {
     private var lastTimeMs: Long? = null
     private var lastSpeedKmh = 0.0
     private var lastOdometerKm: Double? = null
+    // 주행거리 값이 한 번이라도 늘어난 뒤에만 믿는다. 에뮬레이터처럼 0에 멈춘 신호는 속도 적분으로 센다.
+    private var odometerLive = false
     private var index = 0
 
     private var hadEvent = false
@@ -41,6 +43,7 @@ class SegmentAccumulator(private val zone: ZoneId) {
         lastTimeMs = null
         lastSpeedKmh = 0.0
         lastOdometerKm = null
+        odometerLive = false
         index = 0
         totalMeters = 0.0
         resetFlags()
@@ -83,7 +86,8 @@ class SegmentAccumulator(private val zone: ZoneId) {
         val prevOdo = lastOdometerKm
         if (s.odometerKm != null && prevOdo != null) {
             val d = (s.odometerKm - prevOdo) * 1000.0
-            if (d >= 0.0) return d
+            if (d > 0.0) odometerLive = true
+            if (odometerLive && d >= 0.0) return d
         }
         val dtMs = (s.timeMs - prevTime).coerceIn(0L, Thresholds.MAX_DISTANCE_SAMPLE_GAP_MS)
         val avgKmh = (lastSpeedKmh + s.speedKmh) / 2.0

@@ -10,6 +10,7 @@ val useFakeSignals = (findProperty("useFakeSignals") as String?)?.toBoolean() ?:
 android {
     namespace = "com.mujimujimuji.odo"
     compileSdk = 34
+    useLibrary("android.car")
 
     defaultConfig {
         applicationId = "com.mujimujimuji.odo"
