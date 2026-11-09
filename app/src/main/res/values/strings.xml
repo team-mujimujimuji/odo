@@ -1,4 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 모든 화면 글(설계서 §9). 해요체, 한 문장, 감점·시간 압박·XP 감소 표현 없음. 조사는 Josa.kt로 고른다. -->
 <resources>
     <string name="app_name">오도</string>
+
+    <!-- 공통 -->
+    <string name="key_home">홈</string>
+    <string name="unit_km">km</string>
+    <string name="level_short">Lv %1$d</string>
+    <string name="count_of_total">%1$d / %2$d</string>
+    <string name="demo_chip">데모</string>
+    <string name="demo_chip_night">데모 · 밤</string>
+    <string name="demo_chip_day">데모 · 낮</string>
+
+    <!-- 글랜스(주행 중) -->
+    <string name="glance_label">안전 주행</string>
+    <string name="glance_gauge_desc">다음 업적까지 %1$d%%</string>
+    <string name="glance_medal_done_desc">오늘 목표 달성</string>
+
+    <!-- 홈 -->
+    <string name="home_week_title">이번 주 안전 주행</string>
+    <string name="home_today">오늘</string>
+    <string name="home_yesterday">어제</string>
+    <string name="home_streak_days">%1$d일째예요</string>
+    <string name="home_streak_reset">다시 1일째예요</string>
+    <string name="home_next_goal">다음 업적 %1$s까지 %2$d km</string>
+    <string name="home_next_goal_done">거리 업적을 모두 열었어요</string>
+    <string name="home_next_goal_plain">다음 업적 %1$s</string>
+    <!-- 글꼴 배율이 커서 home_next_goal이 한 줄을 넘을 때만 쓰는 짧은 꼴(말줄임 대신) -->
+    <string name="home_next_goal_short">다음 업적까지 %1$d km</string>
+    <string name="home_next_level">다음 Lv %1$d까지 %2$d XP</string>
+    <string name="home_max_level">최고 레벨이에요</string>
+    <string name="home_key_achievements">업적</string>
+    <string name="home_key_garage">차고</string>
+    <string name="home_key_phone">휴대폰</string>
+    <string name="home_phone_linked">연결됨</string>
+    <string name="home_phone_unlinked">연결 안 됨</string>
+    <string name="home_key_demo">데모 재생</string>
+    <string name="home_key_demo_playing">재생 중</string>
+    <string name="home_key_reset">초기화</string>
+    <string name="home_hero_desc">미니카 미리보기, %1$s %2$s</string>
+    <string name="home_notice_phone_after_stop">정차 후 다시 연결할 수 있어요</string>
+    <string name="notice_achievement_unlocked">%1$s 업적을 열었어요</string>
+
+    <!-- 트립 요약 -->
+    <string name="summary_title">트립 요약</string>
+    <string name="summary_safe">안전 주행</string>
+    <string name="summary_xp">XP</string>
+    <string name="summary_xp_value">+%1$d</string>
+    <string name="summary_level">레벨</string>
+    <string name="summary_level_change">Lv %1$d → %2$d</string>
+    <string name="summary_level_same">Lv %1$d</string>
+    <string name="summary_excluded">1 km 구간 %1$d개 제외</string>
+    <string name="summary_distance">주행 %1$d km</string>
+    <!-- %1$s = josa("300 XP", "을/를") (설계서 §9: 조사는 Josa.kt로) -->
+    <string name="summary_cap_reached">오늘 상한 %1$s 채웠어요</string>
+    <!-- 글꼴 배율이 커서 summary_cap_reached가 한 줄을 넘을 때만 쓰는 짧은 꼴(말줄임·잘림 대신). TTS 문장과 같은 말 -->
+    <string name="summary_cap_reached_short">오늘 상한을 채웠어요</string>
+    <string name="summary_levelup_unlocks">꾸미기 %1$d개가 열렸어요</string>
+    <string name="summary_levelup_unlock_one">%1$s 열렸어요</string>
+    <string name="summary_next_level">다음 Lv %1$d까지 %2$d XP</string>
+    <string name="risk_harsh_accel">급가속</string>
+    <string name="risk_harsh_decel">급감속</string>
+    <string name="risk_speeding">과속</string>
+    <string name="risk_no_seatbelt">안전벨트 미착용</string>
+
+    <!-- 업적 -->
+    <string name="achievements_title">업적</string>
+    <string name="medal_desc_open">%1$s, 열림</string>
+    <string name="medal_desc_locked">%1$s, 잠김</string>
+    <string name="achievement_progress_km">%1$d / %2$d km</string>
+    <string name="achievement_progress_days">%1$d / %2$d일</string>
+    <string name="achievement_progress_level">Lv %1$d / %2$d</string>
+    <string name="achievement_progress_count">%1$d / %2$d회</string>
+
+    <!-- 차고 -->
+    <string name="garage_title">차고</string>
+    <string name="garage_collected">수집 %1$d / %2$d</string>
+    <string name="garage_tab_vehicle">차종</string>
+    <string name="garage_tab_color">색</string>
+    <string name="garage_tab_wheel">휠</string>
+    <string name="garage_tab_lamp">램프</string>
+    <string name="garage_tab_roof">루프</string>
+    <string name="garage_tab_roof_scooter">탑케이스</string>
+    <string name="garage_roof_twotone_scooter">투톤 레그실드</string>
+    <string name="garage_roof_box_scooter">탑케이스</string>
+    <string name="garage_tab_decal">데칼</string>
+    <string name="garage_tab_plate">번호판</string>
+    <string name="garage_tab_trail">트레일</string>
+    <string name="garage_none_of">%1$s 없음</string>
+    <string name="garage_locked_hint">Lv\u00A0%1$d %2$s에서 열려요</string>
+    <string name="garage_chip_locked_desc">%1$s, Lv %2$d에 열려요</string>
+    <string name="garage_chip_selected_desc">%1$s, 선택됨</string>
+
+    <!-- 휴대폰 연결 -->
+    <string name="phone_title">휴대폰 연결</string>
+    <string name="phone_scan">휴대폰 카메라로 QR을 찍어 주세요</string>
+    <string name="phone_or_code">또는 폰 앱에\n코드를 넣어 주세요</string>
+    <string name="phone_share_yes">공유함: 트립 요약·업적·미니카 꾸미기</string>
+    <string name="phone_share_no">공유 안 함: 차량 신호 원본·위치 기록</string>
+    <string name="phone_app_pending">폰 앱은 준비 중이에요</string>
+    <string name="phone_confirmed">휴대폰에서 확인했어요</string>
+    <string name="phone_linked_since">연결됨 · %1$s</string>
+    <string name="phone_key_unlink">끊기</string>
+    <string name="phone_unlink_confirm">연결을 끊을까요</string>
+    <string name="phone_key_cancel">취소</string>
+    <string name="phone_unlinked_notice">연결을 끊었어요</string>
+    <string name="phone_failed">아직 연결되지 않았어요. 코드를 다시 보여 드릴게요</string>
+    <string name="phone_qr_desc">연결 QR 코드</string>
+    <string name="phone_date_format">M월 d일</string>
 </resources>

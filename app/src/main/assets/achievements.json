@@ -1,37 +1,37 @@
 {
   "source": "좌표 출처: 휴게소는 OpenStreetMap(Nominatim 검색, © OpenStreetMap contributors, ODbL), 도로 게이트는 OSRM 경로(OSM 데이터) 위의 점. 추측 좌표 없음.",
   "achievements": [
-    {"id": "first_trip", "title": "첫 트립", "description": "오도와 함께 첫 주행을 마쳤어요.",
+    {"id": "first_trip", "title": "첫 트립", "description": "첫 주행을 마쳤어요", "condition": "첫 주행 마치기",
      "rule": {"type": "tripCount", "count": 1}},
-    {"id": "safe_10", "title": "안전 10 km", "description": "안전 주행 10 km를 쌓았어요.",
+    {"id": "safe_10", "title": "안전 10 km", "description": "10 km를 쌓았어요", "condition": "",
      "rule": {"type": "safeDistance", "km": 10}},
-    {"id": "place_yeoju_rest", "title": "여주휴게소", "description": "여주휴게소에 들렀어요.",
+    {"id": "place_yeoju_rest", "title": "여주휴게소", "description": "여주휴게소에 들렀어요", "condition": "여주휴게소 들르기",
      "rule": {"type": "place", "fences": [
        {"lat": 37.2384309, "lng": 127.5696025, "radiusM": 300, "source": "여주휴게소(강릉방향) OSM way 344480538"}
      ]}},
-    {"id": "road_yeongdong_yeoju_hoengseong", "title": "영동고속도로 첫 주행", "description": "여주에서 횡성까지 영동고속도로를 달렸어요.",
+    {"id": "road_yeongdong_yeoju_hoengseong", "title": "영동고속도로 첫 주행", "description": "여주→횡성을 달렸어요", "condition": "여주→횡성 구간 달리기",
      "rule": {"type": "road", "gates": [
        {"lat": 37.233668, "lng": 127.600833, "radiusM": 300, "source": "OSRM 경로(여주휴게소→횡성휴게소) 3 km 지점, 영동고속도로 본선"},
        {"lat": 37.4630841, "lng": 128.1348680, "radiusM": 300, "source": "횡성휴게소(강릉방향) OSM node 414680791"}
      ]}},
-    {"id": "place_gangwon_first", "title": "강원도 첫 방문", "description": "강원도 휴게소에서 쉬어 갔어요.",
+    {"id": "place_gangwon_first", "title": "강원도 첫 방문", "description": "강원도에서 쉬어 갔어요", "condition": "강원도 휴게소에서 쉬기",
      "rule": {"type": "place", "fences": [
        {"lat": 37.3352128, "lng": 127.8581947, "radiusM": 300, "source": "문막휴게소(강릉방향) OSM way 223671550"},
        {"lat": 37.4630841, "lng": 128.1348680, "radiusM": 300, "source": "횡성휴게소(강릉방향) OSM node 414680791"}
      ]}},
-    {"id": "safe_300", "title": "안전 300 km", "description": "안전 주행 300 km를 쌓았어요.",
+    {"id": "safe_300", "title": "안전 300 km", "description": "300 km를 쌓았어요", "condition": "",
      "rule": {"type": "safeDistance", "km": 300}},
-    {"id": "safe_1000", "title": "안전 1000 km", "description": "안전 주행 1000 km를 쌓았어요.",
+    {"id": "safe_1000", "title": "안전 1000 km", "description": "1000 km를 쌓았어요", "condition": "",
      "rule": {"type": "safeDistance", "km": 1000}},
-    {"id": "clean_30", "title": "무사고 트립", "description": "위험 이벤트 없이 30 km 이상 달렸어요.",
+    {"id": "clean_30", "title": "무사고 트립", "description": "위험 없이 30 km 완주", "condition": "위험 없는 30 km 트립",
      "rule": {"type": "cleanTrip", "km": 30}},
-    {"id": "night_10", "title": "밤길 10 km", "description": "밤(22~06시)에 안전 주행 10 km를 쌓았어요.",
+    {"id": "night_10", "title": "밤길 10 km", "description": "밤에 10 km를 쌓았어요", "condition": "밤 22~06시",
      "rule": {"type": "nightSafeDistance", "km": 10}},
-    {"id": "rain_10", "title": "빗길 10 km", "description": "와이퍼를 켜고 안전 주행 10 km를 쌓았어요.",
+    {"id": "rain_10", "title": "빗길 10 km", "description": "빗길 10 km를 쌓았어요", "condition": "와이퍼 켜고",
      "rule": {"type": "rainSafeDistance", "km": 10}},
-    {"id": "streak_7", "title": "7일 연속", "description": "7일 연속으로 안전 주행을 기록했어요.",
+    {"id": "streak_7", "title": "7일 연속", "description": "7일 연속 달렸어요", "condition": "연속 주행",
      "rule": {"type": "streakDays", "days": 7}},
-    {"id": "level_10", "title": "로드메이트", "description": "레벨 10에 올랐어요.",
+    {"id": "level_10", "title": "로드메이트", "description": "레벨 10에 올랐어요", "condition": "",
      "rule": {"type": "level", "level": 10}}
   ]
 }

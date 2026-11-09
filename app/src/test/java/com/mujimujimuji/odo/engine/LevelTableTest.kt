@@ -2,6 +2,7 @@ package com.mujimujimuji.odo.engine
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LevelTableTest {
@@ -46,5 +47,42 @@ class LevelTableTest {
         assertEquals(750 to 1_000, LevelTable.progress(820))
         assertNull(LevelTable.progress(100_000))
         assertEquals(5, LevelTable.nextUnlock(4)?.level)
+    }
+
+    @Test
+    fun `꾸미기 해금 레벨은 모두 기준 레벨`() {
+        val anchorLevels = LevelTable.anchors.map { it.level }.toSet()
+        assertEquals(16, LevelTable.cosmeticUnlocks.size)
+        LevelTable.cosmeticUnlocks.forEach { (key, level) -> assertTrue("$key → Lv $level", level in anchorLevels) }
+        // 기본값(sky·steel·white·차종)은 표에 없고 Lv1로 읽힌다.
+        assertEquals(1, LevelTable.unlockLevelOf("color:sky"))
+        assertEquals(1, LevelTable.unlockLevelOf("vehicle:scooter"))
+        // 표의 문구와 맞물림: Lv5 색상 5종, Lv10 투톤(의상)+트레일, Lv20 데칼·루프박스, Lv30 한정 페인트 2종, Lv50 황금 번호판.
+        assertEquals(5, LevelTable.cosmeticUnlocks.count { it.key.startsWith("color:") && it.value == 5 })
+        assertEquals(10, LevelTable.unlockLevelOf("roof:twotone"))
+        assertEquals(10, LevelTable.unlockLevelOf("trail:ribbon"))
+        assertEquals(20, LevelTable.unlockLevelOf("decal:stripe"))
+        assertEquals(20, LevelTable.unlockLevelOf("roof:box"))
+        assertEquals(listOf("color:graphite", "color:sand"), LevelTable.cosmeticUnlocks.filterValues { it == 30 }.keys.sorted())
+        assertEquals(listOf("plate:gold"), LevelTable.cosmeticUnlocks.filterValues { it == 50 }.keys.toList())
+    }
+
+    @Test
+    fun `기준 레벨 표 스냅샷`() {
+        val expected = listOf(
+            Triple(1, 0, "시동"),
+            Triple(5, 1_000, "초보 딱지 뗌"),
+            Triple(10, 4_000, "로드메이트"),
+            Triple(20, 15_000, "투어러"),
+            Triple(30, 35_000, "베테랑"),
+            Triple(50, 100_000, "마스터 드라이버"),
+        )
+        assertEquals(expected, LevelTable.anchors.map { Triple(it.level, it.xp, it.title) })
+        assertEquals(
+            listOf("기본 미니카", "미니카 색상 5종", "캐릭터 의상 1세트, 트레일 효과", "데칼, 루프박스", "한정 페인트", "황금 번호판(가상)"),
+            LevelTable.anchors.map { it.unlock },
+        )
+        assertEquals(5, LevelTable.colorUnlockLevel)
+        assertEquals(50, LevelTable.maxLevel)
     }
 }

@@ -1,0 +1,43 @@
+{
+  "_note": "폰 목업의 데모 값. 차 앱 데모(DemoSeed 820 XP·어제 42 km·업적 3개 + 11월 9일 트립 안전 65 km·+300 XP·업적 2개, 끝에 체리로 색 변경)를 지난 상태와 같다. 레벨·칭호·다음 레벨 XP는 render.py가 LevelTable로 계산하고, 차와 겹치는 문구는 strings.xml에서 읽는다. 실명·계정·연락처·위치 기록은 넣지 않는다.",
+  "date": "11월 9일",
+  "xp": 1120,
+  "week": {"km": 107, "todayKm": 65, "yesterdayKm": 42, "streakDays": 2},
+  "safeTotalKm": 107,
+  "nightSafeKm": 0,
+  "rainSafeKm": 0,
+  "nextAchievement": "safe_300",
+  "loadout": {"vehicle": "compact", "color": "cherry", "wheel": "steel", "lamp": "white", "roof": "none", "decal": "none", "plate": "none", "trail": "none"},
+  "unlocked": {
+    "first_trip": "11월 8일",
+    "safe_10": "11월 8일",
+    "place_yeoju_rest": "11월 8일",
+    "road_yeongdong_yeoju_hoengseong": "11월 9일",
+    "place_gangwon_first": "11월 9일"
+  },
+  "trip": {
+    "title": "11월 9일 트립",
+    "safeKm": 65,
+    "distanceKm": 66,
+    "excluded": 1,
+    "risks": {"risk_harsh_decel": 1},
+    "xp": 300,
+    "achievements": ["road_yeongdong_yeoju_hoengseong", "place_gangwon_first"]
+  },
+  "link": {"code": "WDJB-MJHT", "tokenSeed": "odo-phone-mockup"},
+  "copy": {
+    "linkTitle": "오도와 연결",
+    "linkAim": "차 화면의 QR을 비추세요",
+    "linkOr": "또는 코드 입력",
+    "linkCta": "연결하기",
+    "keyTrip": "트립",
+    "summaryAch": "이번 트립 업적",
+    "summaryCta": "공유 카드 저장",
+    "cardNewAch": "새 업적 {n}개",
+    "garageNote": "차에서 바꿀 수 있어요",
+    "achOpen": "열린 업적",
+    "achGoing": "진행 중",
+    "achLocked": "잠긴 업적"
+  },
+  "time": {"link": "9:56", "home": "11:05", "summary": "11:06", "achievements": "11:07", "garage": "11:08"}
+}

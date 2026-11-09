@@ -1,0 +1,89 @@
+{
+ "version": 1,
+ "views": {
+  "hero": {
+   "px": [
+    576,
+    384
+   ],
+   "dp": [
+    288,
+    192
+   ],
+   "groundY": 336
+  },
+  "navi": {
+   "px": [
+    192,
+    192
+   ],
+   "dp": [
+    96,
+    96
+   ],
+   "anchor": [
+    96,
+    104
+   ]
+  }
+ },
+ "order": [
+  "shadow",
+  "body",
+  "spec",
+  "fixed",
+  "wheel",
+  "lamp",
+  "roof_twotone",
+  "roof_box",
+  "decal_stripe",
+  "plate_gold"
+ ],
+ "blend": {
+  "body": "modulate",
+  "spec": "screen",
+  "lamp": "modulate",
+  "roof_twotone": "modulate",
+  "decal_stripe": "modulate"
+ },
+ "vehicles": {
+  "compact": {
+   "label": "소형",
+   "naviScale": 1.0
+  },
+  "suv": {
+   "label": "중형",
+   "naviScale": 1.0
+  },
+  "large": {
+   "label": "대형",
+   "naviScale": 1.0
+  },
+  "sedan": {
+   "label": "세단",
+   "naviScale": 1.0
+  },
+  "scooter": {
+   "label": "2륜",
+   "naviScale": 1.25
+  }
+ },
+ "layers": [
+  "shadow",
+  "body",
+  "spec",
+  "fixed",
+  "wheel_steel",
+  "wheel_dia",
+  "wheel_aero",
+  "lamp",
+  "roof_twotone",
+  "roof_box",
+  "decal_stripe",
+  "plate_gold"
+ ],
+ "provenance": "현대차 디자인 언어에서 영감을 받아 자체 제작한 스타일라이즈드 모델. 특정 차종·엠블럼·명칭을 재현하지 않음.",
+ "generator": "tools/minicar/build_minicar.py",
+ "blender": "4.5.9",
+ "samples": 128
+}

@@ -85,6 +85,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.zxing.core) // 휴대폰 연결 QR(기기 안에서만 그림, Apache-2.0)
 
     // Pleos Connect SDK. 호출은 platform/pleos/ 어댑터 안에서만 한다(README '구조').
     implementation(libs.pleos.vehicle)

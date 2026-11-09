@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      시작 창 배경 = OdoNight.ground(#0B0F14, ui/theme/OdoTokens.kt와 같은 값). 첫 Compose 프레임 전에
+      Theme.Material 기본 회색(#303030)이 비치지 않게 한다(impeccable §4-38). API 31+ 스플래시도 이 단색을 쓴다.
+    -->
+    <style name="Theme.Odo" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/odo_ground</item>
+    </style>
+    <color name="odo_ground">#FF0B0F14</color>
+</resources>

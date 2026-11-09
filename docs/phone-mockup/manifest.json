@@ -1,0 +1,107 @@
+{
+  "generator": "tools/phone-mockup/render.py",
+  "command": "sh tools/phone-mockup/fetch_fonts.sh && python3 -I tools/phone-mockup/render.py",
+  "pillow": "13.0.0",
+  "raqm": true,
+  "canvas": {
+    "phone": {
+      "dp": [
+        390,
+        844
+      ],
+      "density": 3,
+      "px": [
+        1170,
+        2532
+      ],
+      "frame": "generic, corner r 48dp, bezel 12dp, one punch hole, no logo"
+    },
+    "shareCard": {
+      "px": [
+        1080,
+        1080
+      ]
+    }
+  },
+  "palette": "OdoNight",
+  "inputs": [
+    "app/src/main/java/com/mujimujimuji/odo/ui/theme/OdoTokens.kt",
+    "app/src/main/java/com/mujimujimuji/odo/cosmetic/VehicleType.kt",
+    "app/src/main/java/com/mujimujimuji/odo/cosmetic/CosmeticCatalog.kt",
+    "app/src/main/java/com/mujimujimuji/odo/engine/LevelTable.kt",
+    "app/src/main/java/com/mujimujimuji/odo/engine/Thresholds.kt",
+    "app/src/main/res/values/strings.xml",
+    "app/src/main/assets/achievements.json",
+    "app/src/main/assets/minicar/compose.json",
+    "tools/phone-mockup/screens.json"
+  ],
+  "plates": "app/src/main/assets/minicar",
+  "fonts": {
+    "NotoSansCJKkr-Bold.otf": "26d0c6748500a0444844280b308f5b62c7ae92ac6c6ac88148e502dd211eb52a",
+    "NotoSansCJKkr-Medium.otf": "15c12166634936c31307b91bd049d95b4ba30c248e8c389b5388f75ae8ba90d6",
+    "Roboto-Bold.ttf": "61f89f8db49261c2f6106e8dccc35df7b2f7ed909020db40a3fc905e95f99334",
+    "Roboto-Medium.ttf": "2879a5ecb7fbfa13a7fc3e2cdd7fecbf73aa45e91b541dfdfa2c442eed0aac21"
+  },
+  "qr": {
+    "format": "odo-link:v1:<base32 16 bytes>",
+    "version": 3,
+    "ecl": "M",
+    "token": "demo token = sha256(tokenSeed)[:16], not a live pairing token"
+  },
+  "files": [
+    {
+      "file": "phone_01_link.png",
+      "screen": "연결: QR 비추기·코드 입력",
+      "px": [
+        1170,
+        2532
+      ],
+      "sha256": "3b24bd410da5386b3ca7b3f5cc5ffd260733ffd90139b7533eadacde8c52718e"
+    },
+    {
+      "file": "phone_02_home.png",
+      "screen": "연결됨 홈: 내 미니카·레벨·이번 주 안전 거리",
+      "px": [
+        1170,
+        2532
+      ],
+      "sha256": "9bde58855bb73d2a6a45678b3784160a014b366e5fb79701c5a2e8cf6e3ab3fe"
+    },
+    {
+      "file": "phone_03_summary.png",
+      "screen": "트립 요약 카드",
+      "px": [
+        1170,
+        2532
+      ],
+      "sha256": "d40b553c2d16474b459fa3cfe83d60121245f18f67bca01268605ba8774f1feb"
+    },
+    {
+      "file": "phone_03b_share_card.png",
+      "screen": "공유 카드(숫자·메달·미니카만)",
+      "px": [
+        1080,
+        1080
+      ],
+      "sha256": "09774ed7befac1823388fe6946176dc0e1e4f2afdd78160bea56674d882f2b7c"
+    },
+    {
+      "file": "phone_04_achievements.png",
+      "screen": "업적: 연 것·진행 중(크게)·잠긴 것(작게)",
+      "px": [
+        1170,
+        2532
+      ],
+      "sha256": "d10f68aef0d79420cd46f61c3ace928d8dc54e78fca25612c7955ccdcdd0947a"
+    },
+    {
+      "file": "phone_05_garage.png",
+      "screen": "차고 미리보기(읽기 전용)",
+      "px": [
+        1170,
+        2532
+      ],
+      "sha256": "45a418b06b5bbef1f1bc70a4c69219a649706b2231ac67a0bfc899b7553dda61"
+    }
+  ]
+}

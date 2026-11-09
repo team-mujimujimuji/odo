@@ -52,4 +52,33 @@ object LevelTable {
 
     /** 다음 해금이 있는 기준 레벨. */
     fun nextUnlock(level: Int): Anchor? = anchors.firstOrNull { it.level > level }
+
+    /** 꾸미기 항목 해금 레벨. 키는 "slot:id". 값은 반드시 anchors의 레벨 중 하나(테스트로 고정). */
+    val cosmeticUnlocks: Map<String, Int> = run {
+        val lv5 = anchors[1].level
+        val lv10 = anchors[2].level
+        val lv20 = anchors[3].level
+        val lv30 = anchors[4].level
+        val lv50 = anchors[5].level
+        mapOf(
+            "color:cherry" to lv5,
+            "color:mint" to lv5,
+            "color:lavender" to lv5,
+            "color:tangerine" to lv5,
+            "color:pearl" to lv5,
+            "color:graphite" to lv30,
+            "color:sand" to lv30,
+            "wheel:dia" to lv5,
+            "wheel:aero" to lv20,
+            "lamp:warm" to lv5,
+            "lamp:ice" to lv20,
+            "roof:twotone" to lv10,
+            "roof:box" to lv20,
+            "decal:stripe" to lv20,
+            "trail:ribbon" to lv10,
+            "plate:gold" to lv50,
+        )
+    }
+
+    fun unlockLevelOf(itemKey: String): Int = cosmeticUnlocks[itemKey] ?: 1
 }

@@ -18,11 +18,13 @@ sealed interface AchievementRule {
     data class Level(val level: Int) : AchievementRule
 }
 
+/** [description]은 딴 뒤에 보이는 한 줄(과거형), [condition]은 잠겨 있을 때 보이는 조건 한 줄(비면 진행도만). 판정에는 쓰지 않는다. */
 data class AchievementDef(
     val id: String,
     val title: String,
     val description: String,
     val rule: AchievementRule,
+    val condition: String = "",
 )
 
 /** 누적 업적 판정에 쓰는 프로필 통계. */

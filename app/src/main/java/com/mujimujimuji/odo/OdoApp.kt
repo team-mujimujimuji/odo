@@ -1,12 +1,15 @@
 package com.mujimujimuji.odo
 
 import android.app.Application
+import android.content.ComponentCallbacks2
 import com.mujimujimuji.odo.data.AchievementCatalog
 import com.mujimujimuji.odo.data.OdoDatabase
 import com.mujimujimuji.odo.data.OdoRepository
 import com.mujimujimuji.odo.drive.DriveController
 import com.mujimujimuji.odo.engine.AchievementDef
 import com.mujimujimuji.odo.platform.LiveSignalSource
+import com.mujimujimuji.odo.platform.PhoneLink
+import com.mujimujimuji.odo.platform.fake.FakePhoneLink
 import com.mujimujimuji.odo.platform.fake.ScenarioSignalSource
 import com.mujimujimuji.odo.platform.pleos.CarSpeed
 import com.mujimujimuji.odo.platform.pleos.CarUxDrivingRestriction
@@ -15,6 +18,7 @@ import com.mujimujimuji.odo.platform.pleos.PleosNaviBridge
 import com.mujimujimuji.odo.platform.pleos.PleosVehicleSignals
 import com.mujimujimuji.odo.platform.pleos.PleosVoice
 import com.mujimujimuji.odo.sim.Scenario
+import com.mujimujimuji.odo.ui.vehicle.VehicleAssets
 import android.util.Log
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +34,9 @@ class OdoApp : Application() {
         private set
     lateinit var catalog: List<AchievementDef>
         private set
+    /** 휴대폰 연결 포트. 1차에는 가상 구현뿐(폰 앱 준비 중). 기기 밖으로 나가는 데이터 없음. */
+    lateinit var phoneLink: PhoneLink
+        private set
 
     override fun onCreate() {
         super.onCreate()
@@ -39,6 +46,7 @@ class OdoApp : Application() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + onError)
         repo = OdoRepository(OdoDatabase.create(this).dao(), zone)
         catalog = AchievementCatalog.parse(assets.open("achievements.json").bufferedReader().use { it.readText() })
+        phoneLink = FakePhoneLink(scope, repo)
         controller = DriveController(
             scope = scope,
             repo = repo,
@@ -59,6 +67,12 @@ class OdoApp : Application() {
             },
             restriction = CarUxDrivingRestriction(this),
         )
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        // 앱 화면이 모두 가려지면(또는 그보다 심한 압박) 미니카 비트맵 캐시를 비운다. 돌아오면 필요한 장만 다시 읽는다.
+        if (level >= ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) VehicleAssets.trimMemory()
     }
 
     private companion object {

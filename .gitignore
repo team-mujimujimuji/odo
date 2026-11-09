@@ -25,3 +25,10 @@ docs/proposal/
 docs/env-setup-research.md
 
 .DS_Store
+
+# 파이썬 바이트코드: .pyc에는 실행한 기기의 절대 경로가 박힌다(도구는 `python3 -B`로 돌린다)
+__pycache__/
+*.pyc
+
+# 폰 목업 도구용 글꼴은 fetch 스크립트로 내려받는다(저장소에 넣지 않음)
+tools/phone-mockup/fonts/

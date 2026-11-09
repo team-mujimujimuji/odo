@@ -6,6 +6,7 @@ import com.mujimujimuji.odo.engine.DriveState
 import com.mujimujimuji.odo.engine.DriveStateMachine
 import com.mujimujimuji.odo.engine.EngineEvent
 import com.mujimujimuji.odo.engine.Goal
+import com.mujimujimuji.odo.engine.LatLng
 import com.mujimujimuji.odo.engine.ProfileState
 import com.mujimujimuji.odo.engine.TripSession
 import com.mujimujimuji.odo.engine.TripSummary
@@ -35,12 +36,22 @@ data class DriveUi(
     val locked: Boolean = false,
     val tripActive: Boolean = false,
     val todaySafeKm: Int = 0,
+    /** 엔진의 다음 목표 그대로(홈 게이지·캡션용). */
     val goal: Goal? = null,
+    /** 글랜스 게이지: 주행 중에는 [GlanceGaugeLatch]로 뒤로 가지 않게 잡은 값, 정차 중에는 [goal] 그대로. */
+    val glance: GlanceGauge = GlanceGauge(),
     val profile: ProfileState = ProfileState(),
     val summary: TripSummary? = null,
     /** 정차 중 새로 연 업적(트립 요약 밖). 정차 화면에서만 보인다. */
     val notices: List<AchievementDef> = emptyList(),
     val demoPlaying: Boolean = false,
+    /** 지도 장면(설계서 §4.4): 마지막 위치. null 이면 지도는 계기 모드. */
+    val position: LatLng? = null,
+    /** 저역통과(α 0.3)한 진행방향(북 0°, 시계방향). 3 m 이상 움직인 뒤부터 값이 생긴다. */
+    val headingDeg: Float? = null,
+    val speedKmh: Float = 0f,
+    /** 이번 트립의 지난 길(≈50 m 간격). 트립 시작에 비우고, 요약 화면이 bbox 맞춤에 쓴다. */
+    val tripPath: List<LatLng> = emptyList(),
 )
 
 /**
@@ -62,12 +73,20 @@ class DriveController(
     val ui: StateFlow<DriveUi> = _ui.asStateFlow()
 
     private val lock = Mutex()
-    private val voicePolicy = VoicePolicy()
+    /**
+     * 데모는 매번 같은 시각(오늘 10:00 + t)부터 재생된다. 그래서 재생·초기화 때 새로 만든다.
+     * 그러지 않으면 앞 재생의 주행 중 발화가 10분 창에 남아 같은 날 세 번째 재생부터 상한 문장이 빠진다.
+     * 실주행(startLive)은 한 번만 만들어 규칙(10분 2회)을 그대로 지킨다.
+     */
+    private var voicePolicy = VoicePolicy()
     private var session: TripSession? = null
     private var savedProfile: ProfileState? = null
     private var systemRestricted = false
     private var moving = false
     private var sourceJob: Job? = null
+    private val tracker = HeadingTracker()
+    private val glanceLatch = GlanceGaugeLatch()
+    private var lastSpeedKmh = 0f
 
     init {
         scope.launch {
@@ -94,7 +113,10 @@ class DriveController(
         sourceJob?.cancel()
         _ui.update { it.copy(demoPlaying = true, summary = null, notices = emptyList()) }
         sourceJob = scope.launch {
-            lock.withLock { newSession() }
+            lock.withLock {
+                voicePolicy = VoicePolicy()
+                newSession()
+            }
             try {
                 demoSource(DemoSeed.scenarioStart(today(), zone)).snapshots.collect(::onSnapshot)
             } finally {
@@ -117,6 +139,9 @@ class DriveController(
             lock.withLock {
                 repo.resetToSeed(today())
                 moving = false
+                tracker.reset()
+                lastSpeedKmh = 0f
+                voicePolicy = VoicePolicy()
                 _ui.update { DriveUi(simulated = fake, locked = systemRestricted) }
                 newSession()
             }
@@ -131,6 +156,7 @@ class DriveController(
         val profile = repo.profile()
         savedProfile = profile
         session = TripSession(catalog, repo.unlockedIds(), profile, zone)
+        glanceLatch.reset()
         publish()
     }
 
@@ -138,14 +164,22 @@ class DriveController(
         val session = session ?: return@withLock
         moving = DriveStateMachine.isMoving(s.gear, s.speedKmh)
         val events = session.onSample(s)
+        tracker.update(s)
+        lastSpeedKmh = s.speedKmh.toFloat()
         val driving = moving || session.state == DriveState.DRIVING
         for (e in events) {
             when (e) {
-                is EngineEvent.TripStarted -> _ui.update { it.copy(summary = null, notices = emptyList()) }
+                is EngineEvent.TripStarted -> {
+                    // 지난 길은 트립 단위. 시작 샘플부터 다시 쌓는다.
+                    tracker.reset()
+                    tracker.update(s)
+                    _ui.update { it.copy(summary = null, notices = emptyList()) }
+                }
                 is EngineEvent.DailyCapReached ->
                     say(e.timeMs, driving, "안전 주행 ${e.todaySafeKm} km, 오늘 상한을 채웠어요.")
                 is EngineEvent.AchievementUnlocked -> {
                     repo.unlock(e.achievement.id, e.timeMs)
+                    glanceLatch.onUnlocked(e.achievement.id)
                     // 트립 중 연 업적은 요약에서 보여 준다. 정차 중(장소 체류)에 연 것만 바로 알린다.
                     if (!e.duringTrip) {
                         _ui.update { it.copy(notices = it.notices + e.achievement) }
@@ -173,14 +207,21 @@ class DriveController(
     private fun publish() {
         val s = session ?: return
         val p = s.profile
+        val goal = s.nextGoal()
+        val glance = glanceLatch.update(moving || s.state == DriveState.DRIVING, goal)
         _ui.update {
             it.copy(
                 ready = true,
                 locked = moving || systemRestricted,
                 tripActive = s.state == DriveState.DRIVING,
                 todaySafeKm = if (p.dayDate == today()) p.daySafeKm else 0,
-                goal = s.nextGoal(),
+                goal = goal,
+                glance = glance,
                 profile = p,
+                position = tracker.position,
+                headingDeg = tracker.headingDeg,
+                speedKmh = lastSpeedKmh,
+                tripPath = tracker.path,
             )
         }
     }

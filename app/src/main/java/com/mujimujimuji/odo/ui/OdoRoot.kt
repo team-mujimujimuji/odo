@@ -1,111 +1,257 @@
 package com.mujimujimuji.odo.ui
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mujimujimuji.odo.OdoApp
-import com.mujimujimuji.odo.engine.AchievementDef
+import com.mujimujimuji.odo.R
+import com.mujimujimuji.odo.cosmetic.CosmeticCatalog
+import com.mujimujimuji.odo.cosmetic.Loadout
+import com.mujimujimuji.odo.engine.AchievementStats
 import com.mujimujimuji.odo.engine.LevelTable
 import com.mujimujimuji.odo.engine.StreakRules
+import com.mujimujimuji.odo.engine.Thresholds
+import com.mujimujimuji.odo.engine.TripSummary
+import com.mujimujimuji.odo.platform.PhoneLinkState
+import com.mujimujimuji.odo.ui.components.OdoDurations
+import com.mujimujimuji.odo.ui.components.OdoEasing
+import com.mujimujimuji.odo.ui.components.rememberMotionScale
+import com.mujimujimuji.odo.ui.components.scaledBy
 import com.mujimujimuji.odo.ui.glance.GlanceScreen
 import com.mujimujimuji.odo.ui.home.HomeScreen
 import com.mujimujimuji.odo.ui.home.HomeStats
+import com.mujimujimuji.odo.ui.map.rememberCorridorData
+import com.mujimujimuji.odo.ui.phonelink.PhoneLinkScreen
 import com.mujimujimuji.odo.ui.profile.AchievementsScreen
-import com.mujimujimuji.odo.ui.profile.CustomizeScreen
-import com.mujimujimuji.odo.ui.profile.MinicarPalette
+import com.mujimujimuji.odo.ui.profile.GarageScreen
 import com.mujimujimuji.odo.ui.summary.SummaryScreen
-import com.mujimujimuji.odo.ui.theme.Road
+import com.mujimujimuji.odo.ui.theme.LocalOdoColors
+import com.mujimujimuji.odo.ui.theme.OdoTheme
+import com.mujimujimuji.odo.ui.theme.rememberNightMode
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
-private enum class Screen { HOME, ACHIEVEMENTS, CUSTOMIZE }
+/** 정차 중 사용자가 고른 화면. */
+private enum class Screen { HOME, ACHIEVEMENTS, GARAGE, PHONE }
+
+/** 실제로 그리는 화면. 잠금(주행) → 글랜스, 트립 요약 있음 → 요약, 그 밖에는 [Screen]. */
+private enum class Route { BLANK, GLANCE, SUMMARY, HOME, ACHIEVEMENTS, GARAGE, PHONE }
 
 /**
- * 화면 고르기: 잠금(주행) → 글랜스, 트립 요약 있음 → 요약, 그 밖에는 정차 화면들.
- * 잠금 중에는 DriveLockOverlay가 맨 위에서 모든 입력을 막는다.
+ * 화면 고르기(설계서 §5.7)와 테마. 주행 잠금 ↔ 해제 전환은 0 ms(크로스페이드 없이 바로 바꾼다),
+ * 정차 화면끼리는 200 ms 크로스페이드. 밤/낮은 잠금 중 바뀌지 않는다(rememberNightMode).
+ * 잠금 중에는 DriveLockOverlay가 맨 위에서 모든 입력을 막는다. 휴대폰 연결 대기 중 주행이 시작되면 대기를 접고 홈으로 돌린다.
  */
 @Composable
 fun OdoRoot(app: OdoApp) {
     val ui by app.controller.ui.collectAsStateWithLifecycle()
     val today = LocalDate.now()
     val weekly by remember(today) { app.repo.weeklySafeKm(today) }.collectAsStateWithLifecycle(0)
+    val yesterday by remember(today) { app.repo.yesterdaySafeKm(today) }.collectAsStateWithLifecycle(0)
     val unlocked by app.repo.unlockedFlow.collectAsStateWithLifecycle(emptySet())
-    val colorId by remember { app.repo.cosmetic(MinicarPalette.SLOT) }.collectAsStateWithLifecycle(null)
-    var screen by remember { mutableStateOf(Screen.HOME) }
+    val rawLoadout by remember { app.repo.loadoutFlow }.collectAsStateWithLifecycle(Loadout.default)
+    val phoneState by app.phoneLink.state.collectAsStateWithLifecycle()
+    val data = rememberCorridorData()
     val scope = rememberCoroutineScope()
 
-    Box(Modifier.fillMaxSize().background(Road.Asphalt)) {
-        val summary = ui.summary
-        when {
-            !ui.ready -> Unit
-            ui.locked -> GlanceScreen(ui)
-            summary != null -> SummaryScreen(summary, later = ui.notices) {
-                app.controller.closeSummary()
-                app.controller.dismissNotices()
+    val level = LevelTable.levelForXp(ui.profile.totalXp)
+    // 잠긴 항목이 저장돼 있어도 보여 주는 로드아웃은 레벨에 맞게 기본값으로 내린다.
+    val loadout = remember(rawLoadout, level) { rawLoadout.resolve(level) }
+    var screen by remember { mutableStateOf(Screen.HOME) }
+    // 캡처용 강제 주야. 글꼴 배율 변경 등으로 액티비티가 다시 만들어져도 유지한다(주행 중 주야가 바뀌지 않게).
+    var forcedNight by rememberSaveable { mutableStateOf<Boolean?>(null) }
+    var localNotice by remember { mutableStateOf<String?>(null) }
+    var lastSummary by remember { mutableStateOf<TripSummary?>(null) }
+    val night = rememberNightMode(ui.locked, forcedNight)
+    val motion = rememberMotionScale()
+
+    val summary = ui.summary
+    // 요약이 닫혀도 크로스페이드가 끝날 때까지 마지막 요약을 그린다.
+    LaunchedEffect(summary) { if (summary != null) lastSummary = summary }
+    // 기어 P 직후: 잠금은 바로 풀리지만 엔진은 STATE_DEBOUNCE_MS 뒤에야 트립을 끝내고 요약을 낸다. 그 사이 홈이 잠깐 비쳐
+    // 보상(요약 박자)이 먼저 새지 않게 글랜스 장면을 붙들어 둔다. 입력 잠금(DriveLockOverlay)은 ui.locked만 따른다.
+    // 트립이 안 끝나면(기어 N 정차 등) 디바운스 + 여유 뒤 홈으로 간다.
+    // 붙들기 여부는 잠금이 풀린 그 구성에서 바로 정해야 한다. 이펙트 뒤에 켜면 한 프레임 홈으로 빠졌다 돌아오며
+    // GlanceScreen이 새로 만들어지고(타일 캐시·미니카 플레이트가 비어 지도와 미니카가 잠깐 사라짐) 홈 장면을 헛되이 그린다.
+    var holdExpired by remember { mutableStateOf(false) }
+    LaunchedEffect(ui.locked, ui.tripActive) {
+        holdExpired = false
+        if (!ui.locked && ui.tripActive) {
+            delay(Thresholds.STATE_DEBOUNCE_MS + GLANCE_HOLD_MARGIN_MS)
+            holdExpired = true
+        }
+    }
+    val holdGlance = !ui.locked && ui.tripActive && !holdExpired
+    val route = when {
+        !ui.ready -> Route.BLANK
+        ui.locked || holdGlance -> Route.GLANCE
+        summary != null -> Route.SUMMARY
+        else -> when (screen) {
+            Screen.HOME -> Route.HOME
+            Screen.ACHIEVEMENTS -> Route.ACHIEVEMENTS
+            Screen.GARAGE -> Route.GARAGE
+            Screen.PHONE -> Route.PHONE
+        }
+    }
+
+    val phoneAfterStop = stringResource(R.string.home_notice_phone_after_stop)
+    val unlinked = stringResource(R.string.phone_unlinked_notice)
+    LaunchedEffect(ui.locked) {
+        if (ui.locked && screen == Screen.PHONE) {
+            app.phoneLink.cancelPairing()
+            screen = Screen.HOME
+            localNotice = phoneAfterStop
+        }
+    }
+    // 폰 화면을 떠나면 대기 중인 코드를 접는다(연결됨은 그대로). 다시 들어오면 새 코드가 발급된다.
+    LaunchedEffect(route) { if (route != Route.PHONE) app.phoneLink.cancelPairing() }
+    // 알림 1줄은 홈에서 한 번만: 업적·차고·휴대폰으로 넘어가면 접어서 돌아왔을 때 다시 뜨지 않게 한다.
+    // (잠금 때 남긴 "정차 후 다시 연결" 안내는 글랜스를 거쳐 홈에서 보여야 하므로 글랜스·요약 진입에서는 접지 않는다.)
+    LaunchedEffect(route) {
+        if (route == Route.ACHIEVEMENTS || route == Route.GARAGE || route == Route.PHONE) {
+            localNotice = null
+            app.controller.dismissNotices()
+        }
+    }
+
+    val center = ui.position ?: if (ui.simulated) data?.routeStart else null
+    val firstNotice = ui.notices.firstOrNull()
+    val noticeText = localNotice ?: firstNotice?.let { stringResource(R.string.notice_achievement_unlocked, it.title) }
+    val demoChipText = if (!ui.simulated) {
+        null
+    } else {
+        stringResource(
+            when {
+                forcedNight == null -> R.string.demo_chip
+                night -> R.string.demo_chip_night
+                else -> R.string.demo_chip_day
+            },
+        )
+    }
+    val stats = HomeStats(
+        weeklySafeKm = weekly,
+        yesterdaySafeKm = yesterday,
+        streakDays = StreakRules.currentDays(ui.profile.streak, today),
+        unlockedCount = unlocked.size,
+        achievementTotal = app.catalog.size,
+        collected = CosmeticCatalog.collected(level),
+        collectibleTotal = CosmeticCatalog.collectibleTotal,
+        phoneLinked = phoneState is PhoneLinkState.Linked,
+    )
+
+    OdoTheme(night) {
+        val c = LocalOdoColors.current
+        Box(Modifier.fillMaxSize().background(c.ground)) {
+            if (route == Route.GLANCE) {
+                // 잠금 전환은 0 ms(§8): 크로스페이드를 거치지 않는다.
+                GlanceScreen(ui, loadout)
+            } else {
+                Crossfade(
+                    targetState = route,
+                    animationSpec = tween(OdoDurations.SCREEN_MS.scaledBy(motion), easing = OdoEasing),
+                    label = "route",
+                ) { r ->
+                    when (r) {
+                        Route.BLANK, Route.GLANCE -> Unit
+                        Route.SUMMARY -> {
+                            val shown = summary ?: lastSummary
+                            if (shown != null) {
+                                SummaryScreen(
+                                    summary = shown,
+                                    later = ui.notices,
+                                    loadout = loadout,
+                                    data = data,
+                                    path = ui.tripPath,
+                                    totalXp = ui.profile.totalXp,
+                                    onClose = {
+                                        app.controller.closeSummary()
+                                        app.controller.dismissNotices()
+                                    },
+                                )
+                            }
+                        }
+                        Route.ACHIEVEMENTS -> AchievementsScreen(
+                            app.catalog,
+                            unlocked,
+                            AchievementStats(
+                                totalSafeKm = ui.profile.totalSafeKm,
+                                nightSafeKm = ui.profile.nightSafeKm,
+                                rainSafeKm = ui.profile.rainSafeKm,
+                                tripCount = ui.profile.tripCount,
+                                streakDays = StreakRules.currentDays(ui.profile.streak, today),
+                                level = level,
+                            ),
+                            data,
+                            center,
+                            onHome = { screen = Screen.HOME },
+                        )
+                        Route.GARAGE -> GarageScreen(
+                            loadout = loadout,
+                            level = level,
+                            data = data,
+                            center = center,
+                            onSelect = { slot, id -> scope.launch { app.repo.setSlot(loadout.vehicle, slot, id) } },
+                            onHome = { screen = Screen.HOME },
+                        )
+                        Route.PHONE -> PhoneLinkScreen(
+                            state = phoneState,
+                            loadout = loadout,
+                            data = data,
+                            center = center,
+                            // 지금 화면이 폰일 때만 연결을 시작한다. 끊기·홈으로 나가는 크로스페이드 동안 나가는 폰 화면이
+                            // Idle을 보고 다시 시작하면, 4.5 s 뒤 화면 밖에서 "연결됨"으로 바뀌던 버그가 있었다.
+                            onStartPairing = { if (screen == Screen.PHONE) app.phoneLink.startPairing() },
+                            onDisconnect = {
+                                app.phoneLink.disconnect()
+                                localNotice = unlinked
+                                screen = Screen.HOME
+                            },
+                            onHome = { screen = Screen.HOME },
+                        )
+                        Route.HOME -> HomeScreen(
+                            ui = ui,
+                            loadout = loadout,
+                            stats = stats,
+                            data = data,
+                            center = center,
+                            demoChipText = demoChipText,
+                            onDemoChipLongPress = if (ui.simulated) ({ forcedNight = !night }) else null,
+                            onAchievements = { screen = Screen.ACHIEVEMENTS },
+                            onGarage = { screen = Screen.GARAGE },
+                            onPhone = { screen = Screen.PHONE },
+                            onStartDemo = {
+                                screen = Screen.HOME
+                                app.controller.startDemo()
+                            },
+                            onResetDemo = {
+                                forcedNight = null
+                                app.controller.resetDemo()
+                            },
+                            // 알림 1줄은 홈에서만(설계서 §5.1, 패널 위 4dp). 주행 중·요약·다른 패널에는 띄우지 않는다.
+                            notice = noticeText,
+                            onDismissNotice = { if (localNotice != null) localNotice = null else app.controller.dismissNotices() },
+                        )
+                    }
+                }
             }
-            screen == Screen.ACHIEVEMENTS -> AchievementsScreen(app.catalog, unlocked) { screen = Screen.HOME }
-            screen == Screen.CUSTOMIZE -> CustomizeScreen(
-                level = LevelTable.levelForXp(ui.profile.totalXp),
-                selectedId = colorId,
-                onSelect = { id -> scope.launch { app.repo.setCosmetic(MinicarPalette.SLOT, id) } },
-                onBack = { screen = Screen.HOME },
-            )
-            else -> HomeScreen(
-                ui = ui,
-                stats = HomeStats(
-                    weeklySafeKm = weekly,
-                    unlockedCount = unlocked.size,
-                    achievementTotal = app.catalog.size,
-                    streakDays = StreakRules.currentDays(ui.profile.streak, today),
-                    carColor = MinicarPalette.byId(colorId).color,
-                ),
-                onAchievements = { screen = Screen.ACHIEVEMENTS },
-                onCustomize = { screen = Screen.CUSTOMIZE },
-                onStartDemo = { screen = Screen.HOME; app.controller.startDemo() },
-                onResetDemo = app.controller::resetDemo,
-            )
+            if (ui.locked) DriveLockOverlay()
         }
-        // 정차 중에 연 업적 알림. 주행 중에는 띄우지 않는다(절대 규칙 2). 트립 요약에서는 요약 안에 보인다.
-        if (!ui.locked && summary == null && ui.notices.isNotEmpty()) {
-            NoticeBanner(ui.notices, app.controller::dismissNotices, Modifier.align(Alignment.TopCenter))
-        }
-        if (ui.locked) DriveLockOverlay()
     }
 }
 
-@Composable
-private fun NoticeBanner(items: List<AchievementDef>, onDismiss: () -> Unit, modifier: Modifier) {
-    Row(
-        modifier
-            .padding(top = 20.dp)
-            .widthIn(min = 420.dp)
-            .background(Road.CenterLine, RoundedCornerShape(14.dp))
-            .padding(start = 24.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f, fill = false).padding(end = 16.dp)) {
-            Text("업적을 열었어요", color = Road.OnCenterLine, fontSize = 18.sp)
-            Text(items.joinToString(", ") { it.title }, color = Road.OnCenterLine, fontSize = 26.sp, fontWeight = FontWeight.Bold)
-        }
-        TextButton(onClick = onDismiss) { Text("확인", color = Road.OnCenterLine, fontSize = 20.sp) }
-    }
-}
+/** 기어 P 뒤 글랜스를 붙드는 여유(디바운스 2 s에 더함). 그 안에 요약이 안 오면 홈으로. */
+private const val GLANCE_HOLD_MARGIN_MS = 1_000L

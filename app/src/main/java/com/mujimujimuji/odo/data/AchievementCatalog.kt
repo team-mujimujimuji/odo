@@ -18,6 +18,7 @@ object AchievementCatalog {
                 title = o.getString("title"),
                 description = o.getString("description"),
                 rule = parseRule(o.getJSONObject("rule")),
+                condition = o.optString("condition", ""),
             )
         }
     }

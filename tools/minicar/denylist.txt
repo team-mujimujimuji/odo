@@ -1,0 +1,412 @@
+# 검사 전용 금지어 목록(check_names.py가 읽음). 이 파일에 적힌 단어는 "사용하지 않음"을 확인하기 위한 것이며
+# 앱·에셋·문서 어디에도 쓰이지 않는다. 한 줄에 한 항목, '#'으로 시작하면 주석.
+# 영문: 대소문자 무시·영숫자 경계. 한글: 앞뒤가 한글이 아닐 때만 일치(더 긴 낱말의 일부에는 걸리지 않음).
+# 일반 영단어와 겹치는 항목(Accent, Venue, Soul, Ray, Morning, Pride, Click, Matrix, Coupe, Porter, Mighty, County,
+# Universe, Grace, Capital, Enterprise, Proceed, Aero 등)은 오탐을 피하려고 영문을 빼고 한글 표기만 둔다.
+
+## models-en
+Sonata
+Avante
+Elantra
+Grandeur
+Azera
+Santa Fe
+Santafe
+Tucson
+Palisade
+Kona
+Casper
+Staria
+Starex
+Ioniq
+Nexo
+Veloster
+Genesis Coupe
+Equus
+Dynasty
+Aslan
+Maxcruz
+Veracruz
+Terracan
+Galloper
+Santamo
+Trajet
+Lavita
+Atos
+Getz
+i10
+i20
+i30
+i40
+ix20
+ix25
+ix35
+ix55
+Tiburon
+Scoupe
+Pony
+Stellar
+Marcia
+Verna
+Solaris
+Creta
+Alcazar
+Bayon
+Exter
+Mufasa
+Custo
+Custin
+Lafesta
+Mistra
+Xcient
+Pavise
+Trago
+Mega Truck
+Solati
+Libero
+Santa Cruz
+Entourage
+Sportage
+Sorento
+Carnival
+Sedona
+Mohave
+Borrego
+Seltos
+Niro
+Stonic
+Picanto
+Cerato
+Forte
+Optima
+Lotze
+Credos
+Potentia
+Opirus
+Amanti
+Cadenza
+Stinger
+Telluride
+Carens
+Rondo
+Bongo
+Granbird
+Retona
+Sephia
+Shuma
+Spectra
+Avella
+Concord
+Carstar
+Visto
+Towner
+Besta
+Pregio
+Ceed
+Xceed
+Venga
+Quoris
+Magentis
+Clarus
+Joice
+K3
+K5
+K7
+K8
+K9
+K900
+EV3
+EV4
+EV5
+EV6
+EV9
+PV5
+G70
+G80
+G90
+GV60
+GV70
+GV80
+EQ900
+
+## models-ko
+쏘나타
+소나타
+아반떼
+아반테
+그랜저
+그랜져
+싼타페
+산타페
+투싼
+투산
+팰리세이드
+펠리세이드
+코나
+캐스퍼
+스타리아
+스타렉스
+아이오닉
+넥쏘
+넥소
+벨로스터
+제네시스 쿠페
+에쿠스
+다이너스티
+아슬란
+맥스크루즈
+베라크루즈
+테라칸
+갤로퍼
+싼타모
+트라제
+라비타
+아토스
+아토즈
+베르나
+엑센트
+엘란트라
+티뷰론
+스쿠프
+엑셀
+포니
+스텔라
+마르샤
+크레타
+베뉴
+포터
+그레이스
+마이티
+카운티
+유니버스
+엑시언트
+파비스
+트라고
+메가트럭
+쏠라티
+리베로
+싼타크루즈
+산타크루즈
+쏘렌토
+소렌토
+스포티지
+카니발
+모하비
+셀토스
+니로
+스토닉
+쏘울
+소울
+레이
+모닝
+프라이드
+리오
+세라토
+포르테
+옵티마
+로체
+크레도스
+포텐샤
+엔터프라이즈
+오피러스
+스팅어
+텔루라이드
+카렌스
+타스만
+봉고
+그랜버드
+레토나
+세피아
+슈마
+스펙트라
+아벨라
+캐피탈
+콩코드
+비스토
+타우너
+베스타
+프레지오
+씨드
+벤가
+쿼리스
+매그넨티스
+클라러스
+현대풍
+현대차풍
+기아풍
+제네시스풍
+
+## colors-en
+Abyss Black Pearl
+Creamy White Pearl
+Shimmering Silver
+Phantom Black
+Atlas White
+Cyber Gray
+Cyber Grey
+Amazon Gray
+Amazon Grey
+Serenity White Pearl
+Ecotronic Gray
+Ecotronic Grey
+Lucid Blue Pearl
+Intense Blue
+Digital Teal
+Gravity Gold Matte
+Mystic Olive Green
+Nocturne Gray
+Nocturne Grey
+Ultimate Red
+Dragon Red Pearl
+Electric Shadow
+Shooting Star
+Mirage Green
+Soultronic Orange Pearl
+Performance Blue
+Ceramic White
+Biophilic Blue
+Hyper Silver
+Melting Silver
+Fiery Red
+Polar White
+Typhoon Silver
+Aurora Black Pearl
+Snow White Pearl
+Glacier White Pearl
+Ultra Silver
+Graphite Gray
+Graphite Grey
+Gravity Blue
+Interstellar Gray
+Interstellar Grey
+Yacht Blue
+Runway Red
+Moonscape
+Wolf Gray
+Wolf Grey
+Clear White
+Deep Chroma Blue
+Panthera Metal
+Astra Blue
+Mineral Blue
+Fusion Black
+Ivory Silver Matte
+Aventurine Green
+Flare Red
+Iceberg Green
+Pebble Gray
+Pebble Grey
+Milky Beige
+Frost Blue
+Dawning Red
+Uyuni White
+Vik Black
+Savile Silver
+Makalu Gray
+Makalu Grey
+Matterhorn White
+Cardiff Green
+Tasman Blue
+Brunswick Green
+Hallasan Green
+Mauna Red
+Bering Blue
+Adriatic Blue
+Capri Blue
+Lima Red
+Verbier White
+Storr Green
+Barossa Burgundy
+Gran Blue
+Melbourne Gray
+Melbourne Grey
+Himalayan Gray
+Himalayan Grey
+Siena Brown
+Porto Red
+Hanauma Mint
+Atacama Copper
+Mallorca Blue
+Kalahari Brown
+
+## colors-ko
+어비스 블랙 펄
+크리미 화이트 펄
+쉬머링 실버
+팬텀 블랙
+아틀라스 화이트
+사이버 그레이
+아마존 그레이
+세레니티 화이트 펄
+에코트로닉 그레이
+루시드 블루 펄
+인텐스 블루
+디지털 틸
+그래비티 골드 매트
+미스틱 올리브 그린
+녹턴 그레이
+얼티밋 레드
+드래곤 레드 펄
+일렉트릭 섀도우
+슈팅 스타
+미라지 그린
+소울트로닉 오렌지 펄
+퍼포먼스 블루
+세라믹 화이트
+바이오필릭 블루
+하이퍼 실버
+멜팅 실버
+파이어리 레드
+폴라 화이트
+타이푼 실버
+오로라 블랙 펄
+스노우 화이트 펄
+글레이셔 화이트 펄
+울트라 실버
+그래파이트 그레이
+그래비티 블루
+인터스텔라 그레이
+요트 블루
+런웨이 레드
+문스케이프
+울프 그레이
+클리어 화이트
+딥 크로마 블루
+판테라 메탈
+아스트라 블루
+미네랄 블루
+퓨전 블랙
+아이보리 실버 매트
+어벤츄린 그린
+플레어 레드
+아이스버그 그린
+페블 그레이
+밀키 베이지
+프로스트 블루
+도닝 레드
+유유니 화이트
+비크 블랙
+사빌 실버
+마칼루 그레이
+마테호른 화이트
+카디프 그린
+태즈먼 블루
+브런즈윅 그린
+한라산 그린
+마우나 레드
+베링 블루
+아드리아틱 블루
+카프리 블루
+리마 레드
+베르비에 화이트
+스토르 그린
+바로사 버건디
+그란 블루
+멜버른 그레이
+히말라얀 그레이
+시에나 브라운
+포르토 레드
+하나우마 민트
+아타카마 카퍼
+마요르카 블루
+칼라하리 브라운
