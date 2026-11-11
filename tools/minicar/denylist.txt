@@ -1,8 +1,7 @@
 # 검사 전용 금지어 목록(check_names.py가 읽음). 이 파일에 적힌 단어는 "사용하지 않음"을 확인하기 위한 것이며
 # 앱·에셋·문서 어디에도 쓰이지 않는다. 한 줄에 한 항목, '#'으로 시작하면 주석.
 # 영문: 대소문자 무시·영숫자 경계. 한글: 앞뒤가 한글이 아닐 때만 일치(더 긴 낱말의 일부에는 걸리지 않음).
-# 일반 영단어와 겹치는 항목(Accent, Venue, Soul, Ray, Morning, Pride, Click, Matrix, Coupe, Porter, Mighty, County,
-# Universe, Grace, Capital, Enterprise, Proceed, Aero 등)은 오탐을 피하려고 영문을 빼고 한글 표기만 둔다.
+# 일반 영단어와 겹치는 일부 모델명은 오탐을 피하려고 영문을 빼고 한글 표기(## models-ko)만 둔다.
 
 ## models-en
 Sonata

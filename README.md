@@ -43,7 +43,7 @@ adb shell am start -n com.mujimujimuji.odo/.MainActivity
 ### 소스에서 빌드
 
 ```bash
-./gradlew testDebugUnitTest          # 단위 테스트 191개 (engine·sim·cosmetic·drive·platform, ui/components·map·summary·theme·vehicle·text)
+./gradlew testDebugUnitTest          # 단위 테스트 204개 (engine·sim·cosmetic·drive·platform, ui/components·map·summary·theme·vehicle·text)
 ./gradlew assembleDebug              # app/build/outputs/apk/debug/
 ./gradlew assembleRelease            # app/build/outputs/apk/release/
 ```
@@ -152,6 +152,8 @@ tools/
 
 모든 임계값은 `engine/Thresholds.kt`, XP·레벨 표는 `engine/LevelTable.kt`에 있다.
 
+코드 주석의 '설계서 §N'은 `docs/design-spec.md`의 절 번호를 가리킨다.
+
 연속 기록 보너스(`engine/XpCalculator.kt`의 `StreakRules`): 하루 1 km 이상 안전 주행한 날이 이어지면 연속 일수가 1씩 늘고, 하루라도 빠지면 다시 1일부터 센다. 연속 일수가 7의 배수인 날(7·14·21일째…)마다 +50 XP, 30의 배수인 날(30·60일째…)마다 +300 XP를 그날 첫 안전 1 km 구간에서 준다. 이 보너스는 일일 상한(300 XP) 밖이라 상한을 채운 날에도 더해지고, 그 트립의 XP에 들어간다. 주행 중에는 화면·음성으로 알리지 않고, 트립 요약의 상한 캡션 자리에 따로 적는다(`TripSummary.streakBonusXp`. 예: "연속 기록 보너스 +50 XP 포함", 상한도 채웠으면 "상한 300 XP + 연속 보너스 50 XP").
 
 ## 안전·프라이버시 원칙
@@ -191,6 +193,7 @@ tools/
 | [FFmpeg](https://ffmpeg.org/) | 이어콘 WAV → OGG 변환 (`tools/audio/make_earcons.py`, 도구로만 사용, 앱에 포함 안 됨) | LGPL-2.1+ 또는 GPL-2.0+ (빌드 옵션에 따름, 도구) |
 | [Noto Sans CJK KR](https://github.com/notofonts/noto-cjk) Sans2.004 | 폰 목업 PNG의 한글 (`tools/phone-mockup/fetch_fonts.sh`로 내려받음, 저장소·앱에 포함 안 됨) | SIL OFL 1.1 |
 | [Roboto](https://github.com/googlefonts/roboto-2) v2.138 | 폰 목업 PNG의 숫자·로마자 (위와 같음) | Apache 2.0 |
+| [QR Code generator](https://github.com/nayuki/QR-Code-generator) (Project Nayuki, 파이썬 판) | 폰 목업 PNG의 QR 인코더(`tools/phone-mockup/render.py`의 `qr_matrix`). 알고리즘을 바이트 모드·버전 1~6만 남기고 줄여 옮겼다. 목업 도구에만 쓰고 앱에 포함 안 됨. 저작권·허가 문구는 [NOTICE.md](NOTICE.md) | MIT |
 | [Pillow](https://python-pillow.org/) | 폰 목업 PNG 그리기(`tools/phone-mockup/render.py`), 미니카 그림자 알파 처리(`tools/minicar/postprocess.py`). 도구로만 사용 | MIT-CMU (HPND) |
 | AndroidX (Core, Lifecycle, Activity, Room) | 앱 기반, 로컬 저장 | Apache 2.0 |
 | Jetpack Compose, Material 3 | UI | Apache 2.0 |
@@ -208,21 +211,22 @@ tools/
 |---|---|---|
 | `assets/scenarios/gangneung_trip.json` | `tools/scenario/make_gangneung_trip.py` | OSRM 경로 → 20배속 샘플 |
 | `assets/map/corridor.json` | `tools/map/fetch_overpass.py` → `tools/map/build_corridor.py` | [tools/map/README.md](tools/map/README.md) |
-| `assets/minicar/**` (WebP 120장) | `tools/minicar/build_minicar.py` → `postprocess.py` | [tools/minicar/README.md](tools/minicar/README.md), 두 번 실행해도 바이트 동일 |
+| `assets/minicar/**` (WebP 165장) | `tools/minicar/build_minicar.py` → `postprocess.py` | [tools/minicar/README.md](tools/minicar/README.md), 두 번 실행해도 바이트 동일 |
 | `res/raw/earcon_*.ogg` | `tools/audio/make_earcons.py` | 사인파 합성, 외부 음원 없음 |
 | 색 대비표 (Markdown 표, 표준 출력) | `tools/design/contrast.py` | 토큰을 바꾸면 다시 실행 |
 | `docs/phone-mockup/*.png` (폰 동반 화면 6장) | `tools/phone-mockup/fetch_fonts.sh` → `render.py` | [tools/phone-mockup/README.md](tools/phone-mockup/README.md), 앱 소스의 토큰·문구·미니카를 읽음, 두 번 실행해도 바이트 동일 |
 
 ### 3D 미니카 (`tools/minicar/`)
 
-- 외부 모델·텍스처 없이 `vehicles.json`의 치수 값만으로 Blender가 차종 5종(소형·중형·대형·세단·2륜)을 bmesh로 절차 생성한다. 현대차 디자인 언어에서 영감을 받은 자체 스타일라이즈드 모델이고, 엠블럼·차명·그릴은 없다. `check_names.py`가 저장소에 실제 차명 같은 금지어가 0건인지 검사한다.
-- 뷰 2개(홈·차고의 hero 576×384 px, 글랜스 지도 위 navi 192×192 px)마다 레이어 12장(접지 그림자, 흰 차체, 반사광, 유리·타이어 같은 고정부, 휠 3종, 램프, 투톤 루프, 루프박스, 스트라이프, 황금 번호판)을 알파 PNG로 렌더한다. `postprocess.py`가 이것을 WebP 120장과 합성 정보 `compose.json`(합계 약 0.7 MB)으로 묶는다.
+- 외부 모델·텍스처 없이 `vehicles.json`의 치수·단면 값만으로 Blender가 차종 5종(소형·중형·대형·세단·2륜)을 절차 생성한다(로프트 케이지 + Subdivision Surface). 현대차 디자인 언어에서 영감을 받은 자체 스타일라이즈드 모델이고, 엠블럼·차명·그릴은 없다. `check_names.py`가 저장소에 실제 차명 같은 금지어가 0건인지 검사한다.
+- 뷰 3개(차고·휴대폰 연결의 hero 576×384 px, 글랜스 지도의 navi 256×320 px, 홈·요약 지도의 top 256×384 px)마다 레이어(접지 그림자, 흰 차체, 반사광, 투톤 루프, 스트라이프, 유리·타이어·후미등 같은 고정부, 휠 3종, 램프, 루프박스, 황금 번호판, 밤 전조등·후미등 글로 가운데 그 뷰에서 보이는 것)를 알파 PNG로 렌더한다. `postprocess.py`가 이것을 WebP 165장과 합성 정보 `compose.json`(합계 약 0.9 MB)으로 묶는다.
 - 색·램프·투톤·데칼은 렌더하지 않는다. 앱(`ui/vehicle/OdoVehicle.kt`)이 흰 레이어에 Modulate·Screen 블렌드로 틴트를 얹어 합성하므로, 색을 늘려도 에셋은 늘지 않는다.
-- 맥미니(M4 CPU)에서 120장 렌더에 약 47초 걸리고, 두 번 돌려도 PNG가 바이트까지 같다.
+- Apple M4 CPU 기준 165장 렌더에 약 3.5분(208 s, 6스레드) 걸리고, 두 번 돌려도 PNG가 바이트까지 같다.
 
 ```sh
-blender -b -P tools/minicar/build_minicar.py -- --vehicle all --view all --layers all --out <렌더 폴더> --samples 128
+blender -b -t 6 --python-exit-code 1 -P tools/minicar/build_minicar.py -- --vehicle all --view all --layers all --out <렌더 폴더> --samples 128
 python3 -B tools/minicar/postprocess.py --src <렌더 폴더> --cwebp <cwebp 경로>   # Pillow 필요, assets/minicar/에 씀
+python3 -B tools/minicar/postprocess.py --check app/src/main/assets/minicar     # files 165/165
 python3 -B tools/minicar/check_names.py                                         # 0 hits여야 한다
 ```
 

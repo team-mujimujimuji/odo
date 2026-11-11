@@ -114,7 +114,7 @@ class Minicar:
         return self.cache[key]
 
     def layers_for(self, view, lo, night):
-        """[(order 이름, 파일 이름)] — 앱 VehicleManifest.layersFor 와 같은 규칙."""
+        """[(order 이름, 파일 이름)]. 앱 VehicleManifest.layersFor 와 같은 규칙."""
         skip = set(self.m["views"][view].get("skip", []))
         night_only = set(self.m.get("night", []))
         out = []
@@ -386,7 +386,7 @@ def main():
                     help="에셋 폴더(compose.json + <차종>/<뷰>/<레이어>.webp). 기본: 앱 에셋")
     ap.add_argument("--out", required=True, help="contact sheet 는 폴더, 플레이트 합성은 PNG 파일")
     ap.add_argument("--plate", help="지도 플레이트 PNG(미니카 없는 화면 캡처)")
-    ap.add_argument("--at", help="x,y — 앵커가 놓일 플레이트 좌표(px)")
+    ap.add_argument("--at", help="x,y: 앵커가 놓일 플레이트 좌표(px)")
     ap.add_argument("--view", choices=["navi", "top"])
     ap.add_argument("--vehicle", default="compact")
     ap.add_argument("--heading", type=float, help="top 뷰 방향(도, 북 0°, 시계 방향)")
@@ -394,7 +394,7 @@ def main():
     ap.add_argument("--density", type=float, default=1.0, help="플레이트 px/dp(기본 1.0)")
     ap.add_argument("--night", action="store_true")
     ap.add_argument("--loadout", help="color=cherry,wheel=dia,lamp=warm,roof=twotone|box,decal=stripe,plate=gold")
-    ap.add_argument("--crop", help="W,H — 앵커 둘레를 잘라 <out>_zoom.png 로도 저장")
+    ap.add_argument("--crop", help="W,H: 앵커 둘레를 잘라 <out>_zoom.png 로도 저장")
     ap.add_argument("--zoom", type=int, default=3)
     a = ap.parse_args()
     car = Minicar(a.assets)

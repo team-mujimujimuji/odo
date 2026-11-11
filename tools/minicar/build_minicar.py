@@ -1,8 +1,8 @@
-"""오도 미니카 레이어 렌더러 v2 — 장면·카메라·조명·레이어 패스 (Blender 4.5 headless, Cycles CPU).
+"""오도 미니카 레이어 렌더러 v2: 장면·카메라·조명·레이어 패스 (Blender 4.5 headless, Cycles CPU).
 
 실행:
   Blender -b -t 6 -P tools/minicar/build_minicar.py -- --vehicle all --view all --layers all --out <dir> --samples 128
-  선택: --navi-pitch 38|45|52   navi 뷰 내려다보는 각(기본 45 — 아래 NAVI_PITCH_DEG)
+  선택: --navi-pitch 38|45|52   navi 뷰 내려다보는 각(기본 45, 아래 NAVI_PITCH_DEG)
         --stats                레이어 밝기·테두리 통계(조명 보정, 잘림 확인)
 
 형상·재질은 models.py(GROUPS, Parts, build_materials, build_vehicle; 2륜은 models_scooter.py)가 만들고 이 파일은 장면만 맡는다.
@@ -15,7 +15,7 @@
   holdout 대신 숨긴다(가림은 그 아래 차체 holdout 이 똑같이 한다). 덧칠이 레일·유리·박스 밑에 온전히 깔리고
   앞 물체가 나중에 그려지므로 경계에 차체 색이 새지 않고, 고르지 않은 꾸미기가 다른 꾸미기에 구멍·그림자를 내지 않는다.
   뷰가 skip 하는 레이어의 그룹은 그 뷰의 모든 패스에서 숨긴다(앱이 그리지 않으므로 가리지도 않는다).
-차종별 조정(vehicles.json 차종 항목): hero_zoom(hero 카메라 당김), marker_zoom(navi·top 배율 — 2륜을 지도에서
+차종별 조정(vehicles.json 차종 항목): hero_zoom(hero 카메라 당김), marker_zoom(navi·top 배율. 2륜을 지도에서
   알아보게 키운다. 앵커 자리는 그대로), view_overrides.<뷰>(그 뷰 설정 위에 깊게 덮어씀, 예: 2륜 글로 웅덩이 크기.
   값이 null 이면 그 키를 지운다).
 뷰 glow: head/tail = 바닥 스폿(없으면 렌즈 번짐만), bloom_gain = 번짐 세기, bloom_scale = 번짐 반경 배수.
@@ -59,7 +59,7 @@ GLOW = {"glow_head": "head", "glow_tail": "tail"}  # 레이어 → Parts.marks �
 SHADOW_GROUPS = ("body", "fixed", "wheel_steel")  # 그림자를 드리우는 그룹
 GLOW_GROUPS = ("body", "fixed", "wheel_steel", "lamp")  # 글로 패스에서 빛을 가리는 그룹(선택 레이어는 뺀다)
 SENSOR_MM = 36.0
-# navi(글랜스) 뷰 내려다보는 각. 2026-11-11 캡처 심사 r0 에서 38·45·52 를 견주어 45 로 정했다:
+# navi(글랜스) 뷰 내려다보는 각. 2026-11-11 앱 캡처에서 38·45·52 를 견주어 45 로 정했다:
 # 글랜스 지도 기울기 실측 약 43~46°와 맞고 지붕·뒷유리·후미등이 고르게 보인다. 38 은 지붕 앞이 정반사로 하얗게 뜨고
 # 차가 지면에서 일어선 듯 보이며, 52 는 후면이 가는 띠로 줄고 밤 후미등 번짐이 작아진다.
 NAVI_PITCH_DEG = 45.0
@@ -78,7 +78,7 @@ def parse_args():
     p.add_argument("--scale", type=float, default=1.0, help="해상도 배율(시험용)")
     p.add_argument("--stats", action="store_true", help="레이어 밝기·테두리 통계 출력(조명 보정, 잘림 확인)")
     p.add_argument("--navi-pitch", type=float, default=NAVI_PITCH_DEG,
-                   help="navi 뷰 내려다보는 각(도). 기본 %(default)s(심사 r0 에서 고름, NAVI_PITCH_DEG 주석)")
+                   help="navi 뷰 내려다보는 각(도). 기본 %(default)s(후보 비교로 고름, NAVI_PITCH_DEG 주석)")
     return p.parse_args(argv)
 
 
@@ -302,7 +302,7 @@ def receiver_sets(P, M):
             if o.type == "MESH" and any(m is M["glass"] for m in o.data.materials):
                 coll.objects.link(o)
     if not len(coll.objects):  # 빈 묶음이면 receivers glass 조명은 아무것도 비추지 않는다(glass_card 는 건너뜀)
-        print("  WARN 유리 재질 객체가 없다 — receivers glass 조명·glass_card 는 효과 없음", flush=True)
+        print("  WARN 유리 재질 객체가 없다: receivers glass 조명·glass_card 는 효과 없음", flush=True)
     return {"glass": coll}
 
 
@@ -406,7 +406,7 @@ def add_glass_card(cfg, receivers, cam, M):
     margin_m 를 더한 크기로 만들고, ramp 0 = 유리 아래(낮은) 끝, 1 = 위 끝. 유리만 비춘다(receivers glass).
     판은 투명+발광이라 링킹 밖 광선(도장의 반사 등)은 그대로 뚫고 지나가고, 카메라·확산·그림자 광선엔 아예 안 보인다."""
     faces = glass_faces(receivers["glass"], M, cfg["glass"], cam)
-    if not faces:  # 그 쪽 유리가 없는 형상(2륜 등)·뷰 — 판 없이 넘어간다
+    if not faces:  # 그 쪽 유리가 없는 형상(2륜 등)·뷰면 판 없이 넘어간다
         print(f"  WARN glass_card {cfg['name']}: 카메라를 향한 {cfg['glass']} 유리 면이 없어 건너뜀", flush=True)
         return None
     area = sum(f[0] for f in faces)
@@ -435,7 +435,7 @@ def add_glass_card(cfg, receivers, cam, M):
     flip = sum((z - zm) * (y - ym) for z, y in zip(zs, ys)) < 0.0
     ccfg = dict(cfg, ramp=[[1.0 - p, val] for p, val in reversed(cfg["ramp"])]) if flip else cfg
     # 반사가 가파르게 아래를 보면(위에서 본 거의 선 뒷유리) 판이 바닥 밑으로 들어가 바닥(글로시 광선엔 보임)에
-    # 가려진다 — 그때 유리는 바닥을 비추는 게 맞아서 그대로 둔다(판을 끌어올리면 뒤끝에 흰 줄이 생긴다).
+    # 가려진다. 그때 유리는 바닥을 비추는 게 맞아서 그대로 둔다(판을 끌어올리면 뒤끝에 흰 줄이 생긴다).
     me = bpy.data.meshes.new(cfg["name"])
     me.from_pydata([(-w / 2, -h / 2, 0.0), (w / 2, -h / 2, 0.0), (w / 2, h / 2, 0.0), (-w / 2, h / 2, 0.0)], [],
                    [(0, 1, 2, 3)])

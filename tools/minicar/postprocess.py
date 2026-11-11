@@ -59,8 +59,8 @@ JOBS = 4                # cwebp 동시 실행 수
 
 
 def manifest(samples=128):
-    """compose.json v2. 키 이름은 track-a-3d.md '에셋 계약 v2' 그대로. order 는 build_minicar.ORDER 와 같아야 한다
-    (2026-11-11 W2-fix: 덧칠 roof_twotone·decal_stripe 를 spec 바로 뒤로, roof_box 를 lamp 뒤로 옮김 — 깊이 순서)."""
+    """compose.json v2. 키 이름은 이 파일 머리말의 '계약 v2' 그대로. order 는 build_minicar.ORDER 와 같아야 한다
+    (2026-11-11: 깊이 순서에 맞춰 덧칠 roof_twotone·decal_stripe 를 spec 바로 뒤로, roof_box 를 lamp 뒤로 옮겼다)."""
     return {
         "version": 2,
         "views": {k: dict(v) for k, v in VIEWS.items()},
@@ -81,7 +81,7 @@ def manifest(samples=128):
 
 
 def expected():
-    """[(차종, 뷰, 레이어)] — 뷰의 skip 은 뺀다. 165개."""
+    """[(차종, 뷰, 레이어)]. 뷰의 skip 은 뺀다. 165개."""
     return [(v, view, layer) for v in VEHICLES for view in VIEWS for layer in LAYERS
             if layer not in VIEWS[view]["skip"]]
 
@@ -364,7 +364,7 @@ def main():
                 border, err, had_alpha = convert_glow(png, fixed)
                 worst_err = max(worst_err, err)
                 if border > GLOW_EDGE_WARN:
-                    notes.append(f"WARN {key}: 가장자리 세기 {border}/255 — 빛이 플레이트 밖으로 잘린다(페더로 0까지 낮췄다)")
+                    notes.append(f"WARN {key}: 가장자리 세기 {border}/255, 빛이 플레이트 밖으로 잘린다(페더로 0까지 낮췄다)")
                 if had_alpha:
                     notes.append(f"NOTE {key}: 원본에 알파가 있다(계약은 검은 배경 위 RGB). 알파를 무시했다")
                 png = fixed

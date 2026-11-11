@@ -604,7 +604,7 @@ def _patch_obj(name, bm, mat):
 def _body_and_liners(skin, arches, x_in, M, P):
     bm = _patch_bm(skin, np.ones(len(skin.faces), bool), 0.0)
     bm.faces.ensure_lookup_table()
-    fc = skin.co[skin.faces]  # (F, 4, 3) — 후보는 면 중심이 아니라 꼭짓점 범위로 고른다
+    fc = skin.co[skin.faces]  # (F, 4, 3). 후보는 면 중심이 아니라 꼭짓점 범위로 고른다
     xin = x_in if isinstance(x_in, dict) else {1: x_in, -1: x_in}   # 축(앞 +1·뒤 -1)별 라이너 안쪽 평면
     cands = []
     for (sx, yc, zc, a, b, n) in arches:

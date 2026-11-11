@@ -25,7 +25,7 @@ internal fun xpNoteOf(capReached: Boolean, streakBonusXp: Int): XpNote? = when {
 }
 
 /**
- * 위험 이벤트 줄의 최대 줄 수. 아래 캡션([XpNote])이 있으면 1줄, 없으면 2줄 —
+ * 위험 이벤트 줄의 최대 줄 수. 아래 캡션([XpNote])이 있으면 1줄, 없으면 2줄이다.
  * 글꼴 1.3배에서 검증된 캡션 3줄(제외 · 이벤트 · 상한)을 넘지 않게 한다.
  */
 internal fun riskLineMaxLines(note: XpNote?): Int = if (note != null) 1 else 2

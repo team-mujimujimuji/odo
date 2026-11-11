@@ -67,7 +67,8 @@ OUT=<저장소 밖 빈 폴더>
 cp "$OUT/render_meta.json" tools/minicar/render_meta.json
 
 # 2) WebP 165장 + compose.json → app/src/main/assets/minicar/  (cwebp 1.6.0)
-"$PY" -B tools/minicar/postprocess.py --src "$OUT" --cwebp /opt/homebrew/bin/cwebp
+"$PY" -B tools/minicar/postprocess.py --src "$OUT" --cwebp <cwebp 경로>
+#    --cwebp 를 빼면 PATH와 흔한 설치 위치에서 찾는다.
 #    후보 에셋을 따로 뽑을 때: --dst <폴더>  (기본은 앱 에셋 폴더)
 
 # 3) 검사
@@ -99,13 +100,13 @@ du -sk app/src/main/assets/minicar
 - 확인(2026-11-11): 같은 코드로 따로 두 번 전체 렌더한 PNG 165장이 `diff -rq`로 전부 같았고(`render_meta.json`도 같음),
   두 번째 렌더를 `postprocess.py --dst`로 다른 폴더에 뽑은 166파일이 앱 에셋 폴더와 바이트까지 같았다.
 
-## 실측(2026-11-11, 맥미니 Apple M4 CPU, Blender 4.5.9 LTS, 128 samples, `-t 6`)
-- 렌더 전체 165장: **208.0 s / 210.5 s**(두 번 실행, 벽시계). v1 120장은 46.8 s였다 — 뷰·레이어가 늘고, 세분화한 차체와
+## 실측(2026-11-11, Apple M4 CPU, Blender 4.5.9 LTS, 128 samples, `-t 6`)
+- 렌더 전체 165장: **208.0 s / 210.5 s**(두 번 실행, 벽시계). v1 120장은 46.8 s였다. 뷰·레이어가 늘고, 세분화한 차체와
   유리 반사 판, 밤 글로 패스(선형 EXR + 렌즈 번짐)가 더해졌다. 변환(`postprocess.py`, cwebp 4개 동시) 12 s.
 - 에셋: 165장 + `compose.json` = **1216 KiB**(`du -sk`, 한도 4096), 바이트 합 885,867(hero 65장 339,482 · navi 50장 252,760 ·
   top 50장 291,838 · 이 가운데 글로 25장 73,254 · `compose.json` 1,787). 가장 큰 파일 19 KiB(large/hero/shadow).
   v1(728 KiB)보다 커진 이유: top 뷰가 새로 생기고(+50장), navi 판이 192×192 → 256×320 px로 커지고, 밤 글로 25장이 더해졌다.
-- 앱 글랜스 프레임 시간(에뮬레이터, SwiftShader) 중앙값 18.3 ms — 고치기 전(v1 에셋) 18.5 ms와 같은 수준.
+- 앱 글랜스 프레임 시간(에뮬레이터, SwiftShader) 중앙값 18.3 ms로, v1 에셋 때의 18.5 ms와 같은 수준이다.
 
 ## 앞 버전(v1)에서 바뀐 것
 - v1은 뷰 2개(hero, 뒤에서 45°로 내려다본 navi 192×192 하나를 기울인 지도와 north-up 지도 양쪽에 씀) × 레이어 12 = 120장이었다.
@@ -114,4 +115,4 @@ du -sk app/src/main/assets/minicar
   유리는 반사 판으로 하늘을 비추고, 램프는 앞 렌즈·주간등과 붉은 후미등으로 나눴다(전엔 앞뒤 같은 흰 셀 줄).
 - 밤은 틴트를 어둡게 하는 것뿐이라 낮과 구분되지 않아 정지된 글로 레이어 2장(`glow_head`, `glow_tail`)을 더했다.
 - 앱은 v1 `compose.json`도 읽는다(`top`이 없으면 Top 요청을 navi 그림으로 대신).
-- 검사어 목록에서 일반 영단어와 겹치는 모델명(Accent, Venue, Soul, Ray 등)은 영문을 빼고 한글만 둔다(오탐 방지). 브랜드명 자체(현대/기아)는 금지어가 아니다.
+- 검사어 목록에서 일반 영단어와 겹치는 일부 모델명은 영문을 빼고 한글만 둔다(오탐 방지). 브랜드명 자체(현대/기아)는 금지어가 아니다.

@@ -546,7 +546,7 @@ class Minicar:
         sc = min(w * k / iw, h * k / ih)
         cw, ch = round(iw * sc), round(ih * sc)
         ox, oy = round((x + w / 2) * k - cw / 2), round((y + h / 2) * k - ch / 2)
-        # 바닥 타원(턴테이블)은 그리지 않는다: 차 앱 미니카(OdoVehicle)에 없는 장식이라 목업만 달라 보였다(리뷰 라운드 3).
+        # 바닥 타원(턴테이블)은 그리지 않는다: 차 앱 미니카(OdoVehicle)에 없는 장식이라 목업만 달라 보였다.
         paint_rgb = APP.item('color', lo['color'])['rgb']
         lamp_rgb = APP.item('lamp', lo['lamp'])['rgb']
         luma = (0.2126 * paint_rgb[0] + 0.7152 * paint_rgb[1] + 0.0722 * paint_rgb[2]) / 255
@@ -593,7 +593,10 @@ class Minicar:
         return tile.convert('RGB').resize((n, n), Image.LANCZOS)
 
 
-# ── QR(바이트 모드, 버전 1~6; Nayuki QR Code generator 알고리즘을 옮김) ────
+# ── QR(바이트 모드, 버전 1~6) ────
+# Project Nayuki QR Code generator 파이썬 판(qrcodegen.py, https://github.com/nayuki/QR-Code-generator)의
+# 알고리즘을 바이트 모드·버전 1~6만 남기고 줄여 옮겼다. 원본: Copyright (c) Project Nayuki. (MIT License)
+# 허가 문구 전문은 NOTICE.md 'QR 코드 라이브러리' 절에 있다. 목업 PNG를 그릴 때만 쓰고 앱에는 들어가지 않는다.
 
 def qr_matrix(data, ecl='M'):
     ecc_t = {'L': (7, 10, 15, 20, 26, 18), 'M': (10, 16, 26, 18, 24, 16),
@@ -835,7 +838,7 @@ def app_bar(img, title, back=False, sub=None, right=None):
 
 
 def primary(img, label, y, h=56):
-    """주 행동 1개: 앰버 2dp 테두리 + ink 글자. 채움은 없다(설계서 §11 필 버튼 금지, impeccable §4-3·15)."""
+    """주 행동 1개: 앰버 2dp 테두리 + ink 글자. 채움은 없다(설계서 §11 필 버튼 금지)."""
     rrect_line(img, M, y, CW, h, 12, 2, C['amber'])
     text(img, SCREEN[0] / 2, y + (h - 22) / 2, label, 'body', C['ink'], HI, align='center')
 

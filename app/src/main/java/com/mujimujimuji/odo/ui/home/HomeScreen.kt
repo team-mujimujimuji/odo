@@ -71,7 +71,7 @@ data class HomeStats(
 )
 
 /**
- * 홈(정차) — 설계서 §5.1. 풀블리드 north-up 지도, 지도 위 현재 위치에 Top 미니카(진행 방향으로 회전), 아래 패널 1장(이번 주 안전 주행 + 레벨 + 하드키 열).
+ * 홈(정차) 화면(설계서 §5.1). 풀블리드 north-up 지도, 지도 위 현재 위치에 Top 미니카(진행 방향으로 회전), 아래 패널 1장(이번 주 안전 주행 + 레벨 + 하드키 열).
  * 현재 위치는 패널(과 알림 줄)에 가리지 않는 지도 띠의 가운데에 온다(656×548 창에서 y 172dp, 에셋 계약 v2 '배치').
  * 패널은 통계 167dp + 헤어라인 + KeyStrip(캡션 줄 포함 92dp) = 260dp로 바닥에 붙는다(설계서 252dp에서 +8: KeyStrip 셀이 76dp에 세 줄을 담지 못해서다).
  * 글꼴 배율이 커지면 KeyStrip만큼 위로 자란다. 알림 1줄(NoticeLine 592×40, [notice]가 있을 때만)은 패널 위 4dp에 붙인다 —
@@ -171,7 +171,7 @@ private fun SafeKmColumn(ui: DriveUi, stats: HomeStats, modifier: Modifier) {
     val c = LocalOdoColors.current
     val unit = stringResource(R.string.unit_km)
     val goal = ui.goal
-    // 거리 업적이면 남은 km. 글꼴 배율 1.3 등으로 한 줄을 넘으면 제목을 뺀 짧은 꼴로 바꾼다(말줄임 대신, impeccable §4-14).
+    // 거리 업적이면 남은 km. 글꼴 배율 1.3 등으로 한 줄을 넘으면 제목을 뺀 짧은 꼴로 바꾼다(말줄임 대신, 설계서 §10).
     val remainingKm = when (val rule = goal?.achievement?.rule) {
         is AchievementRule.SafeDistance -> (rule.km - ui.profile.totalSafeKm).coerceAtLeast(0)
         is AchievementRule.NightSafeDistance -> (rule.km - ui.profile.nightSafeKm).coerceAtLeast(0)

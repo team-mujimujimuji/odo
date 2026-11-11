@@ -22,20 +22,46 @@
 - 공유 안 함: 차량 신호 원본·위치 기록
 
 ## 미니카 3D 에셋
-`app/src/main/assets/minicar/**`(WebP 120장 + `compose.json`)는 이 저장소의 `tools/minicar/build_minicar.py`가
+`app/src/main/assets/minicar/**`(WebP 165장 + `compose.json`)는 이 저장소의 `tools/minicar/build_minicar.py`가
 Blender 4.5.9 LTS(GPL)로 절차 생성한 자체 제작물이다. 외부 모델·텍스처·글꼴을 쓰지 않았다.
 현대차 디자인 언어에서 영감을 받아 자체 제작한 스타일라이즈드 모델이며, 특정 차종·엠블럼·명칭을 재현하지 않는다.
 
-재생성(맥미니 기준 약 47 초, 두 번 실행해도 바이트 동일, README '에셋 재현'과 같은 명령. postprocess.py는 Pillow가 필요하다):
+재생성: Apple M4 CPU 기준 165장 렌더에 약 3.5분(208 s, 6스레드)이 걸리고, 두 번 실행해도 바이트가 같다.
+명령은 README '에셋 재현'과 같고, postprocess.py는 Pillow가 필요하다.
 
 ```sh
-blender -b -P tools/minicar/build_minicar.py -- --vehicle all --view all --layers all --out <렌더 폴더> --samples 128
+blender -b -t 6 --python-exit-code 1 -P tools/minicar/build_minicar.py -- --vehicle all --view all --layers all --out <렌더 폴더> --samples 128
 python3 -B tools/minicar/postprocess.py --src <렌더 폴더> --cwebp <cwebp 경로>
 ```
 
 ## QR 코드 라이브러리
 휴대폰 연결 화면의 QR 코드는 ZXing core 3.5.3(Apache License 2.0, https://github.com/zxing/zxing)으로 기기 안에서만 그린다.
 네트워크 호출·외부 이미지 없이 문자열 → 모듈 행렬만 계산하고, 그리기는 Compose Canvas가 한다.
+
+폰 동반 화면 목업 생성기(`tools/phone-mockup/render.py`의 `qr_matrix`)의 QR 인코더는 Project Nayuki QR Code generator
+(https://github.com/nayuki/QR-Code-generator, 파이썬 판 `python/qrcodegen.py`)의 알고리즘을 바이트 모드·버전 1~6만 남기고 줄여 옮긴 것이다.
+MIT License이며, 목업 PNG를 그릴 때만 쓰고 앱(APK)에는 들어가지 않는다. 원본의 저작권·허가 문구는 다음과 같다.
+
+```
+Copyright (c) Project Nayuki. (MIT License)
+https://www.nayuki.io/page/qr-code-generator-library
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+- The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+- The Software is provided "as is", without warranty of any kind, express or
+  implied, including but not limited to the warranties of merchantability,
+  fitness for a particular purpose and noninfringement. In no event shall the
+  authors or copyright holders be liable for any claim, damages or other
+  liability, whether in an action of contract, tort or otherwise, arising from,
+  out of or in connection with the Software or the use or other dealings in the
+  Software.
+```
 
 ## 이어콘·아이콘
 트립 요약의 효과음 3개(`app/src/main/res/raw/earcon_xp.ogg`, `earcon_levelup.ogg`, `earcon_achievement.ogg`)는
