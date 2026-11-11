@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
@@ -22,11 +21,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
@@ -51,13 +50,13 @@ import com.mujimujimuji.odo.ui.components.OdoPanel
 import com.mujimujimuji.odo.ui.components.PanelOutline
 import com.mujimujimuji.odo.ui.map.CorridorData
 import com.mujimujimuji.odo.ui.map.NorthUpScene
+import com.mujimujimuji.odo.ui.map.bandAnchor
+import com.mujimujimuji.odo.ui.map.homeHeadingDeg
 import com.mujimujimuji.odo.ui.theme.LocalOdoColors
 import com.mujimujimuji.odo.ui.theme.OdoShape
 import com.mujimujimuji.odo.ui.theme.OdoSize
 import com.mujimujimuji.odo.ui.theme.OdoSpace
 import com.mujimujimuji.odo.ui.theme.OdoType
-import com.mujimujimuji.odo.ui.vehicle.OdoVehicle
-import com.mujimujimuji.odo.ui.vehicle.VehicleView
 
 /** 홈 패널이 보여 주는 집계값. 모두 기기 안 Room에서 온다. */
 data class HomeStats(
@@ -72,7 +71,8 @@ data class HomeStats(
 )
 
 /**
- * 홈(정차) — 설계서 §5.1. 풀블리드 north-up 지도, 미니카 hero 288×192, 아래 패널 1장(이번 주 안전 주행 + 레벨 + 하드키 열).
+ * 홈(정차) — 설계서 §5.1. 풀블리드 north-up 지도, 지도 위 현재 위치에 Top 미니카(진행 방향으로 회전), 아래 패널 1장(이번 주 안전 주행 + 레벨 + 하드키 열).
+ * 현재 위치는 패널(과 알림 줄)에 가리지 않는 지도 띠의 가운데에 온다(656×548 창에서 y 172dp, 에셋 계약 v2 '배치').
  * 패널은 통계 167dp + 헤어라인 + KeyStrip(캡션 줄 포함 92dp) = 260dp로 바닥에 붙는다(설계서 252dp에서 +8: KeyStrip 셀이 76dp에 세 줄을 담지 못해서다).
  * 글꼴 배율이 커지면 KeyStrip만큼 위로 자란다. 알림 1줄(NoticeLine 592×40, [notice]가 있을 때만)은 패널 위 4dp에 붙인다 —
  * 1.0 캡처에서 알림 y 247–287, 사이 4, 패널 선 291(fix_r3_notice_10). 패널이 자라면 함께 올라가 패널 선과 겹치지 않는다. 데모 칩은 fake 빌드에서만.
@@ -106,8 +106,27 @@ fun HomeScreen(
     } else {
         Rect.Zero
     }
+    // 미니카 자리 = 현재 위치: 위 캡션·칩 줄과 아래 열(알림 줄 + 패널) 사이, 지도가 보이는 띠의 가운데에 둔다.
+    var bottomH by remember { mutableIntStateOf(0) }
+    val bandTopPx = with(LocalDensity.current) { HOME_BAND_TOP.toPx() }
+    val anchor = if (boxSize.height > 0 && bottomH > 0) {
+        bandAnchor(boxSize.height.toFloat(), bandTopPx, bottomH.toFloat())
+    } else {
+        HOME_ANCHOR_NOMINAL
+    }
+    val heading = remember(ui.headingDeg, data, center) { homeHeadingDeg(ui.headingDeg, data, center) }
     Box(modifier.fillMaxSize().background(c.ground).onSizeChanged { boxSize = it }) {
-        NorthUpScene(data, center, Modifier.fillMaxSize(), cover = cover, attributionTop = true)
+        NorthUpScene(
+            data,
+            center,
+            Modifier.fillMaxSize(),
+            cover = cover,
+            attributionTop = true,
+            anchor = anchor,
+            headingDeg = heading,
+            minicar = loadout,
+            minicarDesc = heroDesc,
+        )
         if (demoChipText != null) {
             DemoChip(
                 demoChipText,
@@ -115,16 +134,10 @@ fun HomeScreen(
                 onLongPress = onDemoChipLongPress,
             )
         }
-        OdoVehicle(
-            loadout = loadout,
-            view = VehicleView.Hero,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = HERO_TOP)
-                .size(OdoSize.heroW, OdoSize.heroH)
-                .semantics { contentDescription = heroDesc },
-        )
-        Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            Modifier.align(Alignment.BottomCenter).fillMaxWidth().onSizeChanged { bottomH = it.height },
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             if (notice != null) {
                 NoticeLine(text = notice, onDismiss = onDismissNotice, modifier = Modifier.width(NOTICE_W))
                 Spacer(Modifier.height(OdoSpace.xs))
@@ -297,7 +310,10 @@ private fun HomeKeys(
     KeyStrip(keys, Modifier.fillMaxWidth())
 }
 
-private val HERO_TOP = 72.dp
+/** 지도가 보이는 띠의 위 끝: 위 여백 24 아래 출처 캡션(줄 26)·데모 칩(36) 줄. 표준 창에서 계약의 y 172dp가 나오게 56으로 잡았다. */
+private val HOME_BAND_TOP = 56.dp
+/** 크기를 재기 전(첫 프레임)의 미니카 자리: 표준 창 656×548dp, 패널 260dp → 띠 56~288dp의 가운데 y 172dp. */
+private val HOME_ANCHOR_NOMINAL = Offset(0.5f, 172f / 548f)
 private val STATS_H = 167.dp
 private val TITLE_ROW_H = 52.dp // numeralM 줄 높이
 private val LEVEL_TITLE_ROW_H = 36.dp // 칭호(title 28/36) 줄 높이

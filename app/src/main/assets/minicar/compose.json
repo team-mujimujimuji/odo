@@ -1,5 +1,5 @@
 {
- "version": 1,
+ "version": 2,
  "views": {
   "hero": {
    "px": [
@@ -10,20 +10,49 @@
     288,
     192
    ],
-   "groundY": 336
+   "groundY": 336,
+   "skip": [
+    "glow_tail"
+   ]
   },
   "navi": {
    "px": [
-    192,
-    192
+    256,
+    320
    ],
    "dp": [
-    96,
-    96
+    128,
+    160
    ],
    "anchor": [
-    96,
-    104
+    128,
+    200
+   ],
+   "skip": [
+    "wheel_steel",
+    "wheel_dia",
+    "wheel_aero",
+    "lamp"
+   ]
+  },
+  "top": {
+   "px": [
+    256,
+    384
+   ],
+   "dp": [
+    128,
+    192
+   ],
+   "anchor": [
+    128,
+    192
+   ],
+   "skip": [
+    "wheel_steel",
+    "wheel_dia",
+    "wheel_aero",
+    "plate_gold"
    ]
   }
  },
@@ -31,21 +60,29 @@
   "shadow",
   "body",
   "spec",
+  "roof_twotone",
+  "decal_stripe",
   "fixed",
   "wheel",
   "lamp",
-  "roof_twotone",
   "roof_box",
-  "decal_stripe",
-  "plate_gold"
+  "plate_gold",
+  "glow_head",
+  "glow_tail"
  ],
  "blend": {
   "body": "modulate",
   "spec": "screen",
   "lamp": "modulate",
   "roof_twotone": "modulate",
-  "decal_stripe": "modulate"
+  "decal_stripe": "modulate",
+  "glow_head": "screen",
+  "glow_tail": "screen"
  },
+ "night": [
+  "glow_head",
+  "glow_tail"
+ ],
  "vehicles": {
   "compact": {
    "label": "소형",
@@ -80,7 +117,9 @@
   "roof_twotone",
   "roof_box",
   "decal_stripe",
-  "plate_gold"
+  "plate_gold",
+  "glow_head",
+  "glow_tail"
  ],
  "provenance": "현대차 디자인 언어에서 영감을 받아 자체 제작한 스타일라이즈드 모델. 특정 차종·엠블럼·명칭을 재현하지 않음.",
  "generator": "tools/minicar/build_minicar.py",

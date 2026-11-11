@@ -494,9 +494,17 @@ WHEEL_PAD = 3   # 휠 썸네일: 가까운 앞바퀴 알파 bbox 둘레 여백(h
 
 
 class Minicar:
+    """hero 뷰만 그린다(폰 화면에는 지도 위 미니카가 없다). 에셋 계약 v2(compose.json version 2: 뷰별 skip,
+    밤 전용 글로 레이어)와 v1 을 둘 다 읽는다. 규칙은 <plates>/compose.json, 없으면(렌더 PNG 폴더) 앱 에셋의 것."""
+
     def __init__(self, plates):
         self.dir, self.cache = plates, {}
-        self.vw, self.vh = APP.compose['views']['hero']['px']
+        p = os.path.join(plates, 'compose.json')
+        self.compose = json.loads(read(p)) if os.path.exists(p) else APP.compose
+        hero = self.compose['views']['hero']
+        self.vw, self.vh = hero['px']
+        self.skip = set(hero.get('skip', []))               # v2: 이 뷰에 파일이 없는 레이어
+        self.night_only = set(self.compose.get('night', []))   # v2: 밤에만 그리는 레이어(glow_head, glow_tail)
 
     def layer(self, vehicle, name):
         key = (vehicle, name)
@@ -509,27 +517,29 @@ class Minicar:
                     break
         return self.cache[key]
 
-    @staticmethod
-    def layers_for(lo):
+    def layers_for(self, lo, night=False):
         out = []
-        for name in APP.compose['order']:
+        for name in self.compose['order']:
+            f = name
             if name == 'wheel':
-                out.append(('wheel', 'wheel_' + lo['wheel']))
+                f = 'wheel_' + lo['wheel']
             elif name in ('roof_twotone', 'roof_box'):
-                if lo['roof'] == name[5:]:
-                    out.append((name, name))
+                if lo['roof'] != name[5:]:
+                    continue
             elif name == 'decal_stripe':
-                if lo['decal'] == 'stripe':
-                    out.append((name, name))
+                if lo['decal'] != 'stripe':
+                    continue
             elif name == 'plate_gold':
-                if lo['plate'] == 'gold':
-                    out.append((name, name))
-            else:
-                out.append((name, name))
+                if lo['plate'] != 'gold':
+                    continue
+            if f in self.skip or (name in self.night_only and not night):
+                continue
+            out.append((name, f))
         return out
 
     def draw(self, dst, box, lo, k=S, night=False):
-        """box(dp) 가운데에 놓고 min(W/576, H/384)배. 그림자 0.9, body·lamp·투톤·데칼은 곱하기, spec은 스크린."""
+        """box(dp) 가운데에 놓고 min(W/576, H/384)배. 그림자 0.9, body·lamp·투톤·데칼은 곱하기, spec·글로는 스크린
+        (glow_head 는 램프 색을 곱한 뒤 스크린). 글로는 밤에만."""
         x, y, w, h = box
         base = self.layer(lo['vehicle'], 'body')
         iw, ih = base.size
@@ -543,9 +553,9 @@ class Minicar:
         accent = APP.item('color', 'graphite' if luma > 0.35 else 'pearl')['rgb']
         if night:
             paint_rgb, accent = (tuple(round(v * 0.85) for v in c) for c in (paint_rgb, accent))
-        blend = APP.compose['blend']
+        blend = self.compose['blend']
         region = dst.crop((ox, oy, ox + cw, oy + ch))
-        for base_name, name in self.layers_for(lo):
+        for base_name, name in self.layers_for(lo, night):
             im = self.layer(lo['vehicle'], name)
             if im is None:
                 continue
@@ -554,6 +564,8 @@ class Minicar:
             if base_name == 'shadow':
                 a = a.point([round(v * 0.9) for v in range(256)])
             if mode == 'screen':
+                if base_name == 'glow_head':
+                    r, g, b = (c.point([round(v * t / 255) for v in range(256)]) for c, t in zip((r, g, b), lamp_rgb))
                 region = ImageChops.screen(region, Image.merge('RGB', [ImageChops.multiply(c, a) for c in (r, g, b)]))
                 continue
             if mode == 'modulate':

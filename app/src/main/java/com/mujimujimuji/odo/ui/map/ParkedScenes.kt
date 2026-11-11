@@ -26,8 +26,10 @@ import com.mujimujimuji.odo.engine.LatLng
 import com.mujimujimuji.odo.ui.theme.LocalOdoColors
 import com.mujimujimuji.odo.ui.theme.OdoShape
 import com.mujimujimuji.odo.ui.theme.OdoSpace
+import com.mujimujimuji.odo.ui.vehicle.VehicleMarkerScale
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.hypot
 import kotlin.math.min
 
 /** 트레일 색 = 미니카 색(카탈로그 argb). 색 항목에 argb가 없으면 `amber`. */
@@ -36,11 +38,13 @@ fun trailColorOf(loadout: Loadout): Color =
     CosmeticCatalog.item(Slot.COLOR, loadout.colorId).argb?.let { Color(it) } ?: LocalOdoColors.current.amber
 
 /**
- * 정차 north-up 정지 장면(설계서 §4.3 홈·업적·차고·폰 행): 20 m/dp, 회전 없음, 미니카 없음.
+ * 정차 north-up 정지 장면(설계서 §4.3 홈·업적·차고·폰 행): 20 m/dp, 지도 회전 없음.
  * [center]가 null이거나 코리도 밖이면 [CorridorMap]이 계기 모드(격자)로 그린다(§4.4).
  * [scrim]이면 `ground` 64 %를 덮어 패널 뒤 배경으로 가라앉힌다(업적·차고·폰).
  * [cover]는 위에 얹히는 패널 자리(캔버스 px): 그 경계에 걸치는 휴게소 픽토를 그리지 않는다(홈 패널 위 가장자리).
  * ODbL 출처 캡션은 지도가 보이는 모든 정차 화면에 둔다. 아래가 패널로 막힌 홈은 [attributionTop]으로 왼쪽 위에(데모 칩은 오른쪽 위).
+ * [anchor]: [center]가 놓이는 화면 위치(폭·높이 비율). 홈은 패널에 가리지 않는 띠의 가운데([bandAnchor])를 준다.
+ * [minicar]를 주면 그 자리에 Top 미니카를 [headingDeg](북 0°, 시계 방향)로 돌려 그린다(홈). 지도는 돌지 않는다. [minicarDesc]는 접근성 설명.
  */
 @Composable
 fun NorthUpScene(
@@ -50,10 +54,14 @@ fun NorthUpScene(
     scrim: Boolean = false,
     cover: Rect = Rect.Zero,
     attributionTop: Boolean = false,
+    anchor: Offset = Offset(0.5f, 0.5f),
+    headingDeg: Float = 0f,
+    minicar: Loadout? = null,
+    minicarDesc: String? = null,
 ) {
     val c = LocalOdoColors.current
     val at = center ?: MapCamera.NOWHERE
-    val camera = remember(at) { MapCamera.parked(at) }
+    val camera = remember(at, anchor, headingDeg) { MapCamera.parked(at).copy(headingDeg = headingDeg, parkedAnchor = anchor) }
     Box(modifier) {
         CorridorMap(
             data = data,
@@ -65,6 +73,9 @@ fun NorthUpScene(
             cover = cover,
         )
         if (scrim) Box(Modifier.fillMaxSize().background(c.ground.copy(alpha = SCRIM_ALPHA)))
+        if (minicar != null) {
+            NaviMinicar(minicar, camera, Modifier.fillMaxSize(), markerScale = VehicleMarkerScale.HOME, description = minicarDesc)
+        }
         if (data != null) Attribution(attributionTop)
     }
 }
@@ -74,8 +85,8 @@ fun ScrimmedScene(data: CorridorData?, center: LatLng?, modifier: Modifier = Mod
     NorthUpScene(data, center, modifier, scrim = true)
 
 /**
- * 트립 요약 장면(§4.3 요약 행): north-up, 지난 길 스티치, 끝점에 navi 미니카(마지막 진행방향), 오른쪽 아래 ODbL 출처 캡션.
- * 가운데 패널([covered], dp)에 가리지 않는 띠([visibleBand])에 경로 bbox를 맞춘다. 여백은 navi 판 절반 + 8dp라 끝점 미니카가 띠 안에 든다.
+ * 트립 요약 장면(§4.3 요약 행): north-up, 지난 길 스티치, 끝점에 Top 미니카(마지막 진행방향으로 회전, 0.8배), 오른쪽 아래 ODbL 출처 캡션.
+ * 가운데 패널([covered], dp)에 가리지 않는 띠([visibleBand])에 경로 bbox를 맞춘다. 여백([FIT_PADDING_DP])이 있어 끝점 미니카가 띠 안에 든다.
  * 띠가 없으면(658×552 창: 패널 592×484 둘레 33dp뿐) 경로·미니카를 빼고 끝점 중심의 정적 지도에 `ground` 64 % 스크림만 깐다.
  * 경로 점이 2개 미만이면 시작점(없으면 시나리오 시작점) 중심의 정차 시점으로 대신한다.
  */
@@ -127,7 +138,7 @@ fun TripFitScene(
         if (band == null) {
             Box(Modifier.fillMaxSize().background(LocalOdoColors.current.ground.copy(alpha = SCRIM_ALPHA)))
         } else if (data != null && end != null) {
-            NaviMinicar(loadout, camera, Modifier.fillMaxSize(), data, end)
+            NaviMinicar(loadout, camera, Modifier.fillMaxSize(), data, end, markerScale = VehicleMarkerScale.SUMMARY)
         }
         Attribution(top = false)
     }
@@ -179,13 +190,52 @@ internal fun lastHeadingDeg(path: List<LatLng>): Float {
 }
 
 /**
+ * 위쪽 [topPx]와 아래쪽 [bottomPx]가 가려진 높이 [heightPx] 화면에서, 지도가 보이는 띠의 가운데를 정차 카메라 기준점(폭·높이 비율)으로 준다.
+ * 가로는 가운데. 홈: 위 = 캡션·칩 줄, 아래 = 알림 줄 + 패널 → 656×548 창에서 y 172dp(알림 줄이 있으면 150dp).
+ * 띠가 없으면(가림이 화면을 다 덮으면) 화면 가운데.
+ */
+internal fun bandAnchor(heightPx: Float, topPx: Float, bottomPx: Float): Offset {
+    if (heightPx <= 0f) return Offset(0.5f, 0.5f)
+    val top = topPx.coerceIn(0f, heightPx)
+    val bottom = (heightPx - bottomPx).coerceIn(0f, heightPx)
+    if (bottom <= top) return Offset(0.5f, 0.5f)
+    return Offset(0.5f, (top + bottom) / 2f / heightPx)
+}
+
+/**
+ * 경로 방위(북 0°, 시계 방향): [at]에서 가장 가까운 경로 지점의 진행 방향(앞뒤 [ROUTE_BEARING_SPAN_M] m를 이은 방향).
+ * 지도 데이터나 위치가 없거나, 경로에서 [ROUTE_SNAP_M]보다 멀면(경로와 상관없는 곳) null.
+ */
+internal fun routeBearingDeg(data: CorridorData?, at: LatLng?): Float? {
+    if (data == null || at == null) return null
+    val x = data.localX(at)
+    val y = data.localY(at)
+    val s = data.routeProgress(x, y)
+    val p = DoubleArray(2)
+    data.routePoint(s, p)
+    if (hypot(p[0] - x, p[1] - y) > ROUTE_SNAP_M) return null
+    val a = DoubleArray(2)
+    val b = DoubleArray(2)
+    data.routePoint(s - ROUTE_BEARING_SPAN_M, a)
+    data.routePoint(s + ROUTE_BEARING_SPAN_M, b)
+    val dx = b[0] - a[0] // 동(+)
+    val dy = b[1] - a[1] // 북(+)
+    if (dx == 0.0 && dy == 0.0) return null
+    return ((Math.toDegrees(atan2(dx, dy)) + 360.0) % 360.0).toFloat()
+}
+
+/** 홈 미니카 방향(에셋 계약 v2 '배치'): 주행에서 얻은 heading → 없으면 경로 방위 → 그것도 없으면 0(북). */
+internal fun homeHeadingDeg(uiHeadingDeg: Float?, data: CorridorData?, at: LatLng?): Float =
+    uiHeadingDeg ?: routeBearingDeg(data, at) ?: 0f
+
+/**
  * 정지 장면 지도는 오프스크린 합성층에 한 번 그리고, 지도가 바뀌지 않는 동안 그 텍스처를 다시 쓴다.
  * 위에서 움직이는 것(요약 박자의 카드·업적 행, 크로스페이드, KeyStrip 눌림, 차고 미리보기)이 프레임을 낼 때마다
  * 66 km 벡터 지도를 다시 래스터하지 않게 한다. heading-up 글랜스는 매 프레임 지도가 바뀌어 이득이 없으므로 쓰지 않는다.
  */
 private val StillLayer = Modifier.graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
 
-/** 요약 fit 여백 = navi 판 절반(48) + 8: 끝점 미니카가 띠 안에 든다. */
+/** 요약 fit 여백: 끝점 Top 미니카(0.8배, 소형 차체 반대각 약 43dp)가 띠 안에 든다. */
 private const val FIT_PADDING_DP = 56f
 /** 경로를 담을 띠의 짧은 변 최소값(여백 2×56 + 경로 96). */
 private const val FIT_MIN_DP = 208f
@@ -193,3 +243,10 @@ private const val SCRIM_ALPHA = 0.64f
 private const val ATTRIBUTION_SCRIM_ALPHA = 0.6f
 /** 홈 왼쪽 위 캡션 폭 상한: 32 + 520 = 552 < 데모 칩 왼쪽(글꼴 1.3에서 약 557). */
 private val ATTRIBUTION_TOP_MAX_W = 520.dp
+/** 경로 방위를 재는 구간: 가장 가까운 경로 지점의 앞뒤 30 m. */
+private const val ROUTE_BEARING_SPAN_M = 30.0
+/**
+ * 이보다 경로에서 멀면 경로 방위를 쓰지 않는다. 경로 옆 주차 자리까지는 경로 방향을 따르도록 넉넉히 잡은 값이다
+ * (데모 시나리오의 정차 지점 두 곳은 경로에서 1 m 안).
+ */
+private const val ROUTE_SNAP_M = 300.0

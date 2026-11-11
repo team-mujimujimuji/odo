@@ -14,7 +14,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-/** 그릴 준비가 끝난 레이어 묶음(매니페스트 order 순, 없는 파일은 빠진다). */
+/**
+ * 그릴 준비가 끝난 레이어 묶음(매니페스트 order 순, 없는 파일은 빠진다).
+ * [view]는 요청한 뷰다. 그림은 `manifest.assetView(view)`의 것이다(top이 없는 v1 에셋에서는 Top 요청에 navi 그림이 들어 있다).
+ */
 class VehicleFrame(
     val manifest: VehicleManifest,
     val view: VehicleView,
@@ -27,7 +30,10 @@ class VehicleFrame(
  * 앱이 화면에서 사라지면 OdoApp.onTrimMemory가 [trimMemory]로 비운다.
  */
 object VehicleAssets {
-    /** hero 한 장 576×384 ARGB ≈ 0.88 MB, 로드아웃 한 벌 6~9장 ≈ 5~8 MB → 두세 벌과 navi 몇 장이 들어간다. */
+    /**
+     * hero 한 장 576×384 ARGB ≈ 0.88 MB, 로드아웃 한 벌 6~10장 ≈ 5~9 MB → 두세 벌이 들어간다.
+     * 지도 마커는 작다: navi 256×320 ≈ 0.33 MB, top 256×384 ≈ 0.39 MB, 한 벌 4~9장 ≈ 1.3~3.5 MB.
+     */
     private const val MAX_BYTES = 20 * 1024 * 1024
 
     @Volatile private var manifestCache: VehicleManifest? = null
@@ -50,22 +56,26 @@ object VehicleAssets {
         }
     }
 
-    /** 레이어들을 캐시에서 꺼내고, 없는 것만 IO에서 디코딩한다. 결과는 요청 순서를 지킨다. */
+    /**
+     * 레이어들을 캐시에서 꺼내고, 없는 것만 IO에서 디코딩한다. 결과는 요청 순서를 지킨다.
+     * 그림은 `manifest.assetView(view)` 폴더에서 읽는다(top이 없는 v1 에셋이면 Top 요청을 navi 그림으로 대신한다).
+     */
     suspend fun load(context: Context, vehicle: VehicleType, view: VehicleView, layerNames: List<String>): VehicleFrame {
         val m = manifest(context)
+        val assetView = m.assetView(view)
         val appContext = context.applicationContext
         val found = HashMap<String, ImageBitmap>()
         val missing = ArrayList<String>()
         for (name in layerNames) {
-            val hit = bitmaps.get(cacheKey(vehicle, view, name))
+            val hit = bitmaps.get(cacheKey(vehicle, assetView, name))
             if (hit != null) found[name] = hit else missing += name
         }
         if (missing.isNotEmpty()) {
             val decoded = withContext(Dispatchers.IO) {
-                missing.mapNotNull { name -> decode(appContext, vehicle, view, name)?.let { name to it } }
+                missing.mapNotNull { name -> decode(appContext, vehicle, assetView, name)?.let { name to it } }
             }
             for ((name, bmp) in decoded) {
-                bitmaps.put(cacheKey(vehicle, view, name), bmp)
+                bitmaps.put(cacheKey(vehicle, assetView, name), bmp)
                 found[name] = bmp
             }
         }

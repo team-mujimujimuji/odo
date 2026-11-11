@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.LocalContext
 import com.mujimujimuji.odo.cosmetic.CosmeticCatalog
 import com.mujimujimuji.odo.cosmetic.Loadout
 import com.mujimujimuji.odo.cosmetic.Slot
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -28,9 +27,27 @@ import kotlin.math.roundToInt
 val LocalOdoNight = compositionLocalOf { true }
 
 /**
- * 미니카 1대(설계서 §2.5). 레이어 WebP를 매니페스트 order대로 합성한다.
- * - Hero: 그림 중심이 상자 중심. 상자는 3:2(예: 288×192dp)일 때 꽉 찬다.
- * - Navi: 접지 기준점이 상자 중심. heading-up 지도에서는 headingDeg=0(차가 항상 위), north-up 지도에서는 진행방향으로 회전.
+ * 지도 위 미니카(Navi·Top)의 크기 배율(에셋 계약 v2 '배치'). 화면별 시작값이고 심사 뒤에 조정한다.
+ * 그림 원래 크기(px → dp 0.5배) × 이 배율 × 차종 naviScale로 그린다.
+ */
+object VehicleMarkerScale {
+    /** 홈(정차 north-up 지도, Top). */
+    const val HOME = 1f
+
+    /** 글랜스(주행 heading-up 지도, Navi). */
+    const val GLANCE = 1f
+
+    /** 트립 요약(경로 fit north-up 지도, Top). */
+    const val SUMMARY = 0.8f
+}
+
+/**
+ * 미니카 1대(에셋 계약 v2). 레이어 WebP를 매니페스트 order대로 합성한다. 정지 그림이고 애니메이션은 없다.
+ * - Hero(차고·휴대폰 연결): 그림 중심이 상자 중심. 상자에 맞춰 줄인다(3:2, 예: 288×192dp일 때 꽉 찬다).
+ * - Navi(heading-up 글랜스 지도): 기준점이 상자 중심. 돌리지 않는다(차 앞이 항상 위).
+ * - Top(north-up 지도: 홈·트립 요약): 차 중심이 상자 중심. [headingDeg](북 0°, 시계 방향)로 돈다.
+ * Navi·Top의 크기는 상자와 무관하다: 그림 원래 크기 × [markerScale] × 차종 naviScale([VehiclePose.of]).
+ * 전조등·후미등 글로(매니페스트 night 레이어)는 [night]일 때만 읽고 그린다.
  * 에셋이 준비되기 전에는 아무것도 그리지 않는다(플레이스홀더 상자 없음).
  */
 @Composable
@@ -40,6 +57,7 @@ fun OdoVehicle(
     modifier: Modifier = Modifier,
     headingDeg: Float = 0f,
     night: Boolean = LocalOdoNight.current,
+    markerScale: Float = 1f,
 ) {
     val context = LocalContext.current
     // 레이어 구성(차종·휠·루프·데칼·번호판)이 바뀔 때만 다시 읽는다. 색·램프는 필터만 바뀐다.
@@ -47,15 +65,16 @@ fun OdoVehicle(
         VehicleManifest.layersFor(loadout)
     }
     var frame by remember { mutableStateOf<VehicleFrame?>(null) }
-    LaunchedEffect(loadout.vehicle, view, structure) {
+    // 주야가 바뀌면 글로 레이어가 들고 나므로 다시 읽는다(나머지 장은 캐시에서 바로 나온다).
+    LaunchedEffect(loadout.vehicle, view, structure, night) {
         val m = VehicleAssets.manifest(context)
-        frame = VehicleAssets.load(context, loadout.vehicle, view, m.layersFor(loadout))
+        frame = VehicleAssets.load(context, loadout.vehicle, view, m.layersFor(loadout, view, night))
     }
     val paint = remember(loadout.colorId, loadout.lampId, night) { VehiclePaint.of(loadout, night) }
     Canvas(modifier) {
         val f = frame ?: return@Canvas
         if (f.view != view) return@Canvas
-        drawVehicle(f, loadout.vehicle.id, paint, headingDeg)
+        drawVehicle(f, loadout.vehicle.id, paint, headingDeg, markerScale, night)
     }
 }
 
@@ -114,26 +133,46 @@ class VehiclePaint private constructor(
 
 private const val SHADOW_ALPHA = 0.9f
 
-private fun DrawScope.drawVehicle(f: VehicleFrame, vehicleId: String, paint: VehiclePaint, headingDeg: Float) {
-    val spec = f.manifest.spec(f.view)
+private fun DrawScope.drawVehicle(
+    f: VehicleFrame,
+    vehicleId: String,
+    paint: VehiclePaint,
+    headingDeg: Float,
+    markerScale: Float,
+    night: Boolean,
+) {
     if (size.width <= 0f || size.height <= 0f) return
-    var s = min(size.width / spec.w, size.height / spec.h)
-    if (f.view == VehicleView.Navi) s *= f.manifest.naviScaleOf(vehicleId)
-    val pivot = Offset(spec.anchorX, spec.anchorY)
+    val m = f.manifest
+    val pose = VehiclePose.of(
+        spec = m.spec(f.view),
+        view = f.view,
+        boxW = size.width,
+        boxH = size.height,
+        density = density,
+        markerScale = markerScale,
+        naviScale = m.naviScaleOf(vehicleId),
+        headingDeg = headingDeg,
+    )
+    val pivot = Offset(pose.anchorX, pose.anchorY)
     withTransform({
-        translate(size.width / 2f - spec.anchorX, size.height / 2f - spec.anchorY)
-        if (f.view == VehicleView.Navi && headingDeg != 0f) rotate(headingDeg, pivot)
-        scale(s, s, pivot)
+        translate(pose.centerX - pose.anchorX, pose.centerY - pose.anchorY)
+        if (pose.rotationDeg != 0f) rotate(pose.rotationDeg, pivot)
+        scale(pose.scale, pose.scale, pivot)
     }) {
         for ((name, bmp) in f.layers) {
-            when (name) {
-                "shadow" -> drawImage(bmp, alpha = SHADOW_ALPHA)
-                "body" -> drawImage(bmp, colorFilter = paint.body)
-                "spec" -> drawImage(bmp, blendMode = BlendMode.Screen)
-                "lamp" -> drawImage(bmp, alpha = paint.lampAlpha, colorFilter = paint.lamp)
-                "roof_twotone" -> drawImage(bmp, colorFilter = paint.roof)
-                "decal_stripe" -> drawImage(bmp, colorFilter = paint.decal)
-                else -> drawImage(bmp) // fixed, wheel_*, roof_box, plate_gold: 그대로
+            // 글로는 밤에만. 밤→낮으로 바뀐 직후 새 묶음을 읽기 전의 프레임에서도 그리지 않는다.
+            if (!night && name in m.night) continue
+            when (LayerKind.of(name)) {
+                LayerKind.Shadow -> drawImage(bmp, alpha = SHADOW_ALPHA)
+                LayerKind.Body -> drawImage(bmp, colorFilter = paint.body)
+                LayerKind.Spec -> drawImage(bmp, blendMode = BlendMode.Screen)
+                LayerKind.Lamp -> drawImage(bmp, alpha = paint.lampAlpha, colorFilter = paint.lamp)
+                LayerKind.Roof -> drawImage(bmp, colorFilter = paint.roof)
+                LayerKind.Decal -> drawImage(bmp, colorFilter = paint.decal)
+                // 글로 그림은 RGB=빛 색, 알파=세기. 전조등 빛은 램프 색으로 물들인 뒤 Screen, 후미등 빛은 그대로 Screen.
+                LayerKind.GlowHead -> drawImage(bmp, colorFilter = paint.lamp, blendMode = BlendMode.Screen)
+                LayerKind.GlowTail -> drawImage(bmp, blendMode = BlendMode.Screen)
+                LayerKind.Plain -> drawImage(bmp) // fixed, wheel_*, roof_box, plate_gold: 그대로
             }
         }
     }

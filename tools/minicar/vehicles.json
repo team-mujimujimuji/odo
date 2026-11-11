@@ -3,14 +3,64 @@
   "version": 1,
   "seed": 7,
   "views": {
-    "hero": {"px": [576, 384], "focal_mm": 70, "elev_deg": 18, "azimuth_deg": 52, "distance_m": 11.0, "origin_px": [288, 272], "shadow_lights": "all"},
-    "navi": {"px": [192, 192], "focal_mm": 85, "elev_deg": 45, "azimuth_deg": 180, "distance_m": 10.0, "origin_px": [96, 104], "shadow_lights": "world"}
+    "hero": {"px": [576, 384], "camera": "persp", "focal_mm": 70, "elev_deg": 18, "azimuth_deg": 52, "distance_m": 11.0, "origin_px": [288, 272], "shadow_lights": "all", "shadow_edge_fade_px": 20, "shadow_gain": 1.2,
+             "skip": ["glow_tail"],
+             "glow": {"bloom_gain": 0.5}},
+    "navi": {"px": [256, 320], "camera": "persp", "focal_mm": 200, "elev_deg": 45, "azimuth_deg": 180, "px_per_m": 56, "origin_px": [128, 200], "shadow_lights": "world", "shadow_gain": 1.15, "shadow_edge_fade_px": 24,
+             "skip": ["wheel_steel", "wheel_dia", "wheel_aero", "lamp"],
+             "glow": {"head": {"center": true, "axis_m": 0.7, "reach_m": 1.5, "level_w": 6.0, "spread": 1.6},
+                      "tail": {"center": true, "axis_m": 0.0, "reach_m": 0.55, "level_w": 4.0, "spread": 1.8}}},
+    "top": {"px": [256, 384], "camera": "ortho", "px_per_m": 56, "origin_px": [128, 192], "shadow_lights": "world", "shadow_gain": 1.5, "shadow_edge_fade_px": 16,
+            "skip": ["wheel_steel", "wheel_dia", "wheel_aero", "plate_gold"],
+            "glow": {"head": {"center": true, "axis_m": 0.2, "reach_m": 0.9, "level_w": 4.0, "spread": 1.6},
+                     "tail": {"center": true, "axis_m": 0.0, "reach_m": 0.55, "level_w": 4.0, "spread": 1.8}}}
   },
   "lighting": {
-    "key": {"azimuth_deg": 45, "elev_deg": 40, "distance_m": 7.0, "size_m": 3.0, "energy_w": 290},
-    "fill": {"azimuth_deg": -95, "elev_deg": 25, "distance_m": 7.0, "size_m": 4.0, "energy_w": 97},
-    "world_gray": 0.15,
-    "floor_gray_hex": "#4A4A4A"
+    "_comment": "rigs.<뷰>.lights = 면 조명(azimuth 0 = 차 앞, 양수 = 왼쪽). diffuse/glossy=false 로 한쪽 광선에만 보이게, shadow_pass=false 면 그림자 패스에서 끈다. receivers \"glass\" = 유리 객체만 비춤(라이트 링킹). kind \"glass_card\" = 유리(glass: front|rear|side)의 거울 방향에 세로 그라디언트(ramp = [유리 아래 끝 0 → 위 끝 1, 세기]) 발광 판을 형상에서 재어 놓고 유리만 비춘다. rigs.<뷰>.world_diffuse/world_glossy/world_shadow = world 세기 덮어쓰기. world = 노드 그라데이션(stops = [sin(고도), 밝기]); shadow = 그림자 패스에서 디퓨즈 광선이 보는 천정 램프.",
+    "floor_gray_hex": "#4A4A4A",
+    "shadow_edge_fade_px": 8,
+    "world": {
+      "diffuse": {"strength": 1.0, "stops": [[-1.0, 0.0], [0.0, 0.06], [0.4, 0.14], [1.0, 0.26]]},
+      "glossy": {"strength": 1.0, "tint_hex": "#FFFFFF", "stops": [[-1.0, 0.02], [-0.03, 0.05], [0.02, 0.80], [0.14, 0.60], [0.34, 0.22], [0.70, 0.12], [1.0, 0.10]]},
+      "shadow": {"strength": 1.0, "stops": [[-1.0, 0.0], [0.0, 0.15], [0.5, 0.55], [1.0, 1.0]]}
+    },
+    "rigs": {
+      "hero": {"world_diffuse": 0.7, "world_glossy": 0.38, "world_shadow": 2.5, "lights": [
+        {"name": "key", "azimuth_deg": 68, "elev_deg": 56, "distance_m": 7.0, "size_m": [2.4, 1.8], "energy_w": 180},
+        {"name": "fill", "azimuth_deg": 35, "elev_deg": 18, "distance_m": 7.0, "size_m": 4.0, "energy_w": 100, "shadow_pass": false},
+        {"name": "rim", "azimuth_deg": -132, "elev_deg": 40, "distance_m": 7.0, "size_m": [4.5, 0.9], "energy_w": 120, "diffuse": false, "shadow_pass": false},
+        {"name": "back", "azimuth_deg": -150, "elev_deg": 30, "distance_m": 7.0, "size_m": 4.0, "energy_w": 90, "glossy": false, "shadow_pass": false},
+        {"name": "top_box", "azimuth_deg": 0, "elev_deg": 90, "distance_m": 6.0, "size_m": [2.5, 6.0], "energy_w": 50, "diffuse": false, "shadow_pass": false},
+        {"name": "paint_strip", "azimuth_deg": 128, "elev_deg": 6, "distance_m": 7.0, "size_m": [8.0, 0.4], "energy_w": 120, "diffuse": false, "shadow_pass": false},
+        {"name": "glass_streak", "azimuth_deg": -90, "elev_deg": 40, "distance_m": 7.0, "size_m": [0.9, 4.0], "energy_w": 45, "diffuse": false, "shadow_pass": false, "receivers": "glass"},
+        {"name": "glass_ws", "kind": "glass_card", "glass": "front", "distance_m": 2.0, "margin_m": 0.3, "hex": "#CFE0F2", "ramp": [[0.0, 0.4], [0.7, 1.6], [1.0, 2.4]], "shadow_pass": false},
+        {"name": "glass_side", "kind": "glass_card", "glass": "side", "distance_m": 2.0, "margin_m": 0.3, "hex": "#CFE0F2", "ramp": [[0.0, 0.5], [1.0, 2.6]], "shadow_pass": false}
+      ]},
+      "navi": {"world_diffuse": 0.58, "lights": [
+        {"name": "key", "azimuth_deg": 180, "elev_deg": 62, "distance_m": 7.0, "size_m": 4.0, "energy_w": 190},
+        {"name": "side_l", "azimuth_deg": 100, "elev_deg": 30, "distance_m": 7.0, "size_m": [4.0, 1.5], "energy_w": 52},
+        {"name": "side_r", "azimuth_deg": -100, "elev_deg": 30, "distance_m": 7.0, "size_m": [4.0, 1.5], "energy_w": 52},
+        {"name": "rim", "azimuth_deg": 0, "elev_deg": 30, "distance_m": 7.0, "size_m": [5.0, 0.9], "energy_w": 100, "diffuse": false},
+        {"name": "glass_sky_top", "azimuth_deg": 0, "elev_deg": 90, "distance_m": 7.0, "size_m": [4.0, 6.0], "energy_w": 150, "hex": "#CFE0F2", "diffuse": false, "receivers": "glass"},
+        {"name": "glass_bl", "kind": "glass_card", "glass": "rear", "distance_m": 2.0, "margin_m": 0.3, "hex": "#CFE0F2", "ramp": [[0.0, 0.6], [1.0, 4.4]], "shadow_pass": false}
+      ]},
+      "top": {"world_diffuse": 0.45, "lights": [
+        {"name": "key", "azimuth_deg": 180, "elev_deg": 60, "distance_m": 7.0, "size_m": 4.0, "energy_w": 150, "glossy": false},
+        {"name": "side_l", "azimuth_deg": 90, "elev_deg": 40, "distance_m": 7.0, "size_m": [5.0, 1.2], "energy_w": 30},
+        {"name": "side_r", "azimuth_deg": -90, "elev_deg": 40, "distance_m": 7.0, "size_m": [5.0, 1.2], "energy_w": 30},
+        {"name": "gloss", "azimuth_deg": 0, "elev_deg": 90, "distance_m": 6.0, "size_m": [1.0, 6.0], "energy_w": 75, "diffuse": false},
+        {"name": "glass_ws", "kind": "glass_card", "glass": "front", "distance_m": 2.0, "margin_m": 0.3, "hex": "#CFE0F2", "ramp": [[0.0, 0.5], [0.6, 2.4], [1.0, 5.5]], "shadow_pass": false},
+        {"name": "glass_bl", "kind": "glass_card", "glass": "rear", "distance_m": 2.0, "margin_m": 0.3, "hex": "#CFE0F2", "ramp": [[0.0, 0.4], [0.6, 1.6], [1.0, 3.2]], "shadow_pass": false}
+      ]}
+    },
+    "glow": {
+      "floor_gray": 0.5,
+      "head": {"hex": "#FFFFFF", "lens_emission": 6.0, "offset_m": 0.05, "blend": 1.0},
+      "tail": {"hex": "#FF2A1A", "lens_emission": 6.0, "offset_m": 0.05, "blend": 1.0},
+      "bloom_cap": 3.0,
+      "bloom": [{"sigma_m": 0.05, "gain": 0.6}, {"sigma_m": 0.2, "gain": 0.5}],
+      "edge_fade_px": 12
+    }
   },
   "materials": {
     "body_white": {"hex": "#FFFFFF", "roughness": 0.18, "coat": 0.6, "coat_roughness": 0.08},
@@ -23,11 +73,18 @@
     "hub_dark": {"hex": "#5A5F66", "metallic": 0.5, "roughness": 0.4},
     "cladding": {"hex": "#1C2126", "roughness": 0.8},
     "lamp_housing": {"hex": "#1C2126", "roughness": 0.3},
-    "seat": {"hex": "#1A1A1A", "roughness": 0.95},
+    "seat": {"hex": "#8A5A3C", "roughness": 0.7},
     "lamp": {"hex": "#FFFFFF", "emission": 2.0},
     "overlay_white": {"hex": "#FFFFFF", "roughness": 0.6},
     "roof_box": {"hex": "#1C2126", "roughness": 0.85},
-    "plate_gold": {"hex": "#C9A24A", "metallic": 0.9, "roughness": 0.3}
+    "plate_gold": {"hex": "#C9A24A", "metallic": 0.9, "roughness": 0.3},
+    "liner": {"hex": "#0E1013", "roughness": 0.95, "specular": 0.1},
+    "tail_lamp": {"hex": "#FF2B1C", "roughness": 0.25, "emission": 1.6},
+    "tail_housing": {"hex": "#6A1218", "roughness": 0.12, "specular": 0.6, "coat": 0.6, "coat_roughness": 0.05},
+    "lamp_lens": {"hex": "#FFFFFF", "roughness": 0.15, "emission": 0.55},
+    "lamp_proj": {"hex": "#8E98A4", "metallic": 0.8, "roughness": 0.16},
+    "plate_blank": {"hex": "#E6E3DB", "roughness": 0.45},
+    "mirror": {"hex": "#B4BCC6", "metallic": 1.0, "roughness": 0.06}
   },
   "vehicles": {
     "compact": {
@@ -54,7 +111,42 @@
       "roof_rails": false,
       "character_line": false,
       "hero_zoom": 1.0,
-      "navi_scale": 1.0
+      "navi_scale": 1.0,
+      "shape": {
+        "cols": ["y", "role", "hw", "zb", "zs", "zt", "tw", "ze", "bow", "hold"],
+        "stations": [
+          [1.7, "nose", 0.72, 0.32, 0.66, 0.78, null, null, 0.0, 0],
+          [1.56, "hood", 0.845, 0.24, 0.78, 0.88, null, null, 0.0, 0],
+          [1.2, "hood", 0.875, 0.22, 0.9, 0.96, null, null, 0.0, 0],
+          [0.92, "cowl", 0.875, 0.22, 0.95, 1.0, null, null, 0.05, [0.0, 0.05]],
+          [0.12, "roof_f", 0.875, 0.22, 0.99, 1.55, 0.63, 1.44, 0.06, [0.05, 0.05]],
+          [-0.65, "roof", 0.875, 0.22, 1.01, 1.56, 0.64, 1.45, 0.0, 0],
+          [-1.34, "roof_r", 0.87, 0.22, 1.03, 1.53, 0.61, 1.42, 0.0, [0.05, 0.04]],
+          [-1.58, "base", 0.85, 0.24, 1.02, 1.06, null, null, -0.02, [0.03, 0.0]],
+          [-1.7, "tail", 0.8, 0.3, 0.96, 1.02, null, null, 0.0, 0]
+        ],
+        "crease": {"R": 0.2, "S": 0.5, "G": 0.8, "E": 0.7, "T": 0.3, "nose": 0.5, "tail": 0.6, "cowl": 0.8, "roof_f": 0.7, "roof_r": 0.7, "base": 0.7},
+        "arch": {"gap": 0.035, "wide": 0.02, "n": 2.2, "flare": 0.05, "falloff": 0.2, "flare_lo": [0.0, 0.2], "tire_inset": 0.015, "rear": {"flare": 0.075, "tire_inset": 0.022}},
+        "glass": {"a_y": 0.72, "a_lean": 0, "b_y": -0.3, "b_w": 0.07, "b_lean": 3, "c_y": -1.02, "c_lean": 22},
+        "clad": {"band": 0.1},
+        "stripe": [[-0.22, -0.1], [0.1, 0.22]],
+        "mirror": {"t": 0.3, "w": 0.16, "d": 0.085, "h": 0.1},
+        "roof_box": {"len": 1.2, "w": 0.7, "h": 0.26, "dy": -0.05},
+        "decor": [
+          {"n": "hl_housing", "end": "f", "x": 0.5, "z": 0.68, "wrap": 28, "shape": ["rrect", 0.4, 0.18, 0.07], "mat": "lamp_housing", "grp": "fixed", "off": 0.004},
+          {"n": "hl_drl", "end": "f", "x": 0.5, "z": 0.68, "wrap": 28, "shape": ["rrect", 0.37, 0.15, 0.06], "hole": ["rrect", 0.23, 0.07, 0.03], "mat": "lamp", "grp": "lamp", "off": 0.007, "mark": "head"},
+          {"n": "hl_lens", "end": "f", "x": 0.5, "z": 0.68, "wrap": 28, "shape": ["rrect", 0.2, 0.05, 0.025], "mat": "lamp_proj", "grp": "lamp", "off": 0.008, "mark": "head"},
+          {"n": "fog_housing", "end": "f", "x": 0.6, "z": 0.45, "wrap": 38, "shape": ["ellipse", 0.12, 0.085], "mat": "lamp_housing", "grp": "fixed", "off": 0.004},
+          {"n": "fog_lens", "end": "f", "x": 0.6, "z": 0.45, "wrap": 38, "shape": ["ellipse", 0.085, 0.06], "mat": "lamp", "grp": "lamp", "off": 0.007},
+          {"n": "intake", "end": "f", "x": 0.0, "z": 0.45, "shape": ["rrect", 0.8, 0.17, 0.07], "mat": "cladding", "grp": "fixed", "off": 0.004},
+          {"n": "plate_f", "end": "f", "x": 0.0, "z": 0.45, "shape": ["rrect", 0.4, 0.1, 0.015], "mat": "plate_gold", "grp": "plate_gold", "off": 0.009},
+          {"n": "tl_housing", "end": "r", "x": 0.58, "z": 0.9, "wrap": 35, "shape": ["rrect", 0.34, 0.19, 0.06], "mat": "tail_housing", "grp": "fixed", "off": 0.004},
+          {"n": "tl_lens", "end": "r", "x": 0.58, "z": 0.9, "wrap": 35, "shape": ["rrect", 0.27, 0.13, 0.05], "mat": "tail_lamp", "grp": "fixed", "off": 0.007, "mark": "tail"},
+          {"n": "plate_seat_r", "end": "r", "x": 0.0, "z": 0.64, "shape": ["rrect", 0.48, 0.15, 0.02], "mat": "lamp_housing", "grp": "fixed", "off": 0.004},
+          {"n": "plate_r", "end": "r", "x": 0.0, "z": 0.64, "shape": ["rrect", 0.42, 0.11, 0.015], "mat": "plate_gold", "grp": "plate_gold", "off": 0.008},
+          {"n": "diffuser", "end": "r", "x": 0.0, "z": 0.42, "shape": ["rrect", 1.1, 0.1, 0.05], "mat": "cladding", "grp": "fixed", "off": 0.004}
+        ]
+      }
     },
     "suv": {
       "label": "중형",
@@ -80,7 +172,46 @@
       "roof_rails": true,
       "character_line": false,
       "hero_zoom": 1.0,
-      "navi_scale": 1.0
+      "navi_scale": 1.0,
+      "shape": {
+        "cols": ["y", "role", "hw", "zb", "zs", "zt", "tw", "ze", "bow", "hold"],
+        "stations": [
+          [1.95, "nose", 0.86, 0.42, 0.88, 0.97, null, null, 0.0, 0],
+          [1.8, "hood", 0.97, 0.34, 0.99, 1.07, null, null, 0.0, 0],
+          [1.3, "hood", 1.0, 0.32, 1.07, 1.12, null, null, 0.0, 0],
+          [0.98, "cowl", 1.0, 0.32, 1.11, 1.15, null, null, 0.04, [0.0, 0.05]],
+          [0.3, "roof_f", 1.0, 0.32, 1.14, 1.7, 0.77, 1.58, 0.04, [0.05, 0.05]],
+          [-0.8, "roof", 1.0, 0.32, 1.16, 1.71, 0.78, 1.59, 0.0, 0],
+          [-1.62, "roof_r", 0.99, 0.32, 1.17, 1.69, 0.76, 1.57, 0.0, [0.05, 0.04]],
+          [-1.82, "base", 0.97, 0.34, 1.16, 1.2, null, null, -0.02, [0.03, 0.0]],
+          [-1.95, "tail", 0.92, 0.4, 1.1, 1.16, null, null, 0.0, 0]
+        ],
+        "crease": {"R": 0.3, "S": 0.6, "G": 0.8, "E": 0.8, "T": 0.4, "nose": 0.6, "tail": 0.7, "cowl": 0.8, "roof_f": 0.8, "roof_r": 0.8, "base": 0.8},
+        "arch": {"gap": 0.045, "wide": 0.06, "n": 3.2, "flare": 0.045, "falloff": 0.2, "flare_lo": [0.0, 0.2], "tire_inset": 0.015, "rear": {"flare": 0.07, "tire_inset": 0.022}},
+        "glass": {"a_y": 0.8, "a_lean": 0, "b_y": -0.42, "b_w": 0.08, "b_lean": 2, "c_y": -1.42, "c_lean": 8},
+        "clad": {"band": 0.17, "flare": 0.06},
+        "stripe": [[-0.26, -0.12], [0.12, 0.26]],
+        "roof_rails": true,
+        "mirror": {"t": 0.3, "w": 0.18, "d": 0.095, "h": 0.12},
+        "roof_box": {"len": 1.4, "w": 0.8, "h": 0.3, "dy": -0.05},
+        "decor": [
+          {"n": "hl_housing", "end": "f", "x": 0.6, "z": 0.93, "wrap": 30, "shape": ["rrect", 0.46, 0.15, 0.05], "mat": "lamp_housing", "grp": "fixed", "off": 0.004},
+          {"n": "hl_drl", "end": "f", "x": 0.6, "z": 0.93, "wrap": 30, "shape": ["rrect", 0.42, 0.035, 0.017], "at": [0.0, 0.045], "mat": "lamp", "grp": "lamp", "off": 0.007, "mark": "head"},
+          {"n": "hl_drl_side", "end": "f", "x": 0.6, "z": 0.93, "wrap": 30, "shape": ["rrect", 0.035, 0.085, 0.017], "at": [0.19, -0.017], "mat": "lamp", "grp": "lamp", "off": 0.007, "mark": "head"},
+          {"n": "hl_lens", "end": "f", "x": 0.6, "z": 0.93, "wrap": 30, "shape": ["rrect", 0.3, 0.05, 0.022], "at": [-0.01, -0.017], "mat": "lamp_proj", "grp": "lamp", "off": 0.008, "mark": "head"},
+          {"n": "fog_housing", "end": "f", "x": 0.72, "z": 0.58, "wrap": 40, "shape": ["ellipse", 0.13, 0.09], "mat": "lamp_housing", "grp": "fixed", "off": 0.004},
+          {"n": "fog_lens", "end": "f", "x": 0.72, "z": 0.58, "wrap": 40, "shape": ["ellipse", 0.095, 0.065], "mat": "lamp", "grp": "lamp", "off": 0.007},
+          {"n": "intake", "end": "f", "x": 0.0, "z": 0.66, "shape": ["rrect", 1.1, 0.24, 0.08], "mat": "cladding", "grp": "fixed", "off": 0.004},
+          {"n": "skid_f", "end": "f", "x": 0.0, "z": 0.47, "shape": ["rrect", 0.8, 0.08, 0.035], "mat": "hub", "grp": "fixed", "off": 0.008},
+          {"n": "plate_f", "end": "f", "x": 0.0, "z": 0.66, "shape": ["rrect", 0.4, 0.1, 0.015], "mat": "plate_gold", "grp": "plate_gold", "off": 0.009},
+          {"n": "tl_housing", "end": "r", "x": 0.72, "z": 1.0, "wrap": 40, "shape": ["rrect", 0.22, 0.28, 0.05], "mat": "tail_housing", "grp": "fixed", "off": 0.004},
+          {"n": "tl_lens", "end": "r", "x": 0.72, "z": 1.0, "wrap": 40, "shape": ["rrect", 0.16, 0.22, 0.04], "mat": "tail_lamp", "grp": "fixed", "off": 0.007, "mark": "tail"},
+          {"n": "plate_seat_r", "end": "r", "x": 0.0, "z": 0.82, "shape": ["rrect", 0.5, 0.16, 0.02], "mat": "lamp_housing", "grp": "fixed", "off": 0.004},
+          {"n": "plate_r", "end": "r", "x": 0.0, "z": 0.82, "shape": ["rrect", 0.42, 0.11, 0.015], "mat": "plate_gold", "grp": "plate_gold", "off": 0.008},
+          {"n": "bumper_r", "end": "r", "x": 0.0, "z": 0.56, "shape": ["rrect", 1.4, 0.18, 0.06], "mat": "cladding", "grp": "fixed", "off": 0.004},
+          {"n": "skid_r", "end": "r", "x": 0.0, "z": 0.53, "shape": ["rrect", 0.7, 0.06, 0.025], "mat": "hub", "grp": "fixed", "off": 0.008}
+        ]
+      }
     },
     "large": {
       "label": "대형",
@@ -106,7 +237,40 @@
       "roof_rails": false,
       "character_line": false,
       "hero_zoom": 1.0,
-      "navi_scale": 1.0
+      "navi_scale": 1.0,
+      "shape": {
+        "cols": ["y", "role", "hw", "zb", "zs", "zt", "tw", "ze", "bow", "hold"],
+        "stations": [
+          [2.2, "nose", 0.88, 0.3, 0.8, 0.9, null, null, 0.0, 0],
+          [2.05, "hood", 0.99, 0.24, 0.92, 1.0, null, null, 0.0, 0],
+          [1.78, "hood", 1.025, 0.22, 0.98, 1.06, null, null, 0.0, 0],
+          [1.55, "cowl", 1.025, 0.22, 1.0, 1.08, null, null, 0.05, [0.0, 0.04]],
+          [0.62, "roof_f", 1.025, 0.22, 1.03, 1.85, 0.8, 1.72, 0.05, [0.06, 0.05]],
+          [-0.8, "roof", 1.025, 0.22, 1.04, 1.86, 0.81, 1.73, 0.0, 0],
+          [-1.96, "roof_r", 1.02, 0.22, 1.05, 1.84, 0.79, 1.71, 0.0, [0.05, 0.03]],
+          [-2.09, "base", 1.0, 0.24, 1.04, 1.08, null, null, -0.01, [0.02, 0.0]],
+          [-2.2, "tail", 0.96, 0.28, 1.0, 1.04, null, null, 0.0, 0]
+        ],
+        "crease": {"R": 0.2, "S": 0.5, "G": 0.8, "E": 0.7, "T": 0.3, "nose": 0.5, "tail": 0.7, "cowl": 0.8, "roof_f": 0.7, "roof_r": 0.8, "base": 0.8},
+        "arch": {"gap": 0.035, "wide": 0.025, "n": 2.2, "flare": 0.035, "falloff": 0.18, "flare_lo": [0.0, 0.2], "tire_inset": 0.015, "rear": {"flare": 0.06, "tire_inset": 0.022}},
+        "glass": {"a_y": 1.25, "a_lean": 0, "b_y": [0.05, -1.05], "b_w": 0.08, "b_lean": 2, "c_y": -1.8, "c_lean": 4},
+        "clad": {"band": 0.08},
+        "stripe": [[-0.28, -0.14], [0.14, 0.28]],
+        "mirror": {"t": 0.22, "w": 0.18, "d": 0.095, "h": 0.12},
+        "roof_box": {"len": 1.6, "w": 0.84, "h": 0.3, "dy": -0.1},
+        "decor": [
+          {"n": "hl_bar", "end": "f", "x": 0.0, "z": 0.86, "shape": ["rrect", 1.66, 0.12, 0.05], "mat": "lamp_housing", "grp": "fixed", "off": 0.004},
+          {"n": "hl_drl", "end": "f", "x": 0.0, "z": 0.86, "shape": ["rrect", 1.52, 0.03, 0.015], "at": [0.0, 0.037], "mat": "lamp", "grp": "lamp", "off": 0.007, "mark": "head"},
+          {"n": "hl_lens", "end": "f", "x": 0.6, "z": 0.86, "wrap": 28, "shape": ["rrect", 0.34, 0.045, 0.02], "at": [0.0, -0.016], "mat": "lamp_proj", "grp": "lamp", "off": 0.008, "mark": "head"},
+          {"n": "intake", "end": "f", "x": 0.0, "z": 0.48, "shape": ["rrect", 1.0, 0.18, 0.07], "mat": "cladding", "grp": "fixed", "off": 0.004},
+          {"n": "plate_f", "end": "f", "x": 0.0, "z": 0.48, "shape": ["rrect", 0.4, 0.1, 0.015], "mat": "plate_gold", "grp": "plate_gold", "off": 0.009},
+          {"n": "tl_bar", "end": "r", "x": 0.0, "z": 0.98, "shape": ["rrect", 1.7, 0.12, 0.05], "mat": "tail_housing", "grp": "fixed", "off": 0.004},
+          {"n": "tl_lens", "end": "r", "x": 0.66, "z": 0.98, "wrap": 30, "shape": ["rrect", 0.36, 0.08, 0.035], "mat": "tail_lamp", "grp": "fixed", "off": 0.007, "mark": "tail"},
+          {"n": "plate_seat_r", "end": "r", "x": 0.0, "z": 0.7, "shape": ["rrect", 0.5, 0.16, 0.02], "mat": "lamp_housing", "grp": "fixed", "off": 0.004},
+          {"n": "plate_r", "end": "r", "x": 0.0, "z": 0.7, "shape": ["rrect", 0.42, 0.11, 0.015], "mat": "plate_gold", "grp": "plate_gold", "off": 0.008},
+          {"n": "diffuser", "end": "r", "x": 0.0, "z": 0.42, "shape": ["rrect", 1.3, 0.1, 0.05], "mat": "cladding", "grp": "fixed", "off": 0.004}
+        ]
+      }
     },
     "sedan": {
       "label": "세단",
@@ -132,7 +296,42 @@
       "roof_rails": false,
       "character_line": true,
       "hero_zoom": 1.0,
-      "navi_scale": 1.0
+      "navi_scale": 1.0,
+      "shape": {
+        "cols": ["y", "role", "hw", "zb", "zs", "zt", "tw", "ze", "bow", "hold"],
+        "stations": [
+          [2.15, "nose", 0.8, 0.24, 0.56, 0.62, null, null, 0.0, 0],
+          [1.98, "hood", 0.93, 0.18, 0.74, 0.76, null, null, 0.0, 0],
+          [1.5, "hood", 0.95, 0.16, 0.87, 0.88, null, null, 0.0, 0],
+          [1.02, "hood", 0.95, 0.16, 0.87, 0.895, null, null, 0.0, 0],
+          [0.88, "cowl", 0.95, 0.16, 0.87, 0.9, null, null, 0.06, [0.0, 0.05]],
+          [0.05, "roof_f", 0.95, 0.16, 0.88, 1.25, 0.63, 1.15, 0.08, [0.08, 0.06]],
+          [-0.5, "roof", 0.95, 0.16, 0.89, 1.245, 0.63, 1.14, 0.0, 0],
+          [-0.82, "roof_r", 0.95, 0.16, 0.9, 1.22, 0.61, 1.12, 0.0, [0.05, 0.0]],
+          [-1.62, "base", 0.94, 0.17, 0.91, 0.95, null, null, -0.02, 0],
+          [-1.98, "deck", 0.91, 0.2, 0.89, 0.94, null, null, 0.0, 0],
+          [-2.15, "tail", 0.85, 0.26, 0.84, 0.9, null, null, 0.0, 0]
+        ],
+        "crease": {"R": 0.3, "S": 0.9, "G": 0.8, "E": 0.6, "T": 0.3, "nose": 0.5, "tail": 0.7, "cowl": 0.8, "roof_f": 0.6, "roof_r": 0.4, "base": 0.7, "deck": 0.6, "hood": 0.0},
+        "arch": {"gap": 0.03, "wide": 0.03, "n": 2.0, "flare": 0.045, "falloff": 0.2, "flare_lo": [0.0, 0.2], "tire_inset": 0.015, "rear": {"flare": 0.075, "tire_inset": 0.022}},
+        "glass": {"a_y": 0.78, "a_lean": 0, "b_y": -0.28, "b_w": 0.07, "b_lean": 4, "c_y": -0.92, "c_lean": 38},
+        "clad": {"band": 0.06},
+        "stripe": [[-0.24, -0.11], [0.11, 0.24]],
+        "mirror": {"t": 0.3, "w": 0.16, "d": 0.08, "h": 0.09},
+        "roof_box": {"len": 1.1, "w": 0.74, "h": 0.24, "dy": 0.05},
+        "decor": [
+          {"n": "hl_housing", "end": "f", "x": 0.6, "z": 0.56, "wrap": 32, "shape": ["rrect", 0.44, 0.11, 0.04, 0.15], "mat": "lamp_housing", "grp": "fixed", "off": 0.004},
+          {"n": "hl_drl", "end": "f", "x": 0.6, "z": 0.56, "wrap": 32, "shape": ["rrect", 0.42, 0.032, 0.016, 0.15], "at": [0.005, 0.029], "mat": "lamp", "grp": "lamp", "off": 0.007, "mark": "head"},
+          {"n": "hl_lens", "end": "f", "x": 0.6, "z": 0.56, "wrap": 32, "shape": ["rrect", 0.3, 0.04, 0.018, 0.15], "at": [-0.03, -0.012], "mat": "lamp_proj", "grp": "lamp", "off": 0.008, "mark": "head"},
+          {"n": "intake", "end": "f", "x": 0.0, "z": 0.36, "shape": ["rrect", 1.2, 0.13, 0.06], "mat": "cladding", "grp": "fixed", "off": 0.004},
+          {"n": "plate_f", "end": "f", "x": 0.0, "z": 0.36, "shape": ["rrect", 0.4, 0.1, 0.015], "mat": "plate_gold", "grp": "plate_gold", "off": 0.009},
+          {"n": "tl_bar", "end": "r", "x": 0.0, "z": 0.745, "shape": ["rrect", 1.62, 0.17, 0.05], "mat": "lamp_housing", "grp": "fixed", "off": 0.004},
+          {"n": "tl_lens", "end": "r", "x": 0.6, "z": 0.745, "wrap": 30, "shape": ["rrect", 0.4, 0.11, 0.035], "mat": "tail_lamp", "grp": "fixed", "off": 0.007, "mark": "tail"},
+          {"n": "plate_seat_r", "end": "r", "x": 0.0, "z": 0.52, "shape": ["rrect", 0.5, 0.15, 0.02], "mat": "lamp_housing", "grp": "fixed", "off": 0.004},
+          {"n": "plate_r", "end": "r", "x": 0.0, "z": 0.52, "shape": ["rrect", 0.42, 0.11, 0.015], "mat": "plate_gold", "grp": "plate_gold", "off": 0.008},
+          {"n": "diffuser", "end": "r", "x": 0.0, "z": 0.36, "shape": ["rrect", 1.2, 0.09, 0.04], "mat": "cladding", "grp": "fixed", "off": 0.004}
+        ]
+      }
     },
     "scooter": {
       "label": "2륜",
@@ -143,7 +342,16 @@
       "tire_w": 0.12,
       "lamp": {"front_cells": 1, "rear_cells": 3, "cell_w": 0.08, "cell_h": 0.05, "row_w": 0.3},
       "hero_zoom": 1.8,
-      "navi_scale": 1.25
+      "marker_zoom": 1.6,
+      "navi_scale": 1.25,
+      "view_overrides": {
+        "navi": {"glow": {"bloom_scale": 0.5,
+                          "head": {"center": true, "axis_m": 0.15, "reach_m": 0.7, "level_w": 10.0, "spread": 0.45},
+                          "tail": null}},
+        "top": {"glow": {"bloom_scale": 0.5,
+                         "head": {"center": true, "axis_m": 0.1, "reach_m": 0.6, "level_w": 4.0, "spread": 0.5},
+                         "tail": {"center": true, "axis_m": 0.0, "reach_m": 0.3, "level_w": 3.0, "spread": 0.5}}}
+      }
     }
   }
 }
