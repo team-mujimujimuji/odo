@@ -66,11 +66,13 @@ class OdoRepository(private val dao: OdoDao, private val zone: ZoneId) {
 
     suspend fun setVehicle(type: VehicleType) = dao.setCosmetic(CosmeticEntity(Slot.VEHICLE.id, type.id))
 
-    /** 차종별 슬롯 저장. 색은 구 스키마의 cosmetic("color")에도 비춰 둔다(1차 데이터·테스트 호환, 화면은 loadoutFlow만 본다). */
+    /**
+     * 차종별 슬롯 저장(설계서 §3.5: 그 차종에 기억된 슬롯). 구 cosmetic("color")에는 쓰지 않는다.
+     * 쓰면 색을 고른 적 없는 다른 차종이 마지막에 고른 색을 따라가 차종별 기억이 섞인다. 구 값은 [loadoutFlow]가 폴백으로만 읽는다.
+     */
     suspend fun setSlot(vehicle: VehicleType, slot: Slot, itemId: String) {
         if (slot == Slot.VEHICLE) return setVehicle(VehicleType.byId(itemId))
         dao.setLoadoutSlot(LoadoutSlotEntity(vehicle.id, slot.id, itemId))
-        if (slot == Slot.COLOR) dao.setCosmetic(CosmeticEntity(Slot.COLOR.id, itemId))
     }
 
     val phoneLinkFlow: Flow<PhoneLinkRecord> =
@@ -103,6 +105,4 @@ class OdoRepository(private val dao: OdoDao, private val zone: ZoneId) {
             DemoSeed.unlocked.map { AchievementEntity(it, end) },
         )
     }
-
-    suspend fun resetEmpty() = dao.replaceAll(ProfileEntity.of(ProfileState()), emptyList(), emptyList())
 }

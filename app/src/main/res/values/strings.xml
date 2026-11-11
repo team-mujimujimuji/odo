@@ -14,8 +14,8 @@
 
     <!-- 글랜스(주행 중) -->
     <string name="glance_label">안전 주행</string>
-    <string name="glance_gauge_desc">다음 업적까지 %1$d%%</string>
-    <string name="glance_medal_done_desc">오늘 목표 달성</string>
+    <!-- 게이지 접근성 문구(진행한 만큼). 목표가 없을 때는 home_next_goal_done을 읽는다 -->
+    <string name="glance_gauge_desc">다음 업적 진행 %1$d%%</string>
 
     <!-- 홈 -->
     <string name="home_week_title">이번 주 안전 주행</string>
@@ -56,6 +56,12 @@
     <string name="summary_cap_reached">오늘 상한 %1$s 채웠어요</string>
     <!-- 글꼴 배율이 커서 summary_cap_reached가 한 줄을 넘을 때만 쓰는 짧은 꼴(말줄임·잘림 대신). TTS 문장과 같은 말 -->
     <string name="summary_cap_reached_short">오늘 상한을 채웠어요</string>
+    <!-- 연속 기록 보너스(상한 밖)가 트립 XP에 들어 있을 때. 상한 캡션 자리를 같이 쓴다. %1$d = 보너스 XP. _short는 넘칠 때만 -->
+    <string name="summary_streak_bonus">연속 기록 보너스 +%1$d XP 포함</string>
+    <string name="summary_streak_bonus_short">연속 보너스 +%1$d XP 포함</string>
+    <!-- 상한도 채웠을 때 한 줄로: %1$d = 일일 상한, %2$d = 보너스 XP(트립 XP가 상한보다 큰 까닭). _short는 넘칠 때만 -->
+    <string name="summary_cap_and_bonus">상한 %1$d XP + 연속 보너스 %2$d XP</string>
+    <string name="summary_cap_and_bonus_short">상한 %1$d + 연속 보너스 %2$d</string>
     <string name="summary_levelup_unlocks">꾸미기 %1$d개가 열렸어요</string>
     <string name="summary_levelup_unlock_one">%1$s 열렸어요</string>
     <string name="summary_next_level">다음 Lv %1$d까지 %2$d XP</string>

@@ -13,8 +13,9 @@ build/
 *.jks
 *.keystore
 keystore.properties
+*.crt
 
-# 개인정보·내부 작업 파일은 제출 저장소에 넣지 않는다(검토 보고서 §5.4)
+# 내부 작업 파일은 제출 저장소에 넣지 않는다
 /*.md
 !/README.md
 !/NOTICE.md
@@ -23,6 +24,11 @@ ODO_CONTEXT.md
 docs/review/
 docs/proposal/
 docs/env-setup-research.md
+/.*/
+/docs/*
+!/docs/design-spec.md
+!/docs/phone-mockup/
+!/docs/screenshots/
 
 .DS_Store
 

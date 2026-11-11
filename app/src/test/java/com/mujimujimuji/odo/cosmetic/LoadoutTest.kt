@@ -26,11 +26,12 @@ class LoadoutTest {
     }
 
     @Test
-    fun `Lv5는 색·다이아 휠·웜 램프만 열린다`() {
+    fun `Lv5는 색만 열린다`() {
+        // 레벨 5 해금은 미니카 색상 5종뿐(기획서 레벨 표). 다이아 휠·웜 램프는 Lv 10.
         val r = fullKit.resolve(5)
         assertEquals("cherry", r.colorId)
-        assertEquals("dia", r.wheelId)
-        assertEquals("warm", r.lampId)
+        assertEquals("steel", r.wheelId)
+        assertEquals("white", r.lampId)
         assertEquals(NONE, r.roofId)
         assertEquals(NONE, r.decalId)
         assertEquals(NONE, r.plateId)
@@ -38,10 +39,12 @@ class LoadoutTest {
     }
 
     @Test
-    fun `Lv10은 투톤 루프와 트레일이 더 열린다`() {
+    fun `Lv10은 투톤 루프·트레일·다이아 휠·웜 램프가 더 열린다`() {
         val r = fullKit.resolve(10)
         assertEquals("twotone", r.roofId)
         assertEquals("ribbon", r.trailId)
+        assertEquals("dia", r.wheelId)
+        assertEquals("warm", r.lampId)
         assertEquals(NONE, r.decalId)
         assertEquals(NONE, r.plateId)
     }
@@ -81,11 +84,11 @@ class LoadoutTest {
     }
 
     @Test
-    fun `수집 수는 24, 데모 Lv4는 8, Lv5는 15`() {
+    fun `수집 수는 24, 데모 Lv4는 8, Lv5는 13`() {
         assertEquals(28, CosmeticCatalog.items.size)
         assertEquals(24, CosmeticCatalog.collectibleTotal)
         assertEquals(8, CosmeticCatalog.collected(4))
-        assertEquals(15, CosmeticCatalog.collected(5))
+        assertEquals(13, CosmeticCatalog.collected(5))
         assertEquals(17, CosmeticCatalog.collected(10))
         assertEquals(21, CosmeticCatalog.collected(20))
         assertEquals(23, CosmeticCatalog.collected(30))

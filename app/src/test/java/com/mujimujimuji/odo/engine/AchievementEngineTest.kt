@@ -58,6 +58,24 @@ class AchievementEngineTest {
     }
 
     @Test
+    fun `홈존 제외 경계는 펜스 가장자리에서 1 km`() {
+        // 펜스 반지름이 400 m라 중심에서 1,400 m가 경계다. 휴게소 정북 1,390 m와 1,410 m에 집을 둔다.
+        val inside = LatLng(37.4755847, 128.1348680)
+        val outside = LatLng(37.4757645, 128.1348680)
+        assertEquals(1_390.0, Geo.distanceMeters(inside, restArea), 0.5)
+        assertEquals(1_410.0, Geo.distanceMeters(outside, restArea), 0.5)
+
+        val near = AchievementEngine(listOf(place), emptySet(), homeZones = listOf(inside))
+        near.onSample(snap(0.0, 0.0, location = restArea), false)
+        assertTrue(near.onSample(snap(900.0, 0.0, location = restArea), false).isEmpty())
+
+        val far = AchievementEngine(listOf(place), emptySet(), homeZones = listOf(outside))
+        far.onSample(snap(0.0, 0.0, location = restArea), false)
+        assertTrue(far.onSample(snap(599.0, 0.0, location = restArea), false).isEmpty())
+        assertEquals(listOf(place), far.onSample(snap(600.0, 0.0, location = restArea), false))
+    }
+
+    @Test
     fun `도로 업적은 게이트를 순서대로 지나야 열린다`() {
         val e = AchievementEngine(listOf(road), emptySet())
         e.onTripStart()
@@ -73,6 +91,20 @@ class AchievementEngineTest {
         e.onSample(snap(0.0, 100.0, location = gateA), true)
         e.onTripStart()
         assertTrue(e.onSample(snap(1.0, 100.0, location = gateB), true).isEmpty())
+    }
+
+    @Test
+    fun `트립이 끝나면 도로 진행을 지워 다음 업적이 누적 거리 업적으로 돌아온다`() {
+        val e = AchievementEngine(listOf(road, km300), emptySet())
+        e.onTripStart()
+        e.onSample(snap(0.0, 100.0, location = gateA), true)
+        assertEquals("road", e.nextGoal(stats(150))!!.achievement.id)
+
+        e.onTripEnd(tripSafeKm = 5, tripEventCount = 0)
+        assertEquals(Goal(km300, 0.5f), e.nextGoal(stats(150)))
+        // 정차 중(트립 밖)에 끝 게이트 안에 있어도 진행하지 않는다.
+        assertTrue(e.onSample(snap(1.0, 0.0, location = gateB), false).isEmpty())
+        assertEquals(Goal(km300, 0.5f), e.nextGoal(stats(150)))
     }
 
     @Test

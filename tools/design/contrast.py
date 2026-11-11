@@ -70,7 +70,7 @@ def rows(t: dict) -> list:
         ("route on roadCore", f"{ratio(t['route'], t['roadCore']):.2f}"),
         ("routePassed on ground", f"{ratio(t['routePassed'], t['ground']):.2f}"),
         ("roadCore on ground / urban", f"{ratio(t['roadCore'], t['ground']):.2f} / {ratio(t['roadCore'], t['mapUrban']):.2f}"),
-        # 요약 지도 출처 캡션: ground 60 % 스크림 아래 가장 밝은 지도 색(roadCore) 기준(impeccable §3.3)
+        # 요약 지도 출처 캡션: ground 60 % 스크림 아래 가장 밝은 지도 색(roadCore) 기준(설계서 §1.4 대비표)
         ("출처 캡션 inkDim on ground 60 % 스크림 over roadCore", f"{ratio(t['inkDim'], blend(t['ground'], 0.6, t['roadCore'])):.2f}"),
         ("ink on route(흰 글자 on 파란 버튼 — 폐기)", f"{ratio(t['ink'], t['route']):.2f}"),
         # 설계서 초판의 주간 값 17.12는 ink 100%로 잰 것. 96% 합성(야간 값과 같은 방식)이 맞다 → 15.84.

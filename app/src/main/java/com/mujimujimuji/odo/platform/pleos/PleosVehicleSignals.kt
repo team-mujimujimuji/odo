@@ -17,6 +17,7 @@ import android.content.Context
 import android.util.Log
 import com.mujimujimuji.odo.engine.Gear
 import com.mujimujimuji.odo.engine.TurnSignal
+import com.mujimujimuji.odo.platform.SpeedSample
 import com.mujimujimuji.odo.platform.VehicleSignals
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +33,7 @@ class PleosVehicleSignals(context: Context, private val speed: CarSpeed) : Vehic
     private val driverSeat = SeatArea(SeatValue.ROW_1_LEFT)
     private val windshield = WindowArea(WindowValue.FRONT_WINDSHIELD)
 
-    override val speedKmh: Flow<Double> get() = speed.speedKmh
+    override val speedSamples: Flow<SpeedSample> get() = speed.samples
 
     override val gear: Flow<Gear> = callbackFlow {
         val listener = object : GearSelectionListener {

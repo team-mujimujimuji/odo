@@ -20,7 +20,7 @@ import com.mujimujimuji.odo.engine.TripSummary
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
-/** 프로필은 한 줄(id 0). 위치·원시 신호는 저장하지 않는다(절대 규칙 7). */
+/** 프로필은 한 줄(id 0). 위치·원시 신호는 저장하지 않는다. */
 @Entity(tableName = "profile")
 data class ProfileEntity(
     @PrimaryKey val id: Int = 0,

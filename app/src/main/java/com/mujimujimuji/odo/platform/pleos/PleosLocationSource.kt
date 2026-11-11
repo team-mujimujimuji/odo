@@ -11,7 +11,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-/** Pleos FusedLocation 어댑터. 위치는 기기 안에서만 쓰고 저장·전송하지 않는다(절대 규칙 7). */
+/** Pleos FusedLocation 어댑터. 위치는 기기 안에서만 쓰고 저장·전송하지 않는다(README '안전·프라이버시 원칙', 설계서 §11). */
 class PleosLocationSource(context: Context) : LocationSource {
     private val fused = FusedLocation(context.applicationContext).apply { initialize() }
 

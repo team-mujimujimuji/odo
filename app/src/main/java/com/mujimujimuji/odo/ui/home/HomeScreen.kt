@@ -184,10 +184,11 @@ private fun SafeKmColumn(ui: DriveUi, stats: HomeStats, modifier: Modifier) {
         else -> stringResource(R.string.home_next_goal_plain, goal.achievement.title)
     }
     val goalCaptionShort = remainingKm?.let { stringResource(R.string.home_next_goal_short, it) }
-    val streak = if (stats.streakDays > 0) {
-        stringResource(R.string.home_streak_days, stats.streakDays)
-    } else {
-        stringResource(R.string.home_streak_reset)
+    // 연속 기록을 한 번도 시작하지 않은 새 프로필(실신호 빌드 첫 실행)에는 '다시 1일째예요'를 띄우지 않는다(끊겼을 때만, 설계서 §5.1).
+    val streak = when {
+        stats.streakDays > 0 -> stringResource(R.string.home_streak_days, stats.streakDays)
+        ui.profile.streak.lastDate == null -> null
+        else -> stringResource(R.string.home_streak_reset)
     }
     // 행 높이는 고정(52 / 4 / 32 / 32 / 4 / 26 = 150, 위 여백 12 → 162 ≤ STATS_H). 오른쪽 열의 게이지와 같은 y(120)에 게이지가 놓인다.
     Column(modifier) {

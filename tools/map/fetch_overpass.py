@@ -49,7 +49,7 @@ def repo_root() -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--out", required=True, help="원본 JSON 저장 경로(저장소 밖)")
+    ap.add_argument("--out", help="원본 JSON 저장 경로(저장소 밖). --print-query만 줄 때는 없어도 된다")
     ap.add_argument("--endpoint", default=DEFAULT_ENDPOINT)
     ap.add_argument("--timeout", type=int, default=360)
     ap.add_argument("--print-query", action="store_true", help="쿼리만 출력하고 끝낸다")
@@ -58,6 +58,8 @@ def main() -> int:
     if args.print_query:
         print(QUERY)
         return 0
+    if not args.out:
+        ap.error("--out이 필요하다(원본 JSON 저장 경로, 저장소 밖)")
 
     out = os.path.abspath(args.out)
     root = repo_root()

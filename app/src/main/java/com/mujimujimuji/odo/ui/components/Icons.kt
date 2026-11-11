@@ -299,7 +299,9 @@ fun DrawScope.drawPlateGlyph(plateId: String, tint: Color, gold: Color) {
 @Composable
 fun CosmeticGlyph(item: CosmeticItem, vehicle: VehicleType, modifier: Modifier = Modifier, size: Dp = OdoSize.icon) {
     val c = LocalOdoColors.current
-    Canvas(modifier.size(size)) { drawCosmeticGlyph(item, vehicle, ink = c.ink, gold = c.amber, ring = c.line) }
+    // 색 점 링은 Chip · 차고 색 칸과 같은 ink 38%(설계서 §1.1). line이면 그래파이트 점이 카드 면에 묻혔다.
+    val ring = c.ink.copy(alpha = SWATCH_RING_ALPHA)
+    Canvas(modifier.size(size)) { drawCosmeticGlyph(item, vehicle, ink = c.ink, gold = c.amber, ring = ring) }
 }
 
 private fun DrawScope.drawCosmeticGlyph(item: CosmeticItem, vehicle: VehicleType, ink: Color, gold: Color, ring: Color) {
@@ -313,7 +315,7 @@ private fun DrawScope.drawCosmeticGlyph(item: CosmeticItem, vehicle: VehicleType
         Slot.COLOR -> {
             val r = size.minDimension / 2f - hair
             drawCircle(paint, radius = r)
-            drawCircle(ring, radius = r, style = Stroke(hair))
+            drawCircle(ring, radius = r - hair / 2f, style = Stroke(hair)) // 안쪽 링(차고 색 칸과 같은 자리)
         }
         Slot.LAMP -> {
             // 램프 색 원판 + ink 외곽선 + 부채꼴 빛줄기 3개. 램프 색(화이트·웜·아이스)은 모두 밝아서 hairline 링만으로는

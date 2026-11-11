@@ -21,4 +21,16 @@ class JosaTest {
         assertEquals("서울로", josa("서울", "으로/로"))
         assertEquals("집으로", josa("집", "으로/로"))
     }
+
+    @Test
+    fun `숫자 1·7·8은 ㄹ 받침이라 로`() {
+        assertEquals("레벨 1로", josa("레벨 1", "으로/로"))
+        assertEquals("Lv 7로", josa("Lv 7", "으로/로"))
+        assertEquals("Lv 8로", josa("Lv 8", "으로/로"))
+        assertEquals("레벨 3으로", josa("레벨 3", "으로/로"))
+        assertEquals("Lv 10으로", josa("Lv 10", "으로/로"))
+        // 이/가·을/를은 ㄹ도 받침 있음으로 고른다(바뀌지 않음).
+        assertEquals("레벨 1이", josa("레벨 1", "이/가"))
+        assertEquals("Lv 8을", josa("Lv 8", "을/를"))
+    }
 }

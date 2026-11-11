@@ -70,6 +70,8 @@ class FakePhoneLink(
     }
 
     override fun cancelPairing() {
+        // 폰이 이미 확인했으면(확인됨 1.5 s) 연결은 끝난 것이다. 화면을 떠나도 저장·연결됨까지 마치게 둔다.
+        if (_state.value is PhoneLinkState.Confirmed) return
         pairingJob?.cancel()
         pairingJob = null
         if (_state.value !is PhoneLinkState.Linked) _state.value = PhoneLinkState.Idle

@@ -320,9 +320,10 @@ def main() -> int:
     route_i = integerize(route_m)
     total_pts += len(route_i)
 
-    # 휴게소: 면 중심 우선(큰 면부터), 300 m 안의 다른 면·노드는 같은 휴게소로 보고 하나만 남긴다(픽토 1종, 겹침 방지)
+    # 휴게소: 면 중심 우선(면끼리는 Overpass 응답 순서, 면적으로 고르지 않음), 300 m 안의 다른 면·노드는 같은 휴게소로 보고
+    # 하나만 남긴다(픽토 1종, 겹침 방지). 순서를 바꾸면 고르는 면이 달라져 corridor.json과 README의 sha256도 바뀐다.
     pois = []
-    candidates = [("way", wid, p) for wid, p in sorted(rest_ways, key=lambda t: -1)] + [("node", nid, p) for nid, p in rest_nodes]
+    candidates = [("way", wid, p) for wid, p in rest_ways] + [("node", nid, p) for nid, p in rest_nodes]
     for typ, oid, p in candidates:
         if all(math.hypot(p[0] - q["x"], p[1] - q["y"]) > args.poi_merge for q in pois):
             pois.append({"type": "rest", "x": int(round(p[0])), "y": int(round(p[1])), "src": f"OSM {typ} {oid}"})

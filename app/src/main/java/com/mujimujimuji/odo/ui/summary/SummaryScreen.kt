@@ -66,6 +66,7 @@ import com.mujimujimuji.odo.ui.components.rememberMotionScale
 import com.mujimujimuji.odo.ui.components.scaledBy
 import com.mujimujimuji.odo.ui.map.CorridorData
 import com.mujimujimuji.odo.ui.map.TripFitScene
+import com.mujimujimuji.odo.ui.profile.itemLabel
 import com.mujimujimuji.odo.ui.text.josa
 import com.mujimujimuji.odo.ui.theme.LocalOdoColors
 import com.mujimujimuji.odo.ui.theme.OdoShape
@@ -78,7 +79,8 @@ import kotlin.math.roundToInt
 /**
  * 트립 요약(정차 직후) — 설계서 §5.3, 3박자.
  * 0 ms 숫자 → 600 ms 레벨업 카드(0.96→1.0 + 알파 450 ms) → 1500 ms 업적 행(150 ms 페이드, 동시). 패널을 누르면 끝까지 건너뛴다.
- * 효과음은 박자마다 1번(XP·레벨업·업적). 애니메이터 배율 0이면 전부 즉시. 감점·"XP에서 뺐어요"류 문구 없음, 위험 건수는 중립 캡션으로만.
+ * 효과음은 박자마다 1번(XP·레벨업·업적). 패널을 눌러 건너뛰어도 소리는 원래 박자 시각에 낸다. 애니메이터 배율 0이면 전부 즉시. 감점·"XP에서 뺐어요"류 문구 없음, 위험 건수는 중립 캡션으로만.
+ * 요약이 뜬 뒤 열린 정차 업적은 TTS로 알리고 행만 더한다(이어콘 없음).
  */
 @Composable
 fun SummaryScreen(
@@ -108,16 +110,14 @@ fun SummaryScreen(
             if (achievements.isNotEmpty()) earcons.play(Earcon.Achievement)
             return@LaunchedEffect
         }
+        // 소리는 화면 박자와 떼어 원래 시각에 낸다. 탭으로 화면을 끝 박자로 보내도 레벨업·업적 소리는 빠지지 않고,
+        // 탭 처리에서 한꺼번에 내지 않으므로 Xp 소리와 겹치지 않는다(Earcons 동시 2개).
         delay((BEAT_CARD_MS * motion).toLong())
-        if (beat < 1) {
-            beat = 1
-            if (leveledUp) earcons.play(Earcon.LevelUp)
-        }
+        if (beat < 1) beat = 1
+        if (leveledUp) earcons.play(Earcon.LevelUp)
         delay(((BEAT_ROWS_MS - BEAT_CARD_MS) * motion).toLong())
-        if (beat < 2) {
-            beat = 2
-            if (achievements.isNotEmpty()) earcons.play(Earcon.Achievement)
-        }
+        if (beat < 2) beat = 2
+        if (achievements.isNotEmpty()) earcons.play(Earcon.Achievement)
     }
 
     Box(modifier.fillMaxSize().background(c.ground)) {
@@ -158,9 +158,9 @@ private fun Facts(summary: TripSummary, modifier: Modifier) {
         RiskType.SPEEDING to stringResource(R.string.risk_speeding),
         RiskType.NO_SEATBELT to stringResource(R.string.risk_no_seatbelt),
     )
-    val events = RiskType.entries.mapNotNull { t ->
-        summary.eventCounts[t]?.takeIf { it > 0 }?.let { "${riskNames[t]} $it" }
-    }.joinToString(" · ")
+    val events = riskLine(summary.eventCounts, riskNames)
+    // 연속 기록 보너스(상한 밖)는 xpEarned에 들어 있다 → '+N'이 상한보다 커 보이는 까닭을 상한 캡션 자리에 같이 적는다.
+    val note = xpNoteOf(summary.capReached, summary.streakBonusXp)
     Column(modifier) {
         Text(stringResource(R.string.summary_title), Modifier.semantics { heading() }, style = OdoType.title, color = c.ink96)
         Spacer(Modifier.height(OdoSpace.l))
@@ -175,17 +175,33 @@ private fun Facts(summary: TripSummary, modifier: Modifier) {
             Text(stringResource(R.string.summary_excluded, summary.excludedSegments), style = OdoType.caption, color = c.inkDim, maxLines = 1)
         }
         if (events.isNotEmpty()) {
-            Text(events, style = OdoType.caption, color = c.inkDim, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // 벨트 미착용 + 다른 2종이면 한 줄(272dp)을 넘는다 → 2줄까지(" · " 뒤에서만 꺾인다). 아래 캡션이 있으면 1줄.
+            Text(events, style = OdoType.caption, color = c.inkDim, maxLines = riskLineMaxLines(note), overflow = TextOverflow.Ellipsis)
         }
-        if (summary.capReached) {
-            // 1.3배 글꼴에서 "오늘 상한 300 XP를"에서 잘렸다 → 넘치면 짧은 꼴로. 줄을 늘리면 아래 '주행 n km'가 밀린다.
-            FitCaption(
-                stringResource(R.string.summary_cap_reached, josa("${Thresholds.DAILY_XP_CAP} XP", "을/를")),
-                stringResource(R.string.summary_cap_reached_short),
-            )
-        }
+        if (note != null) XpNoteCaption(note)
         Spacer(Modifier.weight(1f))
         Text(stringResource(R.string.summary_distance, summary.distanceKm.roundToInt()), style = OdoType.caption, color = c.inkDim, maxLines = 1)
+    }
+}
+
+/** 상한 · 연속 기록 보너스 캡션 한 줄. 1.3배 글꼴에서 넘치면 짧은 꼴로(FitCaption). 줄을 늘리면 아래 '주행 n km'가 밀린다. */
+@Composable
+private fun XpNoteCaption(note: XpNote) {
+    val cap = Thresholds.DAILY_XP_CAP
+    when (note) {
+        // 1.3배 글꼴에서 "오늘 상한 300 XP를"에서 잘렸다 → 넘치면 짧은 꼴로.
+        XpNote.Cap -> FitCaption(
+            stringResource(R.string.summary_cap_reached, josa("$cap XP", "을/를")),
+            stringResource(R.string.summary_cap_reached_short),
+        )
+        is XpNote.Bonus -> FitCaption(
+            stringResource(R.string.summary_streak_bonus, note.xp),
+            stringResource(R.string.summary_streak_bonus_short, note.xp),
+        )
+        is XpNote.CapAndBonus -> FitCaption(
+            stringResource(R.string.summary_cap_and_bonus, cap, note.xp),
+            stringResource(R.string.summary_cap_and_bonus_short, cap, note.xp),
+        )
     }
 }
 
@@ -232,9 +248,9 @@ private fun LevelUpCard(summary: TripSummary, vehicle: VehicleType, visible: Boo
             .border(OdoShape.hairline, c.amber, OdoShape.chip)
             .padding(OdoSpace.l),
     ) {
-        Row {
+        // 칭호가 한 줄에 안 들어가면(Lv 50 "마스터 드라이버", 안쪽 폭 256dp) 말줄임 대신 둘째 줄로. 시연 Lv 5 카드는 한 줄 그대로.
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(OdoSpace.m)) {
             Text(stringResource(R.string.level_short, summary.levelAfter), Modifier.alignByBaseline(), style = OdoType.numeralM, color = c.ink96)
-            Spacer(Modifier.width(OdoSpace.m))
             Text(
                 LevelTable.titleForLevel(summary.levelAfter),
                 Modifier.alignByBaseline(),
@@ -245,7 +261,8 @@ private fun LevelUpCard(summary: TripSummary, vehicle: VehicleType, visible: Boo
             )
         }
         if (unlocks.isNotEmpty()) {
-            val names = unlocks.joinToString(", ") { it.label }
+            // 차고 칩과 같은 이름(2륜은 루프 자리가 레그실드·탑케이스). map 은 inline 이라 @Composable 을 부를 수 있다.
+            val names = unlocks.map { itemLabel(it, vehicle) }.joinToString(", ")
             Spacer(Modifier.height(OdoSpace.s))
             FlowRow(
                 Modifier.fillMaxWidth().semantics { contentDescription = names },

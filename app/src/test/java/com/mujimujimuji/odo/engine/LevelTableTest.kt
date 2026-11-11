@@ -57,8 +57,15 @@ class LevelTableTest {
         // 기본값(sky·steel·white·차종)은 표에 없고 Lv1로 읽힌다.
         assertEquals(1, LevelTable.unlockLevelOf("color:sky"))
         assertEquals(1, LevelTable.unlockLevelOf("vehicle:scooter"))
-        // 표의 문구와 맞물림: Lv5 색상 5종, Lv10 투톤(의상)+트레일, Lv20 데칼·루프박스, Lv30 한정 페인트 2종, Lv50 황금 번호판.
-        assertEquals(5, LevelTable.cosmeticUnlocks.count { it.key.startsWith("color:") && it.value == 5 })
+        // 표의 문구와 맞물림: Lv5 색상 5종만, Lv10 투톤(의상)+트레일+다이아 휠·웜 램프, Lv20 데칼·루프박스, Lv30 한정 페인트 2종, Lv50 황금 번호판.
+        assertEquals(
+            listOf("color:cherry", "color:lavender", "color:mint", "color:pearl", "color:tangerine"),
+            LevelTable.cosmeticUnlocks.filterValues { it == 5 }.keys.sorted(),
+        )
+        assertEquals(
+            listOf("lamp:warm", "roof:twotone", "trail:ribbon", "wheel:dia"),
+            LevelTable.cosmeticUnlocks.filterValues { it == 10 }.keys.sorted(),
+        )
         assertEquals(10, LevelTable.unlockLevelOf("roof:twotone"))
         assertEquals(10, LevelTable.unlockLevelOf("trail:ribbon"))
         assertEquals(20, LevelTable.unlockLevelOf("decal:stripe"))

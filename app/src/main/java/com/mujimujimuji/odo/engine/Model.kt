@@ -22,6 +22,12 @@ data class VehicleSnapshot(
     val wiperOn: Boolean? = null,
     val odometerKm: Double? = null,
     val speedLimitKmh: Int? = null,
+    /**
+     * [speedKmh] 값을 얻은 시각(차량이 값을 만든 시각, 모르면 받은 시각). null이면 [timeMs]와 같다고 본다(데모 재생).
+     * 1초 틱처럼 예전에 얻은 차속을 새 시각에 다시 실은 스냅샷을 급가속·급감속 판정이 가려내는 데 쓴다.
+     * 다시 실을 때는 이 값을 바꾸지 않는다. 판정은 바로 앞 스냅샷과 같은 값이면 다시 실은 것으로 본다.
+     */
+    val speedTimeMs: Long? = null,
 )
 
 enum class RiskType { HARSH_ACCEL, HARSH_DECEL, SPEEDING, NO_SEATBELT }

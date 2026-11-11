@@ -132,8 +132,11 @@ internal fun quadMayOverlapTrapezoid(q: FloatArray, w: Float, h: Float, extL: Fl
 }
 
 internal const val TILE_DP = 256f
-/** 한 프레임에 이보다 많은 타일이 보이면(큰 축척) 타일 대신 벡터로 그린다. 글랜스 6 m/dp 에서 AABB 최대 7×5 칸, 사다리꼴 컬링 뒤 15~25장. */
+/**
+ * 프레임 타일 버퍼 크기. 타일로 그릴지는 사다리꼴 컬링 뒤 수로 정한다: [MAX_TILES] - 1장을 넘으면(큰 축척·넓은 창) 타일 대신 벡터로 그린다(CorridorMap.kt drawTiles).
+ * 컬링 전 AABB 칸 수는 반복 상한(× 4)으로만 쓴다. 글랜스 6 m/dp·분할 창 658×552 dp 에서 AABB 최대 7×6 = 42칸, 컬링 뒤 최대 약 25장.
+ */
 internal const val MAX_VISIBLE_TILES = 48
-/** LRU 용량. 한 프레임에 보일 수 있는 수 이상이어야 밀려난 타일을 다시 그리는 왕복이 안 생긴다(256 KB × density² × 48 ≈ 12 MB@1x). */
+/** LRU 용량. 한 프레임에 쓰는 타일(컬링 뒤 최대 MAX_TILES - 1장)보다 커야 밀려난 타일을 다시 그리는 왕복이 안 생긴다(256 KB × density² × 48 ≈ 12 MB@1x). */
 internal const val MAX_TILES = MAX_VISIBLE_TILES
 private const val TILE_INDEX_OFFSET = 16_384

@@ -31,6 +31,8 @@ data class TripSummary(
     val levelBefore: Int,
     val levelAfter: Int,
     val achievements: List<AchievementDef>,
+    /** [xpEarned] 중 연속 기록 보너스(7일 +50, 30일 +300). 일일 상한 밖이라 상한을 채운 트립도 이만큼 더 받는다. */
+    val streakBonusXp: Int = 0,
 ) {
     val eventCount: Int get() = eventCounts.values.sum()
 }
@@ -72,9 +74,6 @@ class TripSession(
     val state: DriveState get() = stateMachine.state
     val unlockedIds: Set<String> get() = achievements.unlockedIds
 
-    /** 진행 중인 트립의 달린 거리(km). 트립이 없으면 0. */
-    val tripDistanceKm: Double get() = if (trip != null) segments.totalMeters / 1000.0 else 0.0
-
     private var trip: TripProgress? = null
 
     private class TripProgress(val startTimeMs: Long, val levelBefore: Int) {
@@ -82,6 +81,7 @@ class TripSession(
         var excluded = 0
         var xp = 0
         var capReached = false
+        var streakBonusXp = 0
         val eventCounts = mutableMapOf<RiskType, Int>()
         val achievements = mutableListOf<AchievementDef>()
     }
@@ -105,7 +105,8 @@ class TripSession(
         val current = trip
         if (current != null) {
             risks.forEach { current.eventCounts.merge(it.type, 1, Int::plus) }
-            segments.onSample(s, risks.isNotEmpty()).forEach { onSegment(it, current, out) }
+            // 과속·벨트 미착용은 시작할 때 한 번만 세지만, 그 상태로 지나간 구간은 모두 안전 구간이 아니다.
+            segments.onSample(s, risks.isNotEmpty() || detector.ongoing).forEach { onSegment(it, current, out) }
         }
 
         achievements.onSample(s, inTrip = current != null).forEach {
@@ -118,6 +119,7 @@ class TripSession(
     private fun startTrip(timeMs: Long, out: MutableList<EngineEvent>) {
         trip = TripProgress(timeMs, level())
         segments.reset()
+        detector.onTripStart()
         achievements.onTripStart()
         out += EngineEvent.TripStarted(timeMs)
     }
@@ -144,6 +146,7 @@ class TripSession(
                 levelBefore = t.levelBefore,
                 levelAfter = level(),
                 achievements = t.achievements.toList(),
+                streakBonusXp = t.streakBonusXp,
             ),
         )
     }
@@ -165,14 +168,16 @@ class TripSession(
                 nightSafeKm = p.nightSafeKm + if (seg.night) 1 else 0,
                 rainSafeKm = p.rainSafeKm + if (seg.wiper) 1 else 0,
             )
-            if (capWasOpen && p.dayXp >= Thresholds.DAILY_XP_CAP) {
+            // 이미 상한이 찬 날의 안전 구간도 상한 도달로 표시한다. 상한 알림은 이번에 채웠을 때만 낸다.
+            if (p.dayXp >= Thresholds.DAILY_XP_CAP) {
                 t.capReached = true
-                out += EngineEvent.DailyCapReached(seg.endTimeMs, p.daySafeKm)
+                if (capWasOpen) out += EngineEvent.DailyCapReached(seg.endTimeMs, p.daySafeKm)
             }
             if (p.daySafeKm >= Thresholds.STREAK_MIN_SAFE_KM && p.streak.lastDate != date) {
                 val r = StreakRules.onQualifiedDay(p.streak, date)
                 p = p.copy(streak = r.streak, totalXp = p.totalXp + r.bonusXp)
                 granted += r.bonusXp
+                t.streakBonusXp += r.bonusXp
                 if (r.bonusXp > 0) out += EngineEvent.StreakBonus(seg.endTimeMs, r.streak.days, r.bonusXp)
             }
         } else {

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 12 이상 백업·기기 간 전송 규칙(AndroidManifest의 android:dataExtractionRules).
+    앱 데이터(Room 집계값·업적·꾸미기·휴대폰 연결 표시)를 클라우드 백업에도, 새 기기로 옮기는 전송에도 싣지 않는다.
+    API 28~30은 이 파일을 읽지 않고 android:allowBackup="false"를 따른다.
+    path를 적지 않으면 그 영역 전체를 뜻한다.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>

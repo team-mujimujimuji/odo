@@ -9,7 +9,7 @@ enum class DriveState { PARKED, DRIVING }
  * - 그 밖(N·알 수 없음이면서 정지)은 현재 상태를 유지한다. 신호 대기 중 N으로 트립이 끊기지 않게.
  * 상태 전환은 같은 판정이 [debounceMs] 동안 이어질 때만 확정한다.
  *
- * 트립 판정만 디바운스한다. 화면 잠금은 [isMoving]으로 즉시 건다(절대 규칙 1).
+ * 트립 판정만 디바운스한다. 화면 잠금은 [isMoving]으로 즉시 건다(README '안전·프라이버시 원칙').
  */
 class DriveStateMachine(private val debounceMs: Long = Thresholds.STATE_DEBOUNCE_MS) {
     var state: DriveState = DriveState.PARKED

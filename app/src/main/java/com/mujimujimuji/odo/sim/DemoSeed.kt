@@ -7,7 +7,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 /**
- * fake 빌드의 데모 시작값(대본 §8-1: 레벨 4, 이번 주 안전 42 km).
+ * fake 빌드의 데모 시작값(README '시나리오 재생 방법': 레벨 4, 이번 주 안전 42 km).
  * 어제 42 km 트립 1회, 누적 820 XP, 업적 3개 해금. "데모 초기화"가 이 값으로 되돌린다.
  */
 object DemoSeed {

@@ -4,7 +4,7 @@
 경로: route_yeoju_hoengseong.json (OSRM 공개 서버, OSM 데이터 © OpenStreetMap contributors, ODbL)
       여주휴게소(강릉방향, OSM way 344480538) → 횡성휴게소(강릉방향, OSM node 414680791)
 
-대본에 맞춘 구성:
+README '시나리오 재생 방법'의 시연 흐름에 맞춘 구성:
   - 여주휴게소 정차(P) 5초 → D, 초당 3 km/h로 100 km/h까지 가속
   - 45 km 지점(일일 상한 30 km 이후) 급감속 1회: 1초에 100→90 km/h (기준 7.5 km/h/s)
   - 횡성휴게소 진입 전 초당 3 km/h로 감속해 정차 → P, 11분 체류(장소 업적 10분 조건)

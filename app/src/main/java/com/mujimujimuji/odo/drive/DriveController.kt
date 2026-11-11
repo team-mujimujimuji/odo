@@ -5,6 +5,7 @@ import com.mujimujimuji.odo.engine.AchievementDef
 import com.mujimujimuji.odo.engine.DriveState
 import com.mujimujimuji.odo.engine.DriveStateMachine
 import com.mujimujimuji.odo.engine.EngineEvent
+import com.mujimujimuji.odo.engine.Gear
 import com.mujimujimuji.odo.engine.Goal
 import com.mujimujimuji.odo.engine.LatLng
 import com.mujimujimuji.odo.engine.ProfileState
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -32,7 +34,7 @@ import java.time.ZoneId
 data class DriveUi(
     val ready: Boolean = false,
     val simulated: Boolean = false,
-    /** 기어 D/R 또는 속도 > 0, 또는 시스템 운전 제한. 즉시 반영(디바운스 없음). */
+    /** 터치 잠금([DriveLock]): 기어 D/R 또는 속도 > 0, 트립 중 기어 N 정차, 또는 시스템 운전 제한. 즉시 반영(디바운스 없음). */
     val locked: Boolean = false,
     val tripActive: Boolean = false,
     val todaySafeKm: Int = 0,
@@ -82,11 +84,18 @@ class DriveController(
     private var session: TripSession? = null
     private var savedProfile: ProfileState? = null
     private var systemRestricted = false
-    private var moving = false
+    /**
+     * 마지막 샘플의 기어·속도. 실신호는 LiveSignalSource가 기어 콜백의 마지막 값을 들고 있다가 매 틱 싣는다.
+     * 콜백이 끊기면 그 값(예: N)이 그대로 남고, 콜백이 null·실패를 알리면 UNKNOWN이 된다. 첫 콜백 전에도 UNKNOWN이다.
+     */
+    private var lastGear = Gear.UNKNOWN
+    private var lastSpeedKmh = 0.0
+    private val moving get() = DriveStateMachine.isMoving(lastGear, lastSpeedKmh)
     private var sourceJob: Job? = null
+    /** 진행 중이거나 마지막 초기화. 데모 재생은 이것이 끝난 뒤 시작한다. */
+    private var resetJob: Job? = null
     private val tracker = HeadingTracker()
     private val glanceLatch = GlanceGaugeLatch()
-    private var lastSpeedKmh = 0f
 
     init {
         scope.launch {
@@ -101,7 +110,7 @@ class DriveController(
             scope.launch {
                 restriction.restricted.collect { r ->
                     systemRestricted = r
-                    _ui.update { it.copy(locked = moving || systemRestricted) }
+                    _ui.update { it.copy(locked = lockedNow()) }
                 }
             }
         }
@@ -112,15 +121,23 @@ class DriveController(
         if (!fake || _ui.value.demoPlaying) return
         sourceJob?.cancel()
         _ui.update { it.copy(demoPlaying = true, summary = null, notices = emptyList()) }
+        val pendingReset = resetJob
         sourceJob = scope.launch {
-            lock.withLock {
-                voicePolicy = VoicePolicy()
-                newSession()
-            }
             try {
+                // 초기화 중에 눌렀으면 초기화가 끝난 뒤 시작한다(락 순서는 보장되지 않아 재생 도중 씨앗으로 덮일 수 있다).
+                pendingReset?.join()
+                lock.withLock {
+                    voicePolicy = VoicePolicy()
+                    // 앞 재생의 끝점(횡성)·방향이 이번 첫 샘플(여주)과 이어져 글랜스에 직선·틀린 방향이 비치지 않게 비운다(resetDemo와 같게).
+                    tracker.reset()
+                    lastGear = Gear.UNKNOWN
+                    lastSpeedKmh = 0.0
+                    newSession()
+                }
                 demoSource(DemoSeed.scenarioStart(today(), zone)).snapshots.collect(::onSnapshot)
             } finally {
-                _ui.update { it.copy(demoPlaying = false) }
+                // 정상 종료·오류일 때만 내린다. 취소(초기화)면 취소한 쪽이 이미 내렸고, 그 뒤 새 재생이 올린 표시를 지우면 안 된다.
+                if (isActive) _ui.update { it.copy(demoPlaying = false) }
             }
         }
     }
@@ -135,14 +152,17 @@ class DriveController(
         if (!fake) return
         sourceJob?.cancel()
         sourceJob = null
-        scope.launch {
+        // 취소된 재생은 표시를 내리지 않는다(startDemo의 finally). 그래서 여기서 바로 내린다.
+        _ui.update { it.copy(demoPlaying = false) }
+        resetJob = scope.launch {
             lock.withLock {
                 repo.resetToSeed(today())
-                moving = false
+                lastGear = Gear.UNKNOWN
+                lastSpeedKmh = 0.0
                 tracker.reset()
-                lastSpeedKmh = 0f
                 voicePolicy = VoicePolicy()
-                _ui.update { DriveUi(simulated = fake, locked = systemRestricted) }
+                // 세션은 바로 아래에서 새로 만든다(트립 없음). 초기화 중에 누른 데모 재생의 표시는 남긴다.
+                _ui.update { DriveUi(simulated = fake, locked = lockedNow(tripActive = false), demoPlaying = it.demoPlaying) }
                 newSession()
             }
         }
@@ -162,10 +182,10 @@ class DriveController(
 
     private suspend fun onSnapshot(s: VehicleSnapshot) = lock.withLock {
         val session = session ?: return@withLock
-        moving = DriveStateMachine.isMoving(s.gear, s.speedKmh)
+        lastGear = s.gear
+        lastSpeedKmh = s.speedKmh
         val events = session.onSample(s)
         tracker.update(s)
-        lastSpeedKmh = s.speedKmh.toFloat()
         val driving = moving || session.state == DriveState.DRIVING
         for (e in events) {
             when (e) {
@@ -208,23 +228,30 @@ class DriveController(
         val s = session ?: return
         val p = s.profile
         val goal = s.nextGoal()
-        val glance = glanceLatch.update(moving || s.state == DriveState.DRIVING, goal)
+        val driving = moving || s.state == DriveState.DRIVING
+        val glance = glanceLatch.update(driving, goal)
         _ui.update {
             it.copy(
                 ready = true,
-                locked = moving || systemRestricted,
+                locked = lockedNow(),
                 tripActive = s.state == DriveState.DRIVING,
-                todaySafeKm = if (p.dayDate == today()) p.daySafeKm else 0,
+                // 주행 중의 p.day*는 엔진이 마지막 샘플의 날짜로 맞춘 값이다(TripSession.onSample). 벽시계와 견주면
+                // 데모 재생(가상 시각)이 실제 자정을 넘길 때 글랜스 숫자가 0으로 떨어진다. 정차 중·첫 샘플 전은 지금처럼 오늘과 견준다.
+                todaySafeKm = if (driving || p.dayDate == today()) p.daySafeKm else 0,
                 goal = goal,
                 glance = glance,
                 profile = p,
                 position = tracker.position,
                 headingDeg = tracker.headingDeg,
-                speedKmh = lastSpeedKmh,
+                speedKmh = lastSpeedKmh.toFloat(),
                 tripPath = tracker.path,
             )
         }
     }
+
+    /** 터치 잠금 판정은 [DriveLock] 하나로 한다(트립 중 기어 N 정차도 잠금, P는 바로 해제, UNKNOWN은 묶지 않음). */
+    private fun lockedNow(tripActive: Boolean = session?.state == DriveState.DRIVING): Boolean =
+        DriveLock.isLocked(lastGear, lastSpeedKmh, tripActive, systemRestricted)
 
     private fun today(): LocalDate = LocalDate.now(zone)
 }

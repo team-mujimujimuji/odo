@@ -80,6 +80,48 @@ class FrameBudgetTest {
         assertTrue(b.tiltAllowed)
     }
 
+    @Test
+    fun `프레임이 둘뿐인 창에서 1 s 넘는 프레임 하나로는 폴백하지 않는다`() {
+        val b = FrameBudget()
+        b.record(0, 20 * MS)
+        b.record(900 * MS, 1_100 * MS)
+        b.record(2_100 * MS, 20 * MS) // 창 안: 1,100 ms + 20 ms(합 1.12 s ≥ 1 s라 개수가 모자라도 판단한다)
+        assertTrue(b.tiltAllowed)
+    }
+
+    @Test
+    fun `프레임이 드물어도 느린 프레임 하나는 중앙값에 묻힌다`() {
+        // 위치만 초당 1~10번 바뀌어 프레임이 드문 구간. 같은 단발 프레임이 프레임 빈도에 따라 폴백을 일으키면 안 된다.
+        for (stepMs in longArrayOf(100, 500, 1_000)) {
+            for (slowMs in longArrayOf(1_100, 1_500, 1_950)) {
+                val b = FrameBudget()
+                var t = 0L
+                while (t < 2_000) {
+                    b.record(t * MS, 20 * MS)
+                    t += stepMs
+                }
+                b.record(t * MS, slowMs * MS)
+                t += slowMs
+                while (t < 8_000) {
+                    b.record(t * MS, 20 * MS)
+                    t += stepMs
+                }
+                assertTrue("간격 $stepMs ms, 느린 프레임 $slowMs ms", b.tiltAllowed)
+            }
+        }
+    }
+
+    @Test
+    fun `프레임이 드물어도 모두 느리면 폴백한다`() {
+        val b = FrameBudget()
+        var t = 0L
+        repeat(6) {
+            b.record(t * MS, 600 * MS) // 1.1 s마다 600 ms: 2 s 창에 프레임 2개, 둘 다 느림
+            t += 1_100
+        }
+        assertFalse(b.tiltAllowed)
+    }
+
     private companion object {
         const val MS = 1_000_000L
     }

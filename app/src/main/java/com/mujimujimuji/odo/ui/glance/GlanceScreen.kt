@@ -65,8 +65,12 @@ private fun GlancePanel(ui: DriveUi, modifier: Modifier) {
     val label = stringResource(R.string.glance_label)
     val unit = stringResource(R.string.unit_km)
     val numberDesc = "$label $km $unit"
-    val gaugeDesc = stringResource(R.string.glance_gauge_desc, (progress * 100).toInt().coerceIn(0, 100))
-    val medalDesc = if (gauge.medalOpen) stringResource(R.string.glance_medal_done_desc) else null
+    // 접근성 문구만(보이는 글 없음). 목표가 없으면(거리 업적을 다 열었으면) 홈과 같은 말로 읽고, 메달은 같은 말을 두 번 읽지 않게 설명을 두지 않는다.
+    val gaugeDesc = if (gauge.medalOpen) {
+        stringResource(R.string.home_next_goal_done)
+    } else {
+        stringResource(R.string.glance_gauge_desc, (progress * 100).toInt().coerceIn(0, 100))
+    }
     OdoPanel(modifier, shape = OdoShape.panelEdgeLeft, outline = PanelOutline.OpenLeft) {
         Column(
             Modifier
@@ -87,7 +91,7 @@ private fun GlancePanel(ui: DriveUi, modifier: Modifier) {
                 thickness = OdoSize.gaugeDrive,
                 modifier = Modifier.fillMaxWidth().height(OdoSize.medal),
                 contentDescription = gaugeDesc,
-                endIcon = { Medal(unlocked = gauge.medalOpen, contentDescription = medalDesc) },
+                endIcon = { Medal(unlocked = gauge.medalOpen) },
             )
         }
     }

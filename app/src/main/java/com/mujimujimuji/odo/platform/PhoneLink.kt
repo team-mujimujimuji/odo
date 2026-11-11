@@ -27,7 +27,10 @@ interface PhoneLink {
     /** 새 코드·QR을 만들어 [PhoneLinkState.Presenting]으로 간다. 이미 연결됐으면 아무것도 하지 않는다. */
     fun startPairing()
 
-    /** 연결 대기를 접고 [PhoneLinkState.Idle]로(연결됨 상태는 유지). 주행 시작 시 라우팅이 부른다. */
+    /**
+     * 연결 대기(코드 표시)를 접고 [PhoneLinkState.Idle]로. 연결 화면을 떠나거나 주행이 시작되면 라우팅이 부른다.
+     * 연결됨은 그대로 두고, 폰이 이미 확인한 [PhoneLinkState.Confirmed]는 접지 않고 저장·연결됨까지 마친다.
+     */
     fun cancelPairing()
 
     /** 연결을 끊고 저장된 연결 기록을 지운다. */

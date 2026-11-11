@@ -30,8 +30,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -107,9 +109,12 @@ fun GarageScreen(
 ) {
     val c = LocalOdoColors.current
     val context = LocalContext.current
-    var tab by remember { mutableStateOf(Slot.VEHICLE) }
+    // 글꼴 배율·밀도가 바뀌어 화면이 다시 만들어져도 보던 탭을 지킨다(Slot은 enum이라 그대로 저장된다).
+    var tab by rememberSaveable { mutableStateOf(Slot.VEHICLE) }
     var hint by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(hint) {
+    // 잠긴 칩을 누를 때마다 센다: 같은 칩을 다시 눌러 hint가 같은 글이어도 타이머가 처음부터 다시 돈다(키가 hint면 안 바뀐다).
+    var hintTap by remember { mutableIntStateOf(0) }
+    LaunchedEffect(hintTap) {
         if (hint != null) {
             delay(HINT_MS)
             hint = null
@@ -130,6 +135,7 @@ fun GarageScreen(
     val onLocked: (CosmeticItem) -> Unit = { item ->
         val title = LevelTable.titleForLevel(item.unlockLevel).replace(' ', NBSP)
         hint = context.getString(R.string.garage_locked_hint, item.unlockLevel, title)
+        hintTap++
     }
     Box(modifier.fillMaxSize().background(c.ground)) {
         ScrimmedScene(data, center, Modifier.fillMaxSize())
@@ -428,9 +434,9 @@ private fun itemDescription(label: String, unlockLevel: Int, selected: Boolean, 
     else -> label
 }
 
-/** 칩·사양 줄의 항목 이름. 2륜은 루프 자리가 레그실드·탑케이스라 같은 항목을 다른 이름으로 부른다(설계서 §4 레이어 표: roof_twotone→레그실드, roof_box→탑케이스). */
+/** 칩·사양 줄의 항목 이름. 2륜은 루프 자리가 레그실드·탑케이스라 같은 항목을 다른 이름으로 부른다(설계서 §2.3 레이어 표: roof_twotone→레그실드, roof_box→탑케이스). */
 @Composable
-private fun itemLabel(item: CosmeticItem, vehicle: VehicleType): String = when {
+internal fun itemLabel(item: CosmeticItem, vehicle: VehicleType): String = when {
     vehicle != VehicleType.SCOOTER || item.slot != Slot.ROOF -> item.label
     item.id == "twotone" -> stringResource(R.string.garage_roof_twotone_scooter)
     item.id == "box" -> stringResource(R.string.garage_roof_box_scooter)

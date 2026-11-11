@@ -2,6 +2,7 @@ package com.mujimujimuji.odo
 
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.lifecycle.lifecycleScope
@@ -28,11 +29,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // 위치 권한을 거절해도 속도·기어만으로 트립과 XP는 돈다(장소 업적만 빠짐).
+        // 거절해도 신호 수집은 시작한다. 기어 D/R로 거는 주행 중 잠금(README '안전·프라이버시 원칙')이 스냅샷에 달려 있다.
+        // 위치를 거절하면: 트립과 XP는 돌지만 장소·도로 업적은 판정하지 않고, 지도는 계기 모드가 된다.
+        // 차속을 거절하면: 위험 판정을 할 수 없어 거리와 XP가 쌓이지 않는다(LiveSignalSource).
+        // 나중에 설정에서 허용하면 앱을 다시 실행해야 반영된다.
+        permissions.forEachIndexed { i, p ->
+            if (grantResults.getOrNull(i) != PackageManager.PERMISSION_GRANTED) Log.w(TAG, "permission denied: $p")
+        }
         app.controller.startLive()
     }
 
     private companion object {
+        const val TAG = "OdoMain"
         val RUNTIME_PERMISSIONS = listOf("android.car.permission.CAR_SPEED", "pleos.car.permission.FUSED_LOCATION")
     }
 }

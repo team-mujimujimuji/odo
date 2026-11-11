@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -57,14 +59,16 @@ data class Key(
 @Composable
 fun KeyStrip(keys: List<Key>, modifier: Modifier = Modifier, minHeight: Dp = OdoSize.touch, compact: Boolean = false) {
     val reserveCaption = keys.any { it.caption != null }
+    // 선택된 키가 있는 줄(차고 탭)은 탭 줄로 알린다: 셀마다 Role.Tab + selected라 화면 낭독기가 "색, 탭, 선택됨"처럼 읽는다.
+    val tabRow = keys.any { it.selected }
     Layout(
         content = {
             keys.forEachIndexed { i, key ->
                 if (i > 0) VerticalHairline()
-                KeyCell(key, reserveCaption, compact, Modifier)
+                KeyCell(key, reserveCaption, compact, tabRow, Modifier)
             }
         },
-        modifier = modifier.heightIn(min = minHeight),
+        modifier = modifier.heightIn(min = minHeight).then(if (tabRow) Modifier.selectableGroup() else Modifier),
     ) { measurables, constraints ->
         // 자식 순서: 셀, 헤어라인, 셀, 헤어라인, … (짝수 = 셀)
         val cells = measurables.filterIndexed { i, _ -> i % 2 == 0 }
@@ -111,7 +115,7 @@ internal fun keyCellWidths(needs: List<Int>, avail: Int): List<Int> {
 }
 
 @Composable
-private fun KeyCell(key: Key, reserveCaption: Boolean, compact: Boolean, modifier: Modifier) {
+private fun KeyCell(key: Key, reserveCaption: Boolean, compact: Boolean, tabRow: Boolean, modifier: Modifier) {
     val c = LocalOdoColors.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -119,7 +123,7 @@ private fun KeyCell(key: Key, reserveCaption: Boolean, compact: Boolean, modifie
     val description = key.contentDescription ?: listOfNotNull(key.label, key.caption).joinToString(", ")
     Box(
         modifier
-            .clickable(interaction, indication = null, enabled = key.enabled, role = Role.Button, onClick = key.onClick)
+            .clickable(interaction, indication = null, enabled = key.enabled, role = if (tabRow) Role.Tab else Role.Button, onClick = key.onClick)
             .background(if (pressed) c.ink.copy(alpha = PRESSED_ALPHA) else Color.Transparent)
             .drawBehind {
                 if (key.selected) {
@@ -127,7 +131,10 @@ private fun KeyCell(key: Key, reserveCaption: Boolean, compact: Boolean, modifie
                     drawLine(c.amber, Offset(0f, size.height - t / 2f), Offset(size.width, size.height - t / 2f), strokeWidth = t)
                 }
             }
-            .semantics(mergeDescendants = true) { contentDescription = description }
+            .semantics(mergeDescendants = true) {
+                contentDescription = description
+                if (tabRow) selected = key.selected
+            }
             .padding(horizontal = OdoSpace.xs),
         contentAlignment = Alignment.Center,
     ) {

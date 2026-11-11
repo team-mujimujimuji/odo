@@ -112,12 +112,16 @@ class AchievementEngine(
         },
     )
 
-    fun onTripEnd(tripSafeKm: Int, tripEventCount: Int): List<AchievementDef> = unlock(
-        locked().filter { def ->
-            val rule = def.rule
-            rule is AchievementRule.CleanTrip && tripEventCount == 0 && tripSafeKm >= rule.km
-        },
-    )
+    fun onTripEnd(tripSafeKm: Int, tripEventCount: Int): List<AchievementDef> {
+        // 도로 진행은 한 트립 안에서만 센다. 남겨 두면 정차 중 게이지가 끝난 트립의 도로 업적을 계속 가리킨다.
+        roadProgress.clear()
+        return unlock(
+            locked().filter { def ->
+                val rule = def.rule
+                rule is AchievementRule.CleanTrip && tripEventCount == 0 && tripSafeKm >= rule.km
+            },
+        )
+    }
 
     /**
      * 다음 업적까지 진행률. 이번 트립에서 시작 게이트를 지난 도로 업적이 있으면 그 진행률(끝 게이트까지 남은 직선거리),

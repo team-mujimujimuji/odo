@@ -5,7 +5,7 @@
      "rule": {"type": "tripCount", "count": 1}},
     {"id": "safe_10", "title": "안전 10 km", "description": "10 km를 쌓았어요", "condition": "",
      "rule": {"type": "safeDistance", "km": 10}},
-    {"id": "place_yeoju_rest", "title": "여주휴게소", "description": "여주휴게소에 들렀어요", "condition": "여주휴게소 들르기",
+    {"id": "place_yeoju_rest", "title": "여주휴게소", "description": "여주휴게소에 들렀어요", "condition": "여주휴게소 10분 쉬기",
      "rule": {"type": "place", "fences": [
        {"lat": 37.2384309, "lng": 127.5696025, "radiusM": 300, "source": "여주휴게소(강릉방향) OSM way 344480538"}
      ]}},
@@ -14,7 +14,7 @@
        {"lat": 37.233668, "lng": 127.600833, "radiusM": 300, "source": "OSRM 경로(여주휴게소→횡성휴게소) 3 km 지점, 영동고속도로 본선"},
        {"lat": 37.4630841, "lng": 128.1348680, "radiusM": 300, "source": "횡성휴게소(강릉방향) OSM node 414680791"}
      ]}},
-    {"id": "place_gangwon_first", "title": "강원도 첫 방문", "description": "강원도에서 쉬어 갔어요", "condition": "강원도 휴게소에서 쉬기",
+    {"id": "place_gangwon_first", "title": "강원도 첫 방문", "description": "강원도에서 쉬어 갔어요", "condition": "강원 휴게소 10분 쉬기",
      "rule": {"type": "place", "fences": [
        {"lat": 37.3352128, "lng": 127.8581947, "radiusM": 300, "source": "문막휴게소(강릉방향) OSM way 223671550"},
        {"lat": 37.4630841, "lng": 128.1348680, "radiusM": 300, "source": "횡성휴게소(강릉방향) OSM node 414680791"}
@@ -23,7 +23,7 @@
      "rule": {"type": "safeDistance", "km": 300}},
     {"id": "safe_1000", "title": "안전 1000 km", "description": "1000 km를 쌓았어요", "condition": "",
      "rule": {"type": "safeDistance", "km": 1000}},
-    {"id": "clean_30", "title": "무사고 트립", "description": "위험 없이 30 km 완주", "condition": "위험 없는 30 km 트립",
+    {"id": "clean_30", "title": "무사고 트립", "description": "위험 없이 달렸어요", "condition": "위험 없는 30 km 트립",
      "rule": {"type": "cleanTrip", "km": 30}},
     {"id": "night_10", "title": "밤길 10 km", "description": "밤에 10 km를 쌓았어요", "condition": "밤 22~06시",
      "rule": {"type": "nightSafeDistance", "km": 10}},

@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
@@ -41,7 +42,7 @@ import kotlin.random.Random
 /**
  * 코리도 지도(설계서 §4.2). 데이터·카메라가 바뀔 때만 다시 그린다. 지도 위 글자 0, 트윈 0, 네트워크 0.
  * - [data]가 null(로딩 중)이거나 [camera].center가 코리도 bbox+2 km 밖이면 계기 모드(`ground` + 1 km 격자)로 그린다.
- * - [passed]: 지난 길. `inkDim` 50 % 3dp 단순 대시(8dp 선·8dp 틈), [trail]=true면 [trailColor] 45 % 6dp 리본. 경로는 지난 구간 뒤(남은 구간)만 그린다.
+ * - [passed]: 지난 길. `inkDim` 50 % 3dp 단순 대시(8dp 선·8dp 틈), [trail]=true면 [trailColor] 45 % 6dp 리본(도로보다 어두운 색은 `ink`, [ribbonColor]). 경로는 지난 구간 뒤(남은 구간)만 그린다.
  * - [showRoute]=false면 경로(남은 구간)를 그리지 않는다. 요약의 띠 없는 폴백(658×552 창, [TripFitScene])이 스크림 아래 정적 지도만 깔 때 쓴다.
  * - 모의 미니카 점 2대(heading-up만): 차의 경로 진행 기준 앞 500 m·뒤 300 m. 오프셋만 3 s마다 ±30 m 안에서 새로 정하고(보간 없음) 자리는 매 프레임 다시 잡는다.
  * - [cover]: 지도를 덮는 패널 상자(캔버스 px). 휴게소 픽토가 이 상자에 걸치면 그리지 않는다(패널 가장자리에서 반쯤 잘린 픽토 방지).
@@ -94,7 +95,9 @@ fun CorridorMap(
     val scrim = remember(colors.ground, densityF) {
         Brush.verticalGradient(listOf(colors.ground, colors.ground.copy(alpha = 0f)), startY = 0f, endY = SCRIM_DP * densityF)
     }
-    val trailArgb = remember(trailColor) { trailColor.copy(alpha = 0.45f).toArgb() }
+    val trailArgb = remember(trailColor, colors) { ribbonColor(trailColor, colors).toArgb() }
+    // Canvas 람다 밖에서 Boolean 으로 바꿔 둔다. 람다가 Float 속도를 캡처하면 속도 값이 바뀔 때마다(실신호 10 Hz) 같은 그림을 다시 그린다.
+    val hideTertiary = speedKmh >= TERTIARY_HIDE_KMH
 
     Canvas(modifier) {
         val w = size.width
@@ -160,7 +163,6 @@ fun CorridorMap(
         y0 -= marginM
         x1 += marginM
         y1 += marginM
-        val hideTertiary = speedKmh >= TERTIARY_HIDE_KMH
         val tc = tileCache
         tc?.versionForFrame() // 타일이 완성되면 이 람다가 다시 실행된다(읽기 = 구독)
 
@@ -305,6 +307,13 @@ class CorridorPaths private constructor(val data: CorridorData) {
 /** 지난 길 표현: 대시 선분 [x0,y0,x1,y1,…](로컬 m) 또는 리본 Path. */
 private class Stitch(val dashes: FloatArray? = null, val ribbon: Path? = null)
 
+/**
+ * 지난 길 리본 색: 내 차 색 45 %. 도로 코어보다 어두운 색(8색 중 그래파이트)은 도로 위에서 묻혀(1.2~1.3:1)
+ * 지난 길이 사라지므로 `ink` 45 %로 바꾼다(펄 리본과 같은 수준, 도로 위 2.8/2.5:1).
+ */
+internal fun ribbonColor(trailColor: Color, colors: OdoColors): Color =
+    (if (trailColor.luminance() < colors.roadCore.luminance()) colors.ink else trailColor).copy(alpha = 0.45f)
+
 internal class MapPalette(c: OdoColors) {
     val ground = c.ground.toArgb()
     val urban = c.mapUrban.toArgb()
@@ -405,7 +414,9 @@ internal fun drawStaticLayers(nc: AndroidCanvas, d: CorridorData, p: CorridorPat
 
 /**
  * 보이는 타일(소스 사다리꼴과 겹치는 것)을 앵커에 가까운 순으로 drawBitmap 한다. [nc]는 로컬 m 좌표계(원근 포함)로 변환된 상태.
- * 타일 칸 수가 [MAX_VISIBLE_TILES]를 넘으면(축척이 큼) false 를 돌려 호출자가 벡터로 그리게 한다.
+ * 사다리꼴 컬링을 통과한 타일이 [MAX_TILES] - 1장을 넘으면(축척이 크거나 창이 넓음) 아무것도 그리거나 요청하지 않고 false 를 돌려 호출자가 벡터로 그리게 한다.
+ * 한도가 LRU 용량보다 1장 작은 까닭: 보이는 타일이 LRU 를 꽉 채우면 상세 플래그(80 km/h)가 바뀔 때 방금 도착한 가장 가까운 새 타일이 다음 도착분에 밀려나 구멍이 난다.
+ * 컬링 전 AABB 칸 수는 반복 횟수만 막는 넉넉한 상한([MAX_VISIBLE_TILES] × 4)이다.
  */
 private fun drawTiles(
     nc: AndroidCanvas, tc: TileCache, sc: MapScratch, mpd: Float, w: Float, h: Float, extL: Float, extR: Float, marginPx: Float, detail: Boolean,
@@ -416,7 +427,7 @@ private fun drawTiles(
     val txMax = floor(x1 / tileM).toInt()
     val tyMin = floor(y0 / tileM).toInt()
     val tyMax = floor(y1 / tileM).toInt()
-    if ((txMax - txMin + 1).toLong() * (tyMax - tyMin + 1) > MAX_VISIBLE_TILES) return false
+    if ((txMax - txMin + 1).toLong() * (tyMax - tyMin + 1) > MAX_VISIBLE_TILES * 4) return false
     val q = sc.tileQuad
     val idx = sc.tileIdx
     val dist = sc.tileDist
@@ -428,10 +439,11 @@ private fun drawTiles(
             setQuad(q, l, b, l + tileM, b, l + tileM, b + tileM, l, b + tileM)
             sc.map.mapPoints(q)
             if (!quadMayOverlapTrapezoid(q, w, h, extL, extR, marginPx)) continue
+            if (n >= MAX_TILES - 1) return false // 아직 그리거나 요청한 타일이 없으니 여기서 벡터로 넘겨도 된다
             val cx = (q[0] + q[2] + q[4] + q[6]) * 0.25f - ax
             val cy = (q[1] + q[3] + q[5] + q[7]) * 0.25f - ay
             val dd = cx * cx + cy * cy
-            // 거리 오름차순 삽입(≤48개)
+            // 거리 오름차순 삽입(≤ MAX_TILES - 1 = 47개)
             var i = n
             while (i > 0 && dist[i - 1] > dd) {
                 dist[i] = dist[i - 1]

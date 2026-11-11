@@ -18,12 +18,13 @@ import androidx.compose.ui.platform.LocalView
 import java.util.Arrays
 
 /**
- * 프레임 예산 감시(설계서 §4.3, 안전 심사 C). 실제로 그린 프레임마다 걸린 시간(창의 FrameMetrics `TOTAL_DURATION`:
+ * 프레임 예산 감시(설계서 §4.3). 실제로 그린 프레임마다 걸린 시간(창의 FrameMetrics `TOTAL_DURATION`:
  * 입력·애니메이션·측정·그리기에 RenderThread 동기화·명령 전송·버퍼 교환까지)을 2 s 창으로 보고, 중앙값이
  * 50 ms(<20 fps)를 넘으면 [tiltAllowed]를 끈다. 그 글랜스(트립) 동안 틸트 0으로 폴백하고 되돌리지 않는다.
  *
  * - 판단은 0.5 s마다 한 번, 창에 프레임이 8개 이상 있을 때만 한다. 다만 한 프레임이 250 ms를 넘을 만큼 느리면
- *   2 s에 8개가 안 차므로, 그린 시간 합이 창의 절반(1 s)을 넘으면 개수가 모자라도 판단한다.
+ *   2 s에 8개가 안 차므로, 그린 시간 합이 창의 절반(1 s)을 넘으면 개수가 모자라도 판단한다. 이때는 하위 중앙값을 써서
+ *   느린 한 프레임만으로는(창에 프레임이 2개뿐일 때 큰 쪽) 폴백하지 않는다.
  * - 앞 프레임이 끝나고 1 s 넘게 그린 프레임이 없으면(백그라운드·일시정지·지도가 멈춤) 창을 비우고 다시 2 s를 본다.
  *   1 s 넘게 걸린 프레임 자체는 멈춤이 아니라 느린 프레임으로 센다.
  */
@@ -75,7 +76,9 @@ class FrameBudget(
         }
         if (n < MIN_FRAMES && busy < windowNanos / 2) return
         Arrays.sort(scratch, 0, n)
-        val medianMs = scratch[n / 2] / 1_000_000f
+        // 개수가 모자란 창은 하위 중앙값(짝수 개면 작은 쪽). 프레임이 드물 때 1 s 넘는 단발 프레임이 중앙값으로 뽑히지 않게 한다.
+        val mid = if (n < MIN_FRAMES) (n - 1) / 2 else n / 2
+        val medianMs = scratch[mid] / 1_000_000f
         if (medianMs > slowMedianMs) tiltAllowed = false
     }
 

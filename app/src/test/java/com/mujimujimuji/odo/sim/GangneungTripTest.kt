@@ -13,11 +13,12 @@ import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
 
-/** 실제 데모 시나리오를 엔진에 넣어 대본의 숫자가 나오는지 확인한다. */
+/** 실제 데모 시나리오를 엔진에 넣어 README '시나리오 재생 방법'에 적은 숫자가 나오는지 확인한다. */
 class GangneungTripTest {
     private val zone = ZoneId.of("Asia/Seoul")
     private val today = LocalDate.of(2026, 11, 8)
-    private val start = today.atTime(10, 0).atZone(zone).toInstant().toEpochMilli()
+    // 앱과 같은 시작 시각을 쓴다(DriveController가 DemoSeed.scenarioStart로 재생한다).
+    private val start = DemoSeed.scenarioStart(today, zone)
 
     private fun asset(path: String) = File("src/main/assets/$path").readText()
 
