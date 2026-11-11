@@ -18,7 +18,7 @@ sealed interface PhoneLinkState {
 }
 
 /**
- * 휴대폰 연결 포트. 차량 신호 원본·위치 기록은 어떤 구현도 내보내지 않는다 — 공유 범위는 트립 요약·업적·미니카 꾸미기뿐이다.
+ * 휴대폰 연결 포트. 차량 신호 원본·위치 기록은 어떤 구현도 내보내지 않는다. 공유 범위는 트립 요약·업적·미니카 꾸미기뿐이다.
  * 1차에는 [com.mujimujimuji.odo.platform.fake.FakePhoneLink]만 있다(폰 앱은 준비 중).
  */
 interface PhoneLink {

@@ -3,12 +3,12 @@
 
 - 앱은 런타임에 지도 서버를 부르지 않는다. 이 스크립트의 결과를 build_corridor.py가 가공해
   app/src/main/assets/map/corridor.json을 만들고, 앱은 그 파일만 읽는다.
-- 원본 JSON(10~20 MB)은 저장소에 넣지 않는다. --out 은 저장소 밖(예: scratchpad/osm-data/)이어야 하며,
+- 원본 JSON(10~20 MB)은 저장소에 넣지 않는다. --out 은 저장소 밖(예: /path/to/osm-data/)이어야 하며,
   저장소 안 경로를 주면 거부한다.
-- 출처: © OpenStreetMap contributors, ODbL 1.0 — NOTICE.md·tools/map/README.md·앱 내 표기(`CorridorData.attribution`).
+- 출처: © OpenStreetMap contributors, ODbL 1.0. 표기 위치는 NOTICE.md·tools/map/README.md·앱 내 표기(`CorridorData.attribution`).
 
 사용:
-  python3 -I tools/map/fetch_overpass.py --out <scratch>/osm-data/overpass_raw.json
+  python3 -I tools/map/fetch_overpass.py --out /path/to/osm-data/overpass_raw.json
 옵션:
   --endpoint URL   기본 https://overpass-api.de/api/interpreter (대체: https://overpass.kumi.systems/api/interpreter)
   --timeout SEC    HTTP 대기(기본 360)
@@ -22,7 +22,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-BBOX = "37.20,127.54,37.50,128.17"  # 남위,서경,북위,동경 — 여주~횡성 시나리오 복도를 덮는 상자
+BBOX = "37.20,127.54,37.50,128.17"  # 남위,서경,북위,동경. 여주~횡성 시나리오 복도를 덮는 상자
 USER_AGENT = "odo-redesign/1.0 (contest build tool)"  # 없으면 Overpass가 406을 돌려준다
 DEFAULT_ENDPOINT = "https://overpass-api.de/api/interpreter"
 
@@ -64,7 +64,7 @@ def main() -> int:
     out = os.path.abspath(args.out)
     root = repo_root()
     if out == root or out.startswith(root + os.sep):
-        print(f"refuse: --out {out} 은 저장소({root}) 안이다. scratchpad 등 밖의 경로를 써라.", file=sys.stderr)
+        print(f"refuse: --out {out} 은 저장소({root}) 안이다. 저장소 밖 경로를 써라.", file=sys.stderr)
         return 2
     os.makedirs(os.path.dirname(out), exist_ok=True)
 

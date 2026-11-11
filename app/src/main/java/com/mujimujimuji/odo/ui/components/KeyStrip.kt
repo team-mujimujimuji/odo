@@ -36,7 +36,7 @@ import com.mujimujimuji.odo.ui.theme.OdoSize
 import com.mujimujimuji.odo.ui.theme.OdoSpace
 import com.mujimujimuji.odo.ui.theme.OdoType
 
-/** KeyStrip 셀 1개. 아이콘(32) 위, 라벨(24) 가운데, 캡션(20) 아래로 쌓는다 — 셀 안쪽 폭 123dp에 "데모 재생"이 아이콘과 나란히 들어가지 않아서다. */
+/** KeyStrip 셀 1개. 아이콘(32) 위, 라벨(24) 가운데, 캡션(20) 아래로 쌓는다. 셀 안쪽 폭 123dp에 "데모 재생"이 아이콘과 나란히 들어가지 않아서다. */
 data class Key(
     val label: String,
     val icon: OdoIcon? = null,

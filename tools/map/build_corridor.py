@@ -19,7 +19,7 @@
   "pois":[{"type":"rest","x":..,"y":..,"src":"OSM way 344480538"}]}
 
 사용:
-  python3 -I tools/map/build_corridor.py --raw <scratch>/osm-data/overpass_raw.json \
+  python3 -I tools/map/build_corridor.py --raw /path/to/osm-data/overpass_raw.json \
       --route tools/scenario/route_yeoju_hoengseong.json --out app/src/main/assets/map/corridor.json
 옵션: --buffer 4000  --tol 10  --min-poly 40
 """
@@ -100,7 +100,7 @@ class RouteIndex:
 
 
 def douglas_peucker(pts, tol):
-    """반복(스택) 구현 — 재귀 깊이 제한에 걸리지 않는다."""
+    """반복(스택) 구현이라 재귀 깊이 제한에 걸리지 않는다."""
     n = len(pts)
     if n < 3:
         return list(pts)

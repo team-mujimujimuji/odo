@@ -27,7 +27,7 @@ import kotlin.math.roundToInt
 val LocalOdoNight = compositionLocalOf { true }
 
 /**
- * 지도 위 미니카(Navi·Top)의 크기 배율(에셋 계약 v2 '배치'). 화면별 시작값이고 심사 뒤에 조정한다.
+ * 지도 위 미니카(Navi·Top)의 크기 배율(설계서 §4.3). 화면별 시작값이다.
  * 그림 원래 크기(px → dp 0.5배) × 이 배율 × 차종 naviScale로 그린다.
  */
 object VehicleMarkerScale {
@@ -42,7 +42,7 @@ object VehicleMarkerScale {
 }
 
 /**
- * 미니카 1대(에셋 계약 v2). 레이어 WebP를 매니페스트 order대로 합성한다. 정지 그림이고 애니메이션은 없다.
+ * 미니카 1대(compose.json version 2, 설계서 §2.5). 레이어 WebP를 매니페스트 order대로 합성한다. 정지 그림이고 애니메이션은 없다.
  * - Hero(차고·휴대폰 연결): 그림 중심이 상자 중심. 상자에 맞춰 줄인다(3:2, 예: 288×192dp일 때 꽉 찬다).
  * - Navi(heading-up 글랜스 지도): 기준점이 상자 중심. 돌리지 않는다(차 앞이 항상 위).
  * - Top(north-up 지도: 홈·트립 요약): 차 중심이 상자 중심. [headingDeg](북 0°, 시계 방향)로 돈다.
@@ -133,6 +133,35 @@ class VehiclePaint private constructor(
 
 private const val SHADOW_ALPHA = 0.9f
 
+/**
+ * 밤 글로 세기(그림 알파에 곱한다). 그림은 차고(Hero)에 맞춰 구웠다.
+ * - Navi(글랜스): 꼬리등 번짐이 지나온 길 위로 차 폭만큼 퍼지고, 전조등 번짐이 지붕 앞 경로선 위에 회색으로 뜬다. 둘 다 줄이고 전조등을 더 줄인다.
+ * - Top(홈·요약): 전조등 빛이 지도 위에서 회색 연기처럼 앞으로 퍼진다. 꼬리등 빛은 차 뒤에 짧게 붙어 있어 그대로 둔다.
+ * - Hero(차고·휴대폰 연결): 빈 바탕 위라 그대로.
+ */
+internal object GlowAlpha {
+    const val NAVI_TAIL = 0.55f
+    const val NAVI_HEAD = 0.35f
+    const val TOP_HEAD = 0.6f
+    const val TOP_TAIL = 1f
+    const val HERO = 1f
+}
+
+/** [view]에서 글로 층 [kind]의 알파. 글로가 아닌 층은 1. */
+internal fun glowAlpha(view: VehicleView, kind: LayerKind): Float = when (kind) {
+    LayerKind.GlowHead -> when (view) {
+        VehicleView.Navi -> GlowAlpha.NAVI_HEAD
+        VehicleView.Top -> GlowAlpha.TOP_HEAD
+        VehicleView.Hero -> GlowAlpha.HERO
+    }
+    LayerKind.GlowTail -> when (view) {
+        VehicleView.Navi -> GlowAlpha.NAVI_TAIL
+        VehicleView.Top -> GlowAlpha.TOP_TAIL
+        VehicleView.Hero -> GlowAlpha.HERO
+    }
+    else -> 1f
+}
+
 private fun DrawScope.drawVehicle(
     f: VehicleFrame,
     vehicleId: String,
@@ -170,8 +199,10 @@ private fun DrawScope.drawVehicle(
                 LayerKind.Roof -> drawImage(bmp, colorFilter = paint.roof)
                 LayerKind.Decal -> drawImage(bmp, colorFilter = paint.decal)
                 // 글로 그림은 RGB=빛 색, 알파=세기. 전조등 빛은 램프 색으로 물들인 뒤 Screen, 후미등 빛은 그대로 Screen.
-                LayerKind.GlowHead -> drawImage(bmp, colorFilter = paint.lamp, blendMode = BlendMode.Screen)
-                LayerKind.GlowTail -> drawImage(bmp, blendMode = BlendMode.Screen)
+                // 세기는 뷰마다 [glowAlpha]로 줄인다(지도 위에서 번짐이 길·픽토를 덮지 않게).
+                LayerKind.GlowHead ->
+                    drawImage(bmp, alpha = glowAlpha(f.view, LayerKind.GlowHead), colorFilter = paint.lamp, blendMode = BlendMode.Screen)
+                LayerKind.GlowTail -> drawImage(bmp, alpha = glowAlpha(f.view, LayerKind.GlowTail), blendMode = BlendMode.Screen)
                 LayerKind.Plain -> drawImage(bmp) // fixed, wheel_*, roof_box, plate_gold: 그대로
             }
         }

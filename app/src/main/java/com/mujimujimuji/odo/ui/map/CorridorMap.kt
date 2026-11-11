@@ -27,6 +27,8 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.mujimujimuji.odo.engine.LatLng
 import com.mujimujimuji.odo.ui.theme.LocalOdoColors
 import com.mujimujimuji.odo.ui.theme.OdoColors
@@ -46,6 +48,7 @@ import kotlin.random.Random
  * - [showRoute]=false면 경로(남은 구간)를 그리지 않는다. 요약의 띠 없는 폴백(658×552 창, [TripFitScene])이 스크림 아래 정적 지도만 깔 때 쓴다.
  * - 모의 미니카 점 2대(heading-up만): 차의 경로 진행 기준 앞 500 m·뒤 300 m. 오프셋만 3 s마다 ±30 m 안에서 새로 정하고(보간 없음) 자리는 매 프레임 다시 잡는다.
  * - [cover]: 지도를 덮는 패널 상자(캔버스 px). 휴게소 픽토가 이 상자에 걸치면 그리지 않는다(패널 가장자리에서 반쯤 잘린 픽토 방지).
+ * - [car]·[carClear]: 위에 얹히는 정차 미니카의 지점과 비울 반경. 픽토가 그 원에 걸치면 그리지 않는다(차 밑에 반쯤 깔린 픽토 방지, [pictoHitsCar]).
  * - 속도 ≥80 km/h면 tertiary 도로를 숨긴다(휴게소 픽토는 유지).
  * - [content]: 화면 좌표 오버레이. 미니카는 호출자가 Box로 위에 올린다([NaviMinicar]).
  * 그리기 순서: ground → urban → forest → water → 강 → 도로 케이싱 → 도로 코어 → 고속도로 중앙 파선 → 지난 길(대시·리본) → 경로 → 휴게소 픽토 → 모의 미니카 점 → content → 수평선 스크림(heading-up만).
@@ -62,6 +65,8 @@ fun CorridorMap(
     trailColor: Color = LocalOdoColors.current.amber,
     cover: Rect = Rect.Zero,
     showRoute: Boolean = true,
+    car: LatLng? = null,
+    carClear: Dp = 0.dp,
     content: DrawScope.() -> Unit = {},
 ) {
     val colors = LocalOdoColors.current
@@ -223,10 +228,20 @@ fun CorridorMap(
 
         // 화면 좌표 요소(원근·축척과 무관하게 같은 크기).
         // 휴게소 픽토: 이미 그린 픽토와 36dp 안에 겹치면 건너뛴다(요약 bbox 맞춤 20 m/dp 이상에서 16곳이 뭉친다).
-        // 패널([cover])에 걸치는 픽토도 건너뛴다(가장자리에서 반쯤 잘려 실수처럼 보였다).
+        // 패널([cover])에 걸치는 픽토도 건너뛴다(가장자리에서 반쯤 잘려 실수처럼 보였다). 정차 미니카([car]) 밑에 깔리는 픽토도 같다.
         val pad = OdoSize.picto.toPx()
         val half = pad / 2f
         val covered = cover.width > 0f && cover.height > 0f
+        val carClearPx = if (car != null) carClear.toPx() else 0f
+        var carX = 0f
+        var carY = 0f
+        if (car != null && carClearPx > 0f) {
+            sc.pt[0] = d.localX(car).toFloat()
+            sc.pt[1] = d.localY(car).toFloat()
+            sc.total.mapPoints(sc.pt)
+            carX = sc.pt[0]
+            carY = sc.pt[1]
+        }
         val drawnPictos = sc.pictos
         var drawnCount = 0
         for (poi in d.pois) {
@@ -237,6 +252,7 @@ fun CorridorMap(
             val sy = sc.pt[1]
             if (sx < -pad || sx > w + pad || sy < -pad || sy > h + pad) continue
             if (covered && sx + half > cover.left && sx - half < cover.right && sy + half > cover.top && sy - half < cover.bottom) continue
+            if (pictoHitsCar(sx, sy, half, carX, carY, carClearPx)) continue
             var clash = false
             var j = 0
             while (j < drawnCount) {
@@ -302,6 +318,18 @@ class CorridorPaths private constructor(val data: CorridorData) {
             return path
         }
     }
+}
+
+/**
+ * 휴게소 픽토(중심 [sx]·[sy], 반지름 [half])가 정차 미니카 둘레 원(중심 [carX]·[carY], 반경 [clearPx])에 걸치는지(캔버스 px).
+ * 두 원의 중심 거리가 반지름 합보다 짧으면 걸친다. [clearPx]가 0 이하면(차 없음) 언제나 false.
+ */
+internal fun pictoHitsCar(sx: Float, sy: Float, half: Float, carX: Float, carY: Float, clearPx: Float): Boolean {
+    if (clearPx <= 0f) return false
+    val dx = sx - carX
+    val dy = sy - carY
+    val r = clearPx + half
+    return dx * dx + dy * dy < r * r
 }
 
 /** 지난 길 표현: 대시 선분 [x0,y0,x1,y1,…](로컬 m) 또는 리본 Path. */

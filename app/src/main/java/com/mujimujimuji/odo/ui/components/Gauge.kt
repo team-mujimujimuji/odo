@@ -21,7 +21,7 @@ import com.mujimujimuji.odo.ui.theme.OdoSpace
 import kotlin.math.max
 
 /**
- * 진행 게이지(설계서 §5.0). 트윈 없음 — 값이 바뀌면 즉시 그린다. 주행 12dp, 정차 4dp.
+ * 진행 게이지(설계서 §5.0). 트윈 없음: 값이 바뀌면 즉시 그린다. 주행 12dp, 정차 4dp.
  * [endIcon]이 있으면 게이지 끝 8dp 뒤에 둔다(글랜스 메달).
  */
 @Composable

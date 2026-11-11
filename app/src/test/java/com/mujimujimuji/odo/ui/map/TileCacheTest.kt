@@ -21,7 +21,7 @@ class TileCacheTest {
 
     private fun quad(x0: Float, y0: Float, x1: Float, y1: Float) = floatArrayOf(x0, y0, x1, y0, x1, y1, x0, y1)
 
-    /** 좌우 대칭 사다리꼴(extL = extR) 줄임 — 테스트 전용. 앱은 6인자 판을 쓴다(CorridorMap). */
+    /** 좌우 대칭 사다리꼴(extL = extR) 줄임(테스트 전용). 앱은 6인자 판을 쓴다(CorridorMap). */
     private fun quadMayOverlapTrapezoid(q: FloatArray, w: Float, h: Float, ext: Float, margin: Float): Boolean =
         quadMayOverlapTrapezoid(q, w, h, ext, ext, margin)
 

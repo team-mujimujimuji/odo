@@ -143,7 +143,7 @@ object OdoSize { val touch = 76.dp; val touchGap = 23.dp; val icon = 32.dp; val 
 
 ### 1.6 주야 규칙
 - 기기 시각 18:30–06:30 → 야간, 그 외 주간. `ui/theme/NightMode.kt`의 `rememberNightMode(locked: Boolean): Boolean`. 1분마다 평가하되 **`locked == true`인 동안은 값을 바꾸지 않는다**(주행 중 전환 금지). 주행 중 18:30이 지나면 다음 정차에 바뀐다.
-- fake 빌드: 홈 데모 칩 길게 누르기(700 ms) → 강제 전환 토글(캡처용, 정차 중만, release에는 없음).
+- fake 빌드: 홈 데모 칩 길게 누르기(700 ms) → 강제 전환 토글(캡처용, 정차 중만. 시나리오 재생 빌드에는 release에도 있고, 실제 SDK 빌드에는 없음).
 
 ---
 
@@ -354,7 +354,7 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
 
 ### 4.1 데이터(빌드 전 1회, 런타임 네트워크 0)
 - 출처: OpenStreetMap Overpass API 1회 조회(bbox `37.20,127.54,37.50,128.17`, `User-Agent: odo-redesign/1.0 (contest build tool)` 필수, 없으면 406). 도로 `highway=motorway|trunk|primary|secondary|tertiary(+_link)`, 물 `natural=water|waterway=river`, 숲 `landuse=forest|natural=wood`, 시가지 `landuse=residential|commercial|industrial|retail`, 휴게소 `highway=services|rest_area`.
-- 가공: 시나리오 경로(`tools/scenario/route_yeoju_hoengseong.json`) ±4 km 복도로 클립 → Douglas-Peucker 10 m → 약 29.5k 점 → 로컬 미터 정수 좌표(`x=(lon−lon0)·111320·cos lat0`, `y=(lat−lat0)·111320`, 원점 = bbox 남서) → `app/src/main/assets/map/corridor.json` ≈ 0.41 MB(APK 압축 후 ≈150 KB).
+- 가공: 시나리오 경로(`tools/scenario/route_yeoju_hoengseong.json`) ±4 km 복도로 클립 → Douglas-Peucker 10 m → 점 25,875개 → 로컬 미터 정수 좌표(`x=(lon−lon0)·111320·cos lat0`, `y=(lat−lat0)·111320`, 원점 = bbox 남서) → `app/src/main/assets/map/corridor.json` 399,413 B(0.40 MB, gzip ≈133 KB).
 - 형식:
 ```json
 {"version":1,"origin":{"lat":37.20,"lng":127.54},"attribution":"© OpenStreetMap contributors, ODbL 1.0",
@@ -539,13 +539,13 @@ KeyStrip은 셀마다 캡션 줄이 있어 92dp다(76dp에 아이콘·라벨·�
 │ │ 휴대폰 연결 (28)                                        │ 홈 (76×120) │
 │ │ ┌ QR 판 272×272 (#D0D4DA, r 16) ┐  WDJB-MJHT (numeralM 48, tnum)        │
 │ │ │  QR 240×240 어두운 모듈        │  휴대폰 카메라로 QR을 찍어 주세요 (24)  │
-│ │ │  여백 16                       │  또는 폰 앱에 코드를 넣어 주세요 (24)   │
+│ │ │  여백 16                       │  또는 휴대폰 앱에 코드를 넣어 주세요 (24)│
 │ │ └───────────────────────────────┘  공유함: 트립 요약·업적·미니카 꾸미기 (20)│
 │ │                                    공유 안 함: 차량 신호 원본·위치 기록 (20)│
-│ │ 폰 앱은 준비 중이에요 (캡션 20, inkDim)                                 │
+│ │ 휴대폰 앱은 준비 중이라 지금은 시연으로 연결돼요 (캡션 20, inkDim, 2줄) │
 │ └───────────────────────────────────────────────────────────────────────┘
 ```
-- 상태 변형: `Presenting`(위) · `Confirmed` "휴대폰에서 확인했어요"(QR 자리에 36dp 체크 픽토, 1.5 s 뒤 Linked) · `Linked` "연결됨 · 11월 9일" + 공유 범위 2줄 + KeyStrip "끊기"(QR 판 자리에는 틀 없이 내 미니카 hero 272×181dp: 판 폭 272, 3:2, 앰버 없음) → 같은 자리에서 "연결을 끊을까요" + [끊기][취소] 인라인 2단계(모달 없음) · `Failed` "아직 연결되지 않았어요. 코드를 다시 보여 드릴게요"(빨강 없음) · 120 s 만료는 **표시 없이** 새 코드로 조용히 교체(카운트다운 금지).
+- 상태 변형: `Presenting`(위) · `Confirmed` "연결을 확인했어요"(QR 자리에 36dp 체크 픽토, 1.5 s 뒤 Linked) · `Linked` "연결됨 · 11월 9일" + 공유 범위 2줄 + KeyStrip "끊기"(QR 판 자리에는 틀 없이 내 미니카 hero 272×181dp: 판 폭 272, 3:2, 앰버 없음) → 같은 자리에서 "연결을 끊을까요" + [끊기][취소] 인라인 2단계(모달 없음) · `Failed` "아직 연결되지 않았어요. 코드를 다시 보여 드릴게요"(빨강 없음) · 120 s 만료는 **표시 없이** 새 코드로 조용히 교체(카운트다운 금지).
 - 잠금(`ui.locked`) 시 라우팅이 글랜스로 바꾸므로 자동 닫힘; 돌아오면 홈(코드 재발급). 홈 KeyStrip "휴대폰" 캡션 = "연결 안 됨 / 연결됨".
 
 ### 5.7 라우팅(`OdoRoot`) 변경
@@ -577,7 +577,7 @@ KeyStrip은 셀마다 캡션 줄이 있어 92dp다(76dp에 아이콘·라벨·�
       │                                           │ Presenting(code, qrPayload, expiresAt)
       │                                           │  QR 240 + 자음 코드 4-4, 공유 범위 2줄
       │                              120 s 경과 → 조용히 재발급(표시 없음)
-      │                                           │ (Fake: 3 s 뒤) Confirmed "휴대폰에서 확인했어요"
+      │                                           │ (Fake: 3 s 뒤) Confirmed "연결을 확인했어요"
       │                                           ▼
       │                                     Linked(label="휴대폰", linkedAt) → Room phone_link 저장
       │                                           │ KeyStrip "끊기" → 인라인 2단계 → disconnect() → Idle, "연결을 끊었어요"
@@ -654,7 +654,7 @@ class FakePhoneLink(scope: CoroutineScope, repo: OdoRepository, clock: () -> Lon
 | 차고 spec | (없음) | 소형 · 하늘 · 스틸 · 화이트 · 루프 없음 |
 | 배너 | 업적을 열었어요 / {titles} / 확인 | {title} 업적을 열었어요 (1줄, 탭 해제) |
 | 뒤로 | 홈으로 | 홈 |
-| 폰 | (없음) | 휴대폰 연결 · 휴대폰 카메라로 QR을 찍어 주세요 · 또는 폰 앱에 코드를 넣어 주세요 · 휴대폰에서 확인했어요 · 연결됨 · {날짜} · 연결을 끊을까요 · 끊기 · 취소 · 연결을 끊었어요 · 아직 연결되지 않았어요. 코드를 다시 보여 드릴게요 · 정차 후 다시 연결할 수 있어요 · 폰 앱은 준비 중이에요 · 공유함: 트립 요약·업적·미니카 꾸미기 · 공유 안 함: 차량 신호 원본·위치 기록 |
+| 폰 | (없음) | 휴대폰 연결 · 휴대폰 카메라로 QR을 찍어 주세요 · 또는 휴대폰 앱에 코드를 넣어 주세요 · 연결을 확인했어요 · 연결됨 · {날짜} · 연결을 끊을까요 · 끊기 · 취소 · 연결을 끊었어요 · 아직 연결되지 않았어요. 코드를 다시 보여 드릴게요 · 정차 후 다시 연결할 수 있어요 · 휴대폰 앱은 준비 중이라 지금은 시연으로 연결돼요 · 공유함: 트립 요약·업적·미니카 꾸미기 · 공유 안 함: 차량 신호 원본·위치 기록 |
 | TTS | (변경 없음) | 안전 주행 N km, 오늘 상한을 채웠어요. / {title} 업적을 열었어요. |
 - 조사는 하드코딩하지 않고 `ui/text/Josa.kt`의 `josa(word, "이/가")`로(받침 판정). 모든 문자열은 `res/values/strings.xml`로 옮긴다.
 

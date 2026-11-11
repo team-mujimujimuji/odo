@@ -38,7 +38,7 @@ class QrMatrix(val size: Int, private val bits: BooleanArray) {
 }
 
 /**
- * QR 판(설계서 §5.6): `qrPlate` 272dp 모서리 16, 안쪽 240dp에 `qrModule` 모듈. 밝은 판에 어두운 모듈 — 반전(흰 QR) 금지.
+ * QR 판(설계서 §5.6): `qrPlate` 272dp 모서리 16, 안쪽 240dp에 `qrModule` 모듈. 밝은 판에 어두운 모듈이고, 반전(흰 QR)은 쓰지 않는다.
  * 모듈은 소수점 경계가 비치지 않게 0.5px 겹쳐 그린다. [dimmed]는 확인됨 1.5 s 동안 판을 그대로 두고 모듈만 흐리게 한다
  * (그 위에 체크를 겹친다). 흐린 판은 찍을 대상이 아니라 의미 설명을 붙이지 않는다.
  */

@@ -162,7 +162,7 @@ data class VehicleManifest(
 }
 
 /**
- * 레이어 한 장을 얹는 방식(계약 v2 '그리기'). [blend]는 매니페스트 blend 표의 이름이고 null이면 그대로 얹는다.
+ * 레이어 한 장을 얹는 방식(설계서 §2.5 그리기 순서). [blend]는 매니페스트 blend 표의 이름이고 null이면 그대로 얹는다.
  * 순수 값이라 JVM 테스트가 매니페스트 blend 표와 어긋나지 않는지 확인한다.
  */
 enum class LayerKind(val blend: String?) {
@@ -210,7 +210,7 @@ enum class LayerKind(val blend: String?) {
 }
 
 /**
- * 미니카 그림을 상자에 놓는 변환(계약 v2 '크기'). 그림 px (x, y) → 캔버스 px:
+ * 미니카 그림을 상자에 놓는 변환(설계서 §2.5). 그림 px (x, y) → 캔버스 px:
  * 기준점([anchorX], [anchorY])이 상자 중앙([centerX], [centerY])에 오고, 기준점을 축으로 [rotationDeg](시계 방향)만큼 돌고 [scale]배 된다.
  */
 data class VehiclePose(

@@ -45,7 +45,7 @@ data class MapCamera(
         const val PARKED_METERS_PER_DP = 20f
         const val GLANCE_TILT_DEG = 58f
 
-        /** 코리도 밖의 중심 — 위치를 모를 때 글랜스가 계기 모드(격자)로 그리게 한다. */
+        /** 코리도 밖의 중심. 위치를 모를 때 글랜스가 계기 모드(격자)로 그리게 한다. */
         val NOWHERE = LatLng(0.0, 0.0)
 
         fun glance(center: LatLng?, headingDeg: Float?, tiltDeg: Float = GLANCE_TILT_DEG, anchorX: Float = 0.5f): MapCamera =

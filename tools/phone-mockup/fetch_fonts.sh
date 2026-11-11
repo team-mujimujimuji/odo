@@ -1,8 +1,8 @@
 #!/bin/sh
 # 폰 목업용 글꼴 4개를 태그 고정 URL에서 내려받고 sha256을 확인한다.
 # 이미 맞는 파일은 건너뛴다. 받은 글꼴은 tools/phone-mockup/fonts/ 에만 두고 저장소에는 넣지 않는다(.gitignore).
-#   Noto Sans CJK KR (Sans2.004) — SIL Open Font License 1.1
-#   Roboto (roboto-2 v2.138)    — Apache License 2.0
+#   Noto Sans CJK KR (Sans2.004): SIL Open Font License 1.1
+#   Roboto (roboto-2 v2.138):     Apache License 2.0
 set -eu
 
 DIR="$(cd "$(dirname "$0")" && pwd)/fonts"

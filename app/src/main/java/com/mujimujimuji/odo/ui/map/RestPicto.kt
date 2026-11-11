@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.mujimujimuji.odo.ui.theme.OdoColors
 import com.mujimujimuji.odo.ui.theme.OdoSize
 
-/** 휴게소 픽토의 선 2종(테두리 1dp, 손잡이 1.5dp). 그리는 쪽이 밀도별로 `remember` 해 넘긴다 — 프레임마다 Stroke를 만들지 않게. */
+/** 휴게소 픽토의 선 2종(테두리 1dp, 손잡이 1.5dp). 그리는 쪽이 밀도별로 `remember` 해 넘긴다(프레임마다 Stroke를 만들지 않게). */
 class RestPictoStrokes(density: Float) {
     val ring = Stroke(1f * density)
     val handle = Stroke(1.5f * density)
@@ -24,7 +24,7 @@ fun DrawScope.drawRestPicto(center: Offset, colors: OdoColors, strokes: RestPict
     val r = OdoSize.picto.toPx() / 2f
     drawCircle(colors.surface, r, center)
     drawCircle(colors.line, r - strokes.ring.width / 2f, center, style = strokes.ring)
-    // 컵 몸체 11×9, 손잡이 반원, 받침 선 — 20dp 상자 안.
+    // 컵 몸체 11×9, 손잡이 반원, 받침 선: 20dp 상자 안.
     drawRoundRect(
         colors.ink,
         topLeft = Offset(center.x - 7f * px, center.y - 6f * px),

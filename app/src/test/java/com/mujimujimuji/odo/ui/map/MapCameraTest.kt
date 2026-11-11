@@ -8,6 +8,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 import kotlin.math.cos
 
 /** 설계서 §4.3 카메라 표: 글랜스 6 m/dp 58°, 정차 20 m/dp north-up, 요약은 bbox 맞춤. */
@@ -35,6 +36,30 @@ class MapCameraTest {
         assertEquals(356.2f, shifted.y, 0.01f)
         // north-up은 anchorX와 무관하게 정중앙
         assertEquals(200f, MapCamera.parked(c).copy(anchorX = 0.9f).anchor(400f, 300f).x, 0f)
+    }
+
+    @Test
+    fun `글랜스 카메라 방위는 heading, 없으면 경로 방위, 지도가 없으면 0`() {
+        val corridor = listOf("src/main/assets/", "app/src/main/assets/")
+            .map { File(it + CorridorData.ASSET_PATH) }
+            .first { it.exists() }
+            .let { CorridorData(it.readText()) }
+        val start = corridor.routeStart
+        val bearing = routeBearingDeg(corridor, start)!!
+        // 데모 경로는 시작점에서 북쪽을 향하지 않는다(0이면 이 시험이 북쪽 위 첫 프레임을 못 잡는다).
+        assertTrue("경로 시작 방위 $bearing", bearing > 1f && bearing < 359f)
+        // 트립 시작 직후(heading 없음, 3 m 미만 이동): 첫 프레임부터 경로 방위.
+        val first = glanceCamera(start, null, corridor, MapCamera.GLANCE_TILT_DEG, 0.7f)
+        assertEquals(bearing, first.headingDeg, 0f)
+        assertFalse(first.northUp)
+        assertEquals(start, first.center)
+        assertEquals(0.7f, first.anchorX, 0f)
+        // heading이 생기면 그 값 그대로(0°도 값이다).
+        assertEquals(45f, glanceCamera(start, 45f, corridor, MapCamera.GLANCE_TILT_DEG, 0.5f).headingDeg, 0f)
+        assertEquals(0f, glanceCamera(start, 0f, corridor, MapCamera.GLANCE_TILT_DEG, 0.5f).headingDeg, 0f)
+        // 지도 데이터가 아직 없거나 위치가 없으면 0(북), 기존 glance와 같다.
+        assertEquals(0f, glanceCamera(start, null, null, MapCamera.GLANCE_TILT_DEG, 0.5f).headingDeg, 0f)
+        assertEquals(MapCamera.glance(null, null), glanceCamera(null, null, corridor, MapCamera.GLANCE_TILT_DEG, 0.5f))
     }
 
     @Test

@@ -34,7 +34,7 @@ import com.mujimujimuji.odo.ui.theme.OdoSpace
 import com.mujimujimuji.odo.ui.theme.OdoType
 
 /**
- * 글랜스(주행 중, 잠금) — 설계서 §5.2. 숫자 1개(오늘 안전 km) + 게이지 1개(다음 업적) + 장면(지도·미니카).
+ * 글랜스(주행 중, 잠금, 설계서 §5.2): 숫자 1개(오늘 안전 km) + 게이지 1개(다음 업적) + 장면(지도·미니카).
  * 문단·리스트·버튼·위험 표시·시간 압박·트윈 없음. 데모 칩도 없다. 입력 차단은 OdoRoot의 DriveLockOverlay가 맡는다.
  */
 @Composable

@@ -81,10 +81,10 @@ class VisibleSet(n: Int) {
 
 /**
  * `assets/map/corridor.json`(tools/map/build_corridor.py 산출물) 파서 + 1 km 셀 색인 + 경로 보조 계산.
- * 순수 Kotlin(org.json만) — JVM 단위 테스트 가능. Path 생성은 렌더러([CorridorMap])가 1회 한다.
+ * 순수 Kotlin(org.json만)이라 JVM 단위 테스트 가능. Path 생성은 렌더러([CorridorMap])가 1회 한다.
  *
  * 좌표계: 로컬 정수 미터, x = (lng − origin.lng)·111320·cos(origin.lat), y = (lat − origin.lat)·111320 (북쪽이 +y).
- * 출처: © OpenStreetMap contributors, ODbL 1.0 — [attribution]을 정차 화면 캡션으로 보여 준다.
+ * 출처: © OpenStreetMap contributors, ODbL 1.0. [attribution]을 정차 화면 캡션으로 보여 준다.
  */
 class CorridorData(json: String) {
     val version: Int
@@ -232,7 +232,7 @@ class CorridorData(json: String) {
 
     /**
      * 로컬 (x,y)에서 가장 가까운 경로 지점의 누적 거리(m). 경로 754점 전수 검사.
-     * [CorridorMap]이 지난/남은 구간 분기점(splitPoint)이 바뀔 때마다 부른다 — heading-up 글랜스에서는 위치 갱신마다
+     * [CorridorMap]이 지난/남은 구간 분기점(splitPoint)이 바뀔 때마다 부른다. heading-up 글랜스에서는 위치 갱신마다
      * (데모 20배속이면 초당 20회, 50 ms마다). 점 754개 × 곱셈 몇 개라 메인 스레드에서 돌려도 프레임 예산에 비해 작다.
      */
     fun routeProgress(x: Double, y: Double): Double {
@@ -287,7 +287,7 @@ class CorridorData(json: String) {
 
     /**
      * 모의 미니카 1대의 자리(설계서 §4.2 레이더 유지): 경로 진행 [s](m)에서 [offsetM](앞 +, 뒤 −)만큼 떨어진 경로 위 점을 [out]에 쓴다(로컬 m).
-     * 그 자리가 경로 밖(시작 전·끝 뒤)이면 false — 출발 직후 뒤 점이 시작점에 묶여 차와 겹치지 않게 그리지 않는다.
+     * 그 자리가 경로 밖(시작 전·끝 뒤)이면 false. 출발 직후 뒤 점이 시작점에 묶여 차와 겹치지 않게 그리지 않는다.
      */
     fun mockCarAt(s: Double, offsetM: Double, out: DoubleArray): Boolean {
         val t = s + offsetM

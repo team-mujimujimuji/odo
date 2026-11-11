@@ -43,7 +43,7 @@ adb shell am start -n com.mujimujimuji.odo/.MainActivity
 ### 소스에서 빌드
 
 ```bash
-./gradlew testDebugUnitTest          # 단위 테스트 204개 (engine·sim·cosmetic·drive·platform, ui/components·map·summary·theme·vehicle·text)
+./gradlew testDebugUnitTest          # 단위 테스트 214개 (engine·sim·cosmetic·drive·platform, ui/components·map·summary·theme·vehicle·text)
 ./gradlew assembleDebug              # app/build/outputs/apk/debug/
 ./gradlew assembleRelease            # app/build/outputs/apk/release/
 ```

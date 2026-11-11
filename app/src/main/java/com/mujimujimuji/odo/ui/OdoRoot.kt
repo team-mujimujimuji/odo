@@ -257,7 +257,7 @@ fun OdoRoot(app: OdoApp) {
                             onResetDemo = {
                                 forcedNight = null
                                 // 폰이 확인을 마친 1.5 s(Confirmed)는 화면을 떠나도 접히지 않는다. 그 사이 초기화하면
-                                // 남은 작업이 씨앗 위에 '연결됨'을 다시 쓰므로 연결 작업도 함께 접는다(ux-flow-4 검증자 (a)).
+                                // 남은 작업이 씨앗 위에 '연결됨'을 다시 쓰므로 연결 작업도 함께 접는다.
                                 app.phoneLink.disconnect()
                                 app.controller.resetDemo()
                             },

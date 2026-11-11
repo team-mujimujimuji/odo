@@ -20,7 +20,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * 미니카 에셋 계약 v2(그리기·크기·배치)를 검사한다.
+ * 미니카 에셋 계약 v2(compose.json version 2, 설계서 §2.5·§4.3)를 검사한다.
  * - 계약 fixture([V2_JSON]) 테스트: 파싱, 뷰별 skip, night, 그리기 순서 해석, 크기·기준점·회전([VehiclePose]), 홈 배치(순수 함수).
  *   에셋 폴더 상태와 상관없이 통과한다.
  * - `실제 에셋…` 테스트: 에셋 폴더(app/src/main/assets/minicar)를 JVM에서 직접 읽는다.

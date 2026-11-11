@@ -34,7 +34,7 @@ fun GlanceMap(ui: DriveUi, loadout: Loadout, modifier: Modifier = Modifier, anch
     val data = rememberCorridorData()
     val budget = rememberFrameBudget()
     val tilt = if (budget.tiltAllowed) MapCamera.GLANCE_TILT_DEG else 0f
-    val camera = remember(ui.position, ui.headingDeg, tilt, anchorX) { MapCamera.glance(ui.position, ui.headingDeg, tilt, anchorX) }
+    val camera = remember(ui.position, ui.headingDeg, data, tilt, anchorX) { glanceCamera(ui.position, ui.headingDeg, data, tilt, anchorX) }
     val trailColor = trailColorOf(loadout)
     Box(modifier) {
         CorridorMap(
@@ -51,7 +51,15 @@ fun GlanceMap(ui: DriveUi, loadout: Loadout, modifier: Modifier = Modifier, anch
 }
 
 /**
- * 지도 위 미니카(에셋 계약 v2 '배치'). 그림의 기준점(상자 중심)을 카메라 기준점에 둔다.
+ * 글랜스 카메라. 방위는 홈 미니카와 같은 순서([homeHeadingDeg]: 주행 heading → 경로 방위 → 0)로 정한다.
+ * 트립을 시작하면 heading이 비고 3 m를 가야 다시 생기므로, 그동안에도 첫 프레임부터 경로 진행 방향이 위다
+ * (북쪽 위로 뜬 뒤 한 번에 도는 프레임이 없다).
+ */
+internal fun glanceCamera(position: LatLng?, headingDeg: Float?, data: CorridorData?, tiltDeg: Float, anchorX: Float): MapCamera =
+    MapCamera.glance(position, homeHeadingDeg(headingDeg, data, position), tiltDeg, anchorX)
+
+/**
+ * 지도 위 미니카(설계서 §4.3). 그림의 기준점(상자 중심)을 카메라 기준점에 둔다.
  * north-up 카메라(홈·트립 요약)면 Top 뷰를 `camera.headingDeg`로 돌리고, heading-up 카메라(글랜스)면 Navi 뷰를 돌리지 않는다(차 앞이 항상 위).
  * 그림 크기는 상자(96dp)와 무관하다: 원래 크기 × [markerScale] × 차종 배율. 정지 그림이고 애니메이션은 없다.
  * [at]과 [data]를 주면 그 지점(예: 요약 화면 트립 끝점)에 둔다(틸트 0 기준).
@@ -83,7 +91,7 @@ fun NaviMinicar(
     }
 }
 
-/** 지도 출처 캡션(ODbL). 정차 화면(홈·업적·차고·폰·트립 요약)에서만 쓴다 — 주행 중 지도 위 글자 0 규칙. */
+/** 지도 출처 캡션(ODbL). 정차 화면(홈·업적·차고·폰·트립 요약)에서만 쓴다(주행 중 지도 위 글자 0 규칙). */
 @Composable
 fun MapAttribution(modifier: Modifier = Modifier, maxLines: Int = 1) {
     Text(

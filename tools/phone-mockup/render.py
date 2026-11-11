@@ -910,7 +910,8 @@ def car_link_panel():
             if QR[yy][xx]:
                 rect(img, qx + 16 + xx * ms, qy + 16 + yy * ms, ms, ms, C['qrModule'], 1, k)
     # 오른쪽 열(PresentingColumn): 코드(numeralM, 넘치면 열 폭에 맞게 줄임) → 16 → 찍기 안내 → 4 → 코드 안내,
-    # 열 바닥에 "폰 앱은 준비 중이에요". 공유 범위 두 줄은 판 아래 전체 폭(ShareScope).
+    # 열 바닥에 준비 중 안내(phone_app_pending, 두 줄. 마지막 줄을 판 바닥선에 맞추고 위로 쌓는다).
+    # 공유 범위 두 줄은 판 아래 전체 폭(ShareScope).
     tx = qx + 272 + 24
     colw = px + pw - 24 - tx
     size = 48.0
@@ -929,7 +930,9 @@ def car_link_panel():
     for ln in wrap(res('phone_or_code'), 'car_body', colw, k):
         text(img, tx, y, ln, 'car_body', C['inkDim'], 1, k=k)
         y += 32
-    text(img, tx, qy + 272 - 26, res('phone_app_pending'), 'car_caption', C['inkDim'], 1, k=k)
+    pending = wrap(res('phone_app_pending'), 'car_caption', colw, k)  # \n은 강제 줄바꿈, 넘치면 열 폭에서 접음
+    for i, ln in enumerate(pending):
+        text(img, tx, qy + 272 - 26 * (len(pending) - i), ln, 'car_caption', C['inkDim'], 1, k=k)
     bottom = py + ph - 24
     text(img, qx, bottom - 26 - 4 - 26, res('phone_share_yes'), 'car_caption', C['inkDim'], 1, k=k)
     text(img, qx, bottom - 26, res('phone_share_no'), 'car_caption', C['inkDim'], 1, k=k)
@@ -1105,7 +1108,7 @@ def screen_summary():
     if tr['xp'] >= APP.daily_cap:
         # 차는 josa("300 XP", "을/를")로 붙인다. XP는 '피'(모음)로 끝나 '를'.
         text(img, M, y + 58, res('summary_cap_reached', f'{APP.daily_cap} XP를'), 'caption', C['inkDim'], 1)
-    # 레벨 업 카드(차 요약의 LevelUpCard와 같은 1dp 노랑 테두리 — 앱이 허용한 유일한 연출 모멘트)
+    # 레벨 업 카드(차 요약의 LevelUpCard와 같은 1dp 노랑 테두리. 앱이 허용한 유일한 연출 모멘트)
     items = APP.unlocked_at(tr['levelTo'])
     cy = y + 96
     ch = 16 + 26 + 4 + 22 + 16 + grid_height(len(items)) + 16

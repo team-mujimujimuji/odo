@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""오도 색 토큰 대비표(WCAG 2.x 상대 휘도 기준) — 설계서 §1.4 표를 다시 계산한다.
+"""오도 색 토큰 대비표(WCAG 2.x 상대 휘도 기준). 설계서 §1.4 표를 다시 계산한다.
 
 사용: python3 tools/design/contrast.py
 표준 라이브러리만 쓴다. 토큰 값은 app/src/main/java/com/mujimujimuji/odo/ui/theme/OdoTokens.kt와 같아야 하며,
@@ -32,7 +32,7 @@ def blend(fg: str, alpha: float, bg: str) -> str:
     )
 
 
-# OdoTokens.kt — OdoNight / OdoDay
+# OdoTokens.kt: OdoNight / OdoDay
 NIGHT = dict(
     ground="#0B0F14", surface="#121821", line="#2E3845", ink="#F4F6F8", inkDim="#8D9AAB", track="#6E7A8B",
     amber="#F0A83A", onAmber="#231B00", route="#3D86FF", routeOutline="#0E2E6B", routePassed="#4A5566",
@@ -72,7 +72,7 @@ def rows(t: dict) -> list:
         ("roadCore on ground / urban", f"{ratio(t['roadCore'], t['ground']):.2f} / {ratio(t['roadCore'], t['mapUrban']):.2f}"),
         # 요약 지도 출처 캡션: ground 60 % 스크림 아래 가장 밝은 지도 색(roadCore) 기준(설계서 §1.4 대비표)
         ("출처 캡션 inkDim on ground 60 % 스크림 over roadCore", f"{ratio(t['inkDim'], blend(t['ground'], 0.6, t['roadCore'])):.2f}"),
-        ("ink on route(흰 글자 on 파란 버튼 — 폐기)", f"{ratio(t['ink'], t['route']):.2f}"),
+        ("ink on route(흰 글자 on 파란 버튼, 폐기)", f"{ratio(t['ink'], t['route']):.2f}"),
         # 설계서 초판의 주간 값 17.12는 ink 100%로 잰 것. 96% 합성(야간 값과 같은 방식)이 맞다 → 15.84.
         ("ground 글자 on ink96 채움", f"{ratio(t['ground'], blend(t['ink'], 0.96, t['ground'])):.2f}"),
         ("qrModule on qrPlate", f"{ratio(t['qrModule'], t['qrPlate']):.2f}"),
@@ -101,7 +101,7 @@ def main() -> None:
     for a in (1.0, 0.96, 0.92):
         bg = blend(NIGHT["surface"], a, NIGHT["route"])
         vals.append(f"{ratio(blend(NIGHT['ink'], 0.96, bg), bg):.2f}")
-    print(f"| 글랜스 패널 alpha 1.0 / 0.96 / 0.92, 밑에 route가 있을 때 ink96 | {' / '.join(vals)} | — |")
+    print(f"| 글랜스 패널 alpha 1.0 / 0.96 / 0.92, 밑에 route가 있을 때 ink96 | {' / '.join(vals)} | 야간만 측정 |")
 
 
 if __name__ == "__main__":

@@ -45,6 +45,7 @@ fun trailColorOf(loadout: Loadout): Color =
  * ODbL 출처 캡션은 지도가 보이는 모든 정차 화면에 둔다. 아래가 패널로 막힌 홈은 [attributionTop]으로 왼쪽 위에(데모 칩은 오른쪽 위).
  * [anchor]: [center]가 놓이는 화면 위치(폭·높이 비율). 홈은 패널에 가리지 않는 띠의 가운데([bandAnchor])를 준다.
  * [minicar]를 주면 그 자리에 Top 미니카를 [headingDeg](북 0°, 시계 방향)로 돌려 그린다(홈). 지도는 돌지 않는다. [minicarDesc]는 접근성 설명.
+ * 미니카 둘레([CAR_CLEAR])에 걸치는 휴게소 픽토는 그리지 않는다(차 밑에 깔리거나 범퍼에 붙어 보이지 않게).
  */
 @Composable
 fun NorthUpScene(
@@ -71,6 +72,8 @@ fun NorthUpScene(
             trail = false,
             modifier = Modifier.fillMaxSize().then(StillLayer),
             cover = cover,
+            car = if (minicar != null) at else null,
+            carClear = CAR_CLEAR * VehicleMarkerScale.HOME,
         )
         if (scrim) Box(Modifier.fillMaxSize().background(c.ground.copy(alpha = SCRIM_ALPHA)))
         if (minicar != null) {
@@ -86,6 +89,7 @@ fun ScrimmedScene(data: CorridorData?, center: LatLng?, modifier: Modifier = Mod
 
 /**
  * 트립 요약 장면(§4.3 요약 행): north-up, 지난 길 스티치, 끝점에 Top 미니카(마지막 진행방향으로 회전, 0.8배), 오른쪽 아래 ODbL 출처 캡션.
+ * 끝점 미니카 둘레([CAR_CLEAR] × 0.8)에 걸치는 휴게소 픽토는 그리지 않는다.
  * 가운데 패널([covered], dp)에 가리지 않는 띠([visibleBand])에 경로 bbox를 맞춘다. 여백([FIT_PADDING_DP])이 있어 끝점 미니카가 띠 안에 든다.
  * 띠가 없으면(658×552 창: 패널 592×484 둘레 33dp뿐) 경로·미니카를 빼고 끝점 중심의 정적 지도에 `ground` 64 % 스크림만 깐다.
  * 경로 점이 2개 미만이면 시작점(없으면 시나리오 시작점) 중심의 정차 시점으로 대신한다.
@@ -123,6 +127,7 @@ fun TripFitScene(
         } else {
             Rect.Zero
         }
+        val end = path.lastOrNull()
         CorridorMap(
             data = data,
             camera = camera,
@@ -133,8 +138,9 @@ fun TripFitScene(
             trailColor = trailColor,
             cover = cover,
             showRoute = band != null,
+            car = if (band != null) end else null,
+            carClear = CAR_CLEAR * VehicleMarkerScale.SUMMARY,
         )
-        val end = path.lastOrNull()
         if (band == null) {
             Box(Modifier.fillMaxSize().background(LocalOdoColors.current.ground.copy(alpha = SCRIM_ALPHA)))
         } else if (data != null && end != null) {
@@ -224,7 +230,7 @@ internal fun routeBearingDeg(data: CorridorData?, at: LatLng?): Float? {
     return ((Math.toDegrees(atan2(dx, dy)) + 360.0) % 360.0).toFloat()
 }
 
-/** 홈 미니카 방향(에셋 계약 v2 '배치'): 주행에서 얻은 heading → 없으면 경로 방위 → 그것도 없으면 0(북). */
+/** 홈 미니카 방향(설계서 §4.3): 주행에서 얻은 heading → 없으면 경로 방위 → 그것도 없으면 0(북). */
 internal fun homeHeadingDeg(uiHeadingDeg: Float?, data: CorridorData?, at: LatLng?): Float =
     uiHeadingDeg ?: routeBearingDeg(data, at) ?: 0f
 
@@ -240,6 +246,14 @@ private const val FIT_PADDING_DP = 56f
 /** 경로를 담을 띠의 짧은 변 최소값(여백 2×56 + 경로 96). */
 private const val FIT_MIN_DP = 208f
 private const val SCRIM_ALPHA = 0.64f
+/**
+ * 정차 미니카(Top) 둘레에서 휴게소 픽토를 비울 반경(배율 1 기준, 화면 배율을 곱해 쓴다). 픽토 반지름 18dp를 더한 거리 안의 픽토는 그리지 않는다.
+ * 차가 그 휴게소에 서 있으면 차가 자리를 알려 주므로 픽토가 차 밑에 깔리거나 범퍼에 붙어 보이지 않게 뺀다.
+ * 가장 긴 차체(대형 Top 차체 반길이 62dp)보다 길게 잡아, 픽토가 어느 방향에 있든 범퍼와 닿지 않는다.
+ * 데모 경로(정차 축척 20 m/dp)에서 트립 끝 휴게소 바로 앞 픽토(차 중심에서 75dp)는 빠지고,
+ * 출발 지점 홈에서 차 밑이 아닌 가장 가까운 픽토(94dp)는 남는다.
+ */
+internal val CAR_CLEAR = 68.dp
 private const val ATTRIBUTION_SCRIM_ALPHA = 0.6f
 /** 홈 왼쪽 위 캡션 폭 상한: 32 + 520 = 552 < 데모 칩 왼쪽(글꼴 1.3에서 약 557). */
 private val ATTRIBUTION_TOP_MAX_W = 520.dp

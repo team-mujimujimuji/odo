@@ -1,5 +1,6 @@
 package com.mujimujimuji.odo.ui.phonelink
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -61,7 +62,7 @@ import java.util.Locale
  * 공유 범위는 글로 못 박는다: 트립 요약·업적·미니카 꾸미기만, 차량 신호 원본·위치 기록은 공유하지 않는다.
  * 이 두 줄은 판 아래 전체 폭에 한 줄씩 둔다(오른쪽 열 248dp에서는 "미니카 / 꾸미기"처럼 의미 단위가 꺾였다).
  * 확인됨은 QR 판을 그대로 두고 모듈만 흐린 위에 체크 원판을 겹치고, 연결됨은 틀 없이 내 미니카를 판 폭(272)으로 보여 준다
- * (앰버는 쓰지 않는다 — 앰버 4곳 규칙, 설계서 §1.1).
+ * (앰버는 쓰지 않는다: 앰버 4곳 규칙, 설계서 §1.1).
  */
 @Composable
 fun PhoneLinkScreen(
@@ -181,6 +182,8 @@ private fun ShareScope() {
 private fun LinkedColumn(state: PhoneLinkState.Linked, onDisconnect: () -> Unit) {
     val c = LocalOdoColors.current
     var confirm by remember { mutableStateOf(false) }
+    // 확인 줄이 떠 있으면 시스템 뒤로 키는 확인 줄만 닫는다(나중에 합성된 이 핸들러가 OdoRoot의 홈 이동보다 먼저 받는다).
+    BackHandler(enabled = confirm) { confirm = false }
     val pattern = stringResource(R.string.phone_date_format)
     val since = remember(state.linkedAtMs, pattern) {
         DateTimeFormatter.ofPattern(pattern, Locale.KOREA)
