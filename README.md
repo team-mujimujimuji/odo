@@ -43,7 +43,7 @@ adb shell am start -n com.mujimujimuji.odo/.MainActivity
 ### 소스에서 빌드
 
 ```bash
-./gradlew testDebugUnitTest          # 단위 테스트 214개 (engine·sim·cosmetic·drive·platform, ui/components·map·summary·theme·vehicle·text)
+./gradlew testDebugUnitTest          # 단위 테스트 224개 (engine·sim·cosmetic·drive·platform, ui/components·map·summary·theme·vehicle·text)
 ./gradlew assembleDebug              # app/build/outputs/apk/debug/
 ./gradlew assembleRelease            # app/build/outputs/apk/release/
 ```
@@ -245,7 +245,7 @@ python3 -I tools/map/build_corridor.py --raw "$RAW/overpass_raw.json" \
 
 ## 휴대폰 연결 (1차)
 
-홈의 **휴대폰** 키에서 QR 코드와 8자 코드(4-4)를 보여 준다. 폰 쪽 화면은 아직 목업이다([docs/phone-mockup/](docs/phone-mockup/README.md)). 1차 빌드의 `FakePhoneLink`는 3초 뒤 연결을 자동 확인해 흐름만 시연하며, 실제 폰 앱과 서버는 2차 범위다. 1차 빌드는 연결돼도 차 밖으로 나가는 데이터가 없다. 연결 화면(연결 전·연결 후)에 적힌 공유 범위는 다음 두 줄이다([NOTICE.md](NOTICE.md)와 같은 문구).
+홈의 **휴대폰** 키에서 QR 코드와 8자 코드(4-4)를 보여 준다. 폰 쪽 화면은 아직 목업이다([docs/phone-mockup/](docs/phone-mockup/README.md)). 1차 빌드의 `FakePhoneLink`는 3초 뒤 연결을 자동 확인해 흐름만 시연하며, 실제 폰 앱과 서버는 2차 범위다. 그래서 연결되면 연결 화면에는 '시연 연결이에요', 홈의 **휴대폰** 키에는 '시연 연결'로 표시된다. 1차 빌드는 연결돼도 차 밖으로 나가는 데이터가 없다. 연결 화면(연결 전·연결 후)에 적힌 공유 범위는 다음 두 줄이다([NOTICE.md](NOTICE.md)와 같은 문구).
 
 - 공유함: 트립 요약·업적·미니카 꾸미기
 - 공유 안 함: 차량 신호 원본·위치 기록

@@ -18,7 +18,7 @@ import com.mujimujimuji.odo.ui.theme.OdoSize
 /**
  * 업적 메달(설계서 §5.0) 36dp: 위에 V자 리본 두 가닥, 그 아래 원판(지름 22dp). 리본이 있어 입력 컨트롤(라디오 버튼)과 달리
  * 모은 물건으로 읽힌다. 열림 = `amber` 원판 + `onAmber` 1dp 안쪽 선 + `inkDim` 4dp 리본,
- * 잠김 = `surface` 원판(리본 끝을 가림)에 1dp `inkDim` 선, 리본도 1dp. [tier] 1·2·3이면 밑에 4dp 점 1–3개(거리 업적 10/100/1000 km).
+ * 잠김 = `surface` 원판(리본 끝을 가림)에 1dp `inkDim` 선, 리본도 1dp. [tier] 1·2·3이면 밑에 4dp 점 1~3개([medalTierOf]: 거리 업적 10 km → 1, 100·300 km → 2, 1000 km 이상 → 3).
  * 색만으로 상태를 전하지 않도록 채움/선 모양이 다르다. 좌표는 36 단위 격자.
  */
 @Composable

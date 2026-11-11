@@ -699,7 +699,7 @@ def _glass(skin, feat, sh, M, P):
         ob = _patch_obj(nm, _patch_bm(skin, skin.sel(zones, strips), off), M["glass"])
         if ob:
             P.add("fixed", ob)
-    # 옆 유리: G–E 띠. 뒤쪽은 C 필러 평면으로 자르고, B 필러 틈을 낸다.
+    # 옆 유리: G에서 E까지 띠. 뒤쪽은 C 필러 평면으로 자르고, B 필러 틈을 낸다.
     bm = _patch_bm(skin, skin.sel(("ws", "roof", "bl"), (4,)), off)
     zs = feat["roof_r"][0][S_][2]
     if "a_y" in g:   # 앞 끝(A 필러 밑동): 평면 y = a_y - tan(a_lean)(z - zs) 앞쪽을 버린다

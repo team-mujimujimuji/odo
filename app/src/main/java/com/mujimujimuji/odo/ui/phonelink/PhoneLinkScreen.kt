@@ -59,6 +59,7 @@ import java.util.Locale
 /**
  * 휴대폰 연결(설계서 §5.6). 들어오면 코드를 발급하고(Idle → Presenting), 확인됨 1.5 s → 연결됨.
  * 만료는 조용히 재발급(카운트다운·만료 표시 없음). 주행 시작 시 OdoRoot가 대기를 접고 홈으로 돌린다.
+ * 발급 열은 코드 → QR 안내 → 시연 안내(본 지시 밑 12dp, `ink96`) 순이고, 휴대폰 앱이 준비 중이라 시연임을 발급 안내·확인됨 문구·연결됨 제목 아래 캡션·홈 휴대폰 키 캡션에서 밝힌다.
  * 공유 범위는 글로 못 박는다: 트립 요약·업적·미니카 꾸미기만, 차량 신호 원본·위치 기록은 공유하지 않는다.
  * 이 두 줄은 판 아래 전체 폭에 한 줄씩 둔다(오른쪽 열 248dp에서는 "미니카 / 꾸미기"처럼 의미 단위가 꺾였다).
  * 확인됨은 QR 판을 그대로 두고 모듈만 흐린 위에 체크 원판을 겹치고, 연결됨은 틀 없이 내 미니카를 판 폭(272)으로 보여 준다
@@ -139,10 +140,9 @@ private fun ColumnScope.PresentingColumn(code: String) {
     CodeLine(code)
     Spacer(Modifier.height(OdoSpace.l))
     Text(stringResource(R.string.phone_scan), style = OdoType.body, color = c.ink96)
-    Spacer(Modifier.height(OdoSpace.xs))
-    Text(stringResource(R.string.phone_or_code), style = OdoType.body, color = c.inkDim)
+    Spacer(Modifier.height(OdoSpace.m))
+    Text(stringResource(R.string.phone_app_pending), style = OdoType.caption, color = c.ink96)
     Spacer(Modifier.weight(1f))
-    Text(stringResource(R.string.phone_app_pending), style = OdoType.caption, color = c.inkDim)
 }
 
 /**
@@ -191,6 +191,8 @@ private fun LinkedColumn(state: PhoneLinkState.Linked, onDisconnect: () -> Unit)
     }
     Column(Modifier.fillMaxSize()) {
         Text(stringResource(R.string.phone_linked_since, since), style = OdoType.title, color = c.ink96, maxLines = 1)
+        Spacer(Modifier.height(OdoSpace.xs))
+        Text(stringResource(R.string.phone_linked_demo), style = OdoType.caption, color = c.ink96, maxLines = 1)
         Spacer(Modifier.weight(1f))
         if (confirm) {
             Text(stringResource(R.string.phone_unlink_confirm), style = OdoType.body, color = c.ink96)

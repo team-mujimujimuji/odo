@@ -11,7 +11,7 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 import java.time.LocalTime
 
-/** 18:30–06:30이면 야간(설계서 §1.6). */
+/** 18:30~06:30이면 야간(설계서 §1.6). */
 fun isNightAt(time: LocalTime): Boolean = time >= NIGHT_START || time < NIGHT_END
 
 private val NIGHT_START: LocalTime = LocalTime.of(18, 30)

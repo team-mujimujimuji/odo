@@ -22,6 +22,7 @@ import com.mujimujimuji.odo.ui.theme.OdoType
 import com.mujimujimuji.odo.ui.vehicle.OdoVehicle
 import com.mujimujimuji.odo.ui.vehicle.VehicleMarkerScale
 import com.mujimujimuji.odo.ui.vehicle.VehicleView
+import kotlin.math.abs
 
 /**
  * 글랜스 지도 장면(설계서 §4.3 글랜스 행): heading-up 6 m/dp 틸트 58°, 미니카 navi(뒤에서 내려다본 추적 뷰)가 지도 영역 가로 중앙·세로 65 %에 항상 위를 향한다.
@@ -50,13 +51,36 @@ fun GlanceMap(ui: DriveUi, loadout: Loadout, modifier: Modifier = Modifier, anch
     }
 }
 
-/**
- * 글랜스 카메라. 방위는 홈 미니카와 같은 순서([homeHeadingDeg]: 주행 heading → 경로 방위 → 0)로 정한다.
- * 트립을 시작하면 heading이 비고 3 m를 가야 다시 생기므로, 그동안에도 첫 프레임부터 경로 진행 방향이 위다
- * (북쪽 위로 뜬 뒤 한 번에 도는 프레임이 없다).
- */
+/** 글랜스 카메라. 방위는 [glanceHeadingDeg]로 정한다. */
 internal fun glanceCamera(position: LatLng?, headingDeg: Float?, data: CorridorData?, tiltDeg: Float, anchorX: Float): MapCamera =
-    MapCamera.glance(position, homeHeadingDeg(headingDeg, data, position), tiltDeg, anchorX)
+    MapCamera.glance(position, glanceHeadingDeg(headingDeg, data, position), tiltDeg, anchorX)
+
+/**
+ * 글랜스 지도 방위(북 0°, 시계 방향). 순서:
+ * 1. 경로에서 [GLANCE_ROUTE_SNAP_M] 안이고 주행 heading이 없거나 경로 방위와 [GLANCE_ROUTE_AGREE_DEG] 안이면 경로 방위.
+ * 2. 아니면 주행 heading.
+ * 3. 그것도 없으면 홈과 같은 경로 방위([routeBearingDeg] 기본 거리 300 m 안), 마지막으로 0(북).
+ * heading은 샘플마다 저역통과(α 0.3)를 거쳐 굽은 길에서 2~3샘플 늦게 따라온다. 데모 출발 램프 굽이에서는 최대 22° 늦어,
+ * 틸트 화면에서 차가 길을 비스듬히 가로질러 보였다. 경로 위에서는 경로 방위가 차 밑 길과 맞고, 샘플당 회전도 heading보다 작다.
+ * 트립을 시작해 heading이 빈 동안에도 첫 프레임부터 경로 진행 방향이 위다(북쪽 위로 뜬 뒤 한 번에 도는 프레임이 없다).
+ * 경로를 벗어나거나(우회) heading이 경로와 크게 다르면(역주행 등) heading을 따른다.
+ */
+internal fun glanceHeadingDeg(headingDeg: Float?, data: CorridorData?, at: LatLng?): Float {
+    val route = routeBearingDeg(data, at, GLANCE_ROUTE_SNAP_M)
+    if (route != null && (headingDeg == null || angleDiffDeg(headingDeg, route) <= GLANCE_ROUTE_AGREE_DEG)) return route
+    return headingDeg ?: routeBearingDeg(data, at) ?: 0f
+}
+
+/** 두 방위의 차(0~180°). 음수나 360°를 넘는 입력도 같은 방위로 본다. */
+internal fun angleDiffDeg(a: Float, b: Float): Float {
+    val d = (a - b) % 360f
+    return abs((d + 540f) % 360f - 180f)
+}
+
+/** 글랜스에서 경로 방위를 쓰는 경로와의 거리 상한(m). 데모 주행 샘플은 모두 이 안이다. */
+private const val GLANCE_ROUTE_SNAP_M = 30.0
+/** 글랜스에서 경로 방위를 쓰는 heading과의 차 상한(°). 데모 주행 중 heading과 경로 방위의 차는 최대 22°다. */
+private const val GLANCE_ROUTE_AGREE_DEG = 45f
 
 /**
  * 지도 위 미니카(설계서 §4.3). 그림의 기준점(상자 중심)을 카메라 기준점에 둔다.

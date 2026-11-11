@@ -175,6 +175,7 @@ FONT_FILES = {
 RAQM = features.check('raqm')
 LAYOUT = ImageFont.Layout.RAQM if RAQM else ImageFont.Layout.BASIC
 FEAT = ['tnum'] if RAQM else None            # 변하는 숫자는 표 숫자
+LANG = 'ko' if RAQM else None                # 언어를 주지 않으면 harfbuzz가 실행 로캘을 쓰고, 한글 뒤 ':' 자리가 로캘마다 달라진다
 ROLES = {
     # 폰 척도(설계서 §7.3): (크기 sp, 줄 높이 sp, 굵기, 자간 sp)
     'caption': (13, 18, 500, 0.0),
@@ -244,7 +245,8 @@ def tw(s, role, k=S):
     w = 0.0
     for sc, run in runs(s):
         f = font(sc, wt, px)
-        w += sum(f.getlength(ch, features=FEAT) for ch in run) if track else f.getlength(run, features=FEAT)
+        w += (sum(f.getlength(ch, features=FEAT, language=LANG) for ch in run) if track
+              else f.getlength(run, features=FEAT, language=LANG))
     if track:
         w += track * k * (len(s) - 1)
     return w / k
@@ -274,11 +276,11 @@ def text_bl(img, x, base, s, role, rgb, alpha=HI, align='left', k=S):
         f = font(sc, wt, px)
         if track:
             for ch in run:
-                d.text((cx, B - y0), ch, font=f, fill=255, anchor='ls', features=FEAT)
-                cx += f.getlength(ch, features=FEAT) + track * k
+                d.text((cx, B - y0), ch, font=f, fill=255, anchor='ls', features=FEAT, language=LANG)
+                cx += f.getlength(ch, features=FEAT, language=LANG) + track * k
         else:
-            d.text((cx, B - y0), run, font=f, fill=255, anchor='ls', features=FEAT)
-            cx += f.getlength(run, features=FEAT)
+            d.text((cx, B - y0), run, font=f, fill=255, anchor='ls', features=FEAT, language=LANG)
+            cx += f.getlength(run, features=FEAT, language=LANG)
     paint(img, m, x0, y0, rgb, alpha)
     return w
 
@@ -909,8 +911,8 @@ def car_link_panel():
         for xx in range(n):
             if QR[yy][xx]:
                 rect(img, qx + 16 + xx * ms, qy + 16 + yy * ms, ms, ms, C['qrModule'], 1, k)
-    # 오른쪽 열(PresentingColumn): 코드(numeralM, 넘치면 열 폭에 맞게 줄임) → 16 → 찍기 안내 → 4 → 코드 안내,
-    # 열 바닥에 준비 중 안내(phone_app_pending, 두 줄. 마지막 줄을 판 바닥선에 맞추고 위로 쌓는다).
+    # 오른쪽 열(PresentingColumn): 코드(numeralM, 넘치면 열 폭에 맞게 줄임) → 16 → 찍기 안내 → 12 →
+    # 준비 중 안내(phone_app_pending, caption·ink96, 두 줄)를 위에서부터 차례로 쌓는다.
     # 공유 범위 두 줄은 판 아래 전체 폭(ShareScope).
     tx = qx + 272 + 24
     colw = px + pw - 24 - tx
@@ -926,13 +928,10 @@ def car_link_panel():
     for ln in wrap(res('phone_scan'), 'car_body', colw, k):
         text(img, tx, y, ln, 'car_body', C['ink'], HI, k=k)
         y += 32
-    y += 4
-    for ln in wrap(res('phone_or_code'), 'car_body', colw, k):
-        text(img, tx, y, ln, 'car_body', C['inkDim'], 1, k=k)
-        y += 32
-    pending = wrap(res('phone_app_pending'), 'car_caption', colw, k)  # \n은 강제 줄바꿈, 넘치면 열 폭에서 접음
-    for i, ln in enumerate(pending):
-        text(img, tx, qy + 272 - 26 * (len(pending) - i), ln, 'car_caption', C['inkDim'], 1, k=k)
+    y += 12
+    for ln in wrap(res('phone_app_pending'), 'car_caption', colw, k):  # \n은 강제 줄바꿈, 넘치면 열 폭에서 접음
+        text(img, tx, y, ln, 'car_caption', C['ink'], HI, k=k)
+        y += 26
     bottom = py + ph - 24
     text(img, qx, bottom - 26 - 4 - 26, res('phone_share_yes'), 'car_caption', C['inkDim'], 1, k=k)
     text(img, qx, bottom - 26, res('phone_share_no'), 'car_caption', C['inkDim'], 1, k=k)

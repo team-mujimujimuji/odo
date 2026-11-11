@@ -18,18 +18,18 @@
 |---|---|
 | C 내비 네이티브 (골격) | 풀블리드 지도(주행 heading-up 58° / 정차 north-up), 화면당 패널 1장, 모달 없음, 앵커 전용 `cosmeticUnlocks`, 구분선 행 업적, 7셀 균일 램프·그릴 없음, 모델명·공식 색상명 전면 금지, fps 폴백, ODbL 3곳, 차종 5종 전부 Lv1 (v2에서 램프는 렌즈 램프(주간등·프로젝터 렌즈 + 붉은 후미등)로 바뀜, §2.2) |
 | A 정밀 계기 (규율) | ink 바탕 + 1dp 헤어라인, tnum 숫자 우측 정렬, 앰버(UI ≤10%)/루트 블루(지도 전용) 역할 분리, 빨강·그림자·글로우 0, 추가형 Room v2, hero/navi 2사이즈 에셋 + 레이어 합성(Modulate/Screen), 모션 8줄, 카운트다운 없음, 시스템 글꼴 (v2에서 에셋은 hero/navi/top 3뷰로 바뀌고, 미니카에 붉은 후미등·밤 글로가 들어감. 빨강·그림자·글로우 0은 UI 규칙이라 미니카 렌더는 예외, §1.1·§2.3) |
-| B 디오라마 (재질·치수) | 다이캐스트 문법(바퀴 +15%, 오버행 ≈0, 두꺼운 필러, 원피스 스모크 글라스, 1베벨), 에나멜 roughness 0.18 + clearcoat 0.6, 쇼룸 라이팅, 주행 라벨·단위 32sp, 게이지 12dp + 트랙 ≥3:1, `compose.json` 레이어 매니페스트, 채움/외곽선 메달, 지난 길 스티치, (차종, 슬롯) 기억, 나무토막 이어콘 3톤, 어두운 모듈 QR, 트립 경로는 drive/ 메모리만 (v2에서 모서리는 1베벨 대신 Subdivision Surface로 둥글게 바뀜, §2.2) |
+| B 디오라마 (재질·치수) | 다이캐스트 문법(큰 바퀴, 오버행 ≈0, 두꺼운 필러, 원피스 스모크 글라스, 1베벨), 에나멜 roughness 0.18 + clearcoat 0.6, 쇼룸 라이팅, 주행 라벨·단위 32sp, 게이지 12dp + 트랙 ≥3:1, `compose.json` 레이어 매니페스트, 채움/외곽선 메달, 지난 길 스티치, (차종, 슬롯) 기억, 나무토막 이어콘 3톤, 어두운 모듈 QR, 트립 경로는 drive/ 메모리만 (v2에서 모서리는 1베벨 대신 Subdivision Surface로 둥글게 바뀜, §2.2) |
 
 ### 0.3 미적·안전 관점이 어긋난 곳과 결정
 | 쟁점 | 미적 관점 | 안전 관점 | 결정 |
 |---|---|---|---|
-| 글랜스 패널 | 왼쪽 가장자리에 붙인 92% 패널, 3면만 보임 | 불투명 패널, 움직이는 지도 위에 글자 금지 | **불투명(alpha 1.0) `surface` 패널을 왼쪽 가장자리에 붙이고 오른쪽만 둥글게(0/16/16/0), 상·우·하 3면에 1dp `line`**. 92%→100%는 대비가 13.8→15.2로 거의 같고(§1.4), 글자 밑에서 지도가 움직이는 것을 막는 쪽이 운전 안전에 맞다. "상자"로 읽히는지는 첫 캡처에서 재검증(§15 확인 항목 ②). |
+| 글랜스 패널 | 왼쪽 가장자리에 붙인 92% 패널, 3면만 보임 | 불투명 패널, 움직이는 지도 위에 글자 금지 | **불투명(alpha 1.0) `surface` 패널을 왼쪽 가장자리에 붙이고 오른쪽만 둥글게(0/16/16/0), 상·우·하 3면에 1dp `line`**. 92%→100%는 대비가 13.8→15.2로 거의 같고(§1.4), 글자 밑에서 지도가 움직이는 것을 막는 쪽이 운전 안전에 맞다. 불투명 패널을 유지한다(§15 ②). |
 | 게이지 옆 실제 값 글자 | 게이지 옆에 값 병기 | 주행 중 글자는 라벨·숫자·단위만 | **주행 중 게이지에는 글자 없음.** 게이지 오른쪽 끝에 36dp 메달 외곽선 아이콘(다음 거리 업적)을 두어 "메달을 향해 차오른다"로 읽히게 한다. 값 병기는 정차 홈 화면 게이지에서만. |
 | 게이지 두께 | 4dp 헤어라인 | ≥10dp, 트랙 ≥3:1 | **주행 12dp(트랙 `track` 4.1:1), 정차 홈·요약은 4dp 헤어라인(값 글자 병기).** |
 | 나침반 틱 링(경로 주변 지도 밖) | 넣자 | 2차로 미루자 | **2차.** 경로 주변 지도 밖·GPS 없음은 ground + 1 km 격자선 + 미니카만. |
 | 주야 전환 | 캡처로 확인 | 정차 중에만 | **정차 중에만**(잠금 해제 시점에 적용). fake 빌드는 데모 칩 길게 누르기로 강제 전환(캡처용). |
-| QR | 어두운 모듈 224–272dp | ≤240dp, 반전 금지, 밝은 회색 판 | **240dp, 어두운 모듈 `#0B0F14` on 판 `#D0D4DA`(12.9:1), 16dp 여백.** |
-| 2륜 | 라이더 복장(A) | 라이더 없는 스쿠터 | **라이더 없는 스쿠터.** "캐릭터 의상 1세트"는 투톤 루프로 해석(§15 확인 ①). |
+| QR | 어두운 모듈 224~272dp | ≤240dp, 반전 금지, 밝은 회색 판 | **240dp, 어두운 모듈 `#0B0F14` on 판 `#D0D4DA`(12.9:1), 16dp 여백.** |
+| 2륜 | 라이더 복장(A) | 라이더 없는 스쿠터 | **라이더 없는 스쿠터.** "캐릭터 의상 1세트"는 투톤 루프로 해석(§15 ①). |
 
 ### 0.4 절대 규칙 요약(이 문서 전체에 적용)
 `engine/` 로직·`Thresholds.kt`·`LevelTable.kt` 숫자 불변(해금 항목 추가만) · SDK import는 `platform/`만 · 단위 테스트 전부 통과 유지(작성 당시 42개) · 주행 잠금(기어 D/R 또는 속도>0, 트립 중 기어 N 정차) 끄는 설정 없음 · 주행 중 숫자 1 + 게이지 1 + 장면만, 문장·목록·버튼·위험/감점·시간 압박·XP 감소·신원·전체 순위 없음 · TTS 10분 2회 1문장(로직 그대로) · 런타임 지도 타일·서버 호출 0, 데이터는 빌드 전 `assets/`에 번들(OSM→ODbL 표기) · 생성 에셋은 재현 스크립트가 `tools/`에 · 로고·엠블럼·차명·실차 복제 금지 · 내비 UI 흉내(회전 화살표·ETA·제한속도·차로) 금지 · 폰 페어링에 계정·이름·전화번호 입력 없음, QR에는 랜덤 토큰만 · 소스·커밋·스크린샷에 개인정보 없음 · 글꼴·이미지·음원은 허가된 것만(OFL→README).
@@ -70,7 +70,7 @@ val OdoDay = OdoNight.copy(
 val LocalOdoColors = staticCompositionLocalOf { OdoNight }
 ```
 - ink 알파 단계는 `ink.copy(alpha = …)`로만 만든다: `0.96`(1차 글자·숫자) · `0.88`(제목) · `0.72`(본문 보조) · `0.56`(비활성 글자) · `0.38`(장식선·잠긴 스와치 링). 솔리드 `inkDim`은 캡션·라벨 전용(알파 글자가 겹칠 때 색이 바뀌는 문제 회피).
-- **앰버 사용처 4곳 고정**: 게이지 채움, 선택 상태(칩·탭 밑줄 2dp), 레벨업 카드 1dp 프레임, 열린 메달 채움. 화면 면적 ≤10%. 경고로 읽히면 `brass #D8B46A`로 전량 교체(토큰 1줄; §15 확인 ③).
+- **앰버 사용처 4곳 고정**: 게이지 채움, 선택 상태(칩·탭 밑줄 2dp), 레벨업 카드 1dp 프레임, 열린 메달 채움. 화면 면적 ≤10%. 앰버를 유지하고 brass로 바꾸지 않는다(§15 ③).
 - **루트 블루는 지도 안에서만.** 버튼·링크·선택에 쓰지 않는다. 기본 버튼은 `ink(0.96)` 채움 + `ground` 글자(16.4:1).
 - 빨강·초록·노랑·그라데이션·그림자(elevation)·글로우·비네트 0. 유일한 "그림자"는 미니카 플레이트에 구운 접지 그림자. 이 규칙은 UI에 적용한다. 미니카 렌더는 콘텐츠라 붉은 후미등 렌즈와 밤 정적 글로(`glow_head`·`glow_tail`, §2.3)를 둔다.
 - 페인트(미니카 콘텐츠 색, UI 아님): sky `#5AA9E6`(기본), cherry `#E5484D`, mint `#3CC7A6`, lavender `#9B8CFF`, tangerine `#FF9F43`, pearl `#F1F3F6`(이상 기존 id 유지), graphite `#3A3F47`, sand `#D8C8A4`(Lv30 한정 페인트). 스와치 칩은 모두 1dp `ink(0.38)` 안쪽 링(graphite 1.7:1 대비 보완).
@@ -79,7 +79,7 @@ val LocalOdoColors = staticCompositionLocalOf { OdoNight }
 ```kotlin
 object OdoType {
     private val base = TextStyle(
-        fontFamily = FontFamily.Default,           // 시스템 Roboto + 기기 Noto CJK. 번들 0(§15 확인 ④)
+        fontFamily = FontFamily.Default,           // 시스템 Roboto + 기기 Noto CJK. 번들 0(§15 ④)
         fontFeatureSettings = "tnum",
         platformStyle = PlatformTextStyle(includeFontPadding = false),
         lineBreak = LineBreak.Paragraph.copy(wordBreak = LineBreak.WordBreak.Phrase),
@@ -142,7 +142,7 @@ object OdoSize { val touch = 76.dp; val touchGap = 23.dp; val icon = 32.dp; val 
 `background/surface/surfaceContainer* = ground`(화면) · `surfaceVariant/surfaceContainerHigh = surface`(패널) · `outline/outlineVariant = line` · `onBackground/onSurface = ink` · `onSurfaceVariant = inkDim` · `primary = amber, onPrimary = onAmber, primaryContainer = amber, onPrimaryContainer = onAmber` · `secondary/secondaryContainer = surface, onSecondary* = ink` · `tertiary = route(지도 외 사용 금지 주석), onTertiary = ink` · `error = inkDim, onError = ground, errorContainer = surface, onErrorContainer = ink`(빨강 없음) · `inverseSurface = ink, inverseOnSurface = ground, inversePrimary = amber` · `scrim = #000000` · `surfaceTint = Color.Transparent`. 주야는 `OdoTheme(night: Boolean)`이 `LocalOdoColors` + colorScheme을 함께 바꾼다.
 
 ### 1.6 주야 규칙
-- 기기 시각 18:30–06:30 → 야간, 그 외 주간. `ui/theme/NightMode.kt`의 `rememberNightMode(locked: Boolean): Boolean`. 1분마다 평가하되 **`locked == true`인 동안은 값을 바꾸지 않는다**(주행 중 전환 금지). 주행 중 18:30이 지나면 다음 정차에 바뀐다.
+- 기기 시각 18:30~06:30 → 야간, 그 외 주간. `ui/theme/NightMode.kt`의 `rememberNightMode(locked: Boolean): Boolean`. 1분마다 평가하되 **`locked == true`인 동안은 값을 바꾸지 않는다**(주행 중 전환 금지). 주행 중 18:30이 지나면 다음 정차에 바뀐다.
 - fake 빌드: 홈 데모 칩 길게 누르기(700 ms) → 강제 전환 토글(캡처용, 정차 중만. 시나리오 재생 빌드에는 release에도 있고, 실제 SDK 빌드에는 없음).
 
 ---
@@ -157,7 +157,7 @@ object OdoSize { val touch = 76.dp; val touchGap = 23.dp; val icon = 32.dp; val 
 
 라이팅 리그는 **중립 1개**다. 야간은 Compose에서 바디·투톤·데칼을 15% 어둡게 하고, 램프 레이어 알파를 1.0으로 올리고, 정적 밤 글로 레이어(`glow_head`·`glow_tail`)를 더한다. 주간 램프 알파는 0.55다. 주야 리그 2개로 두 번 굽는 대신 165장을 한 번에 굽는다(실측 208 s, §2.4).
 
-### 2.2 차종 5종: 형태 명세 (치수 m, L×W×H / 휠베이스 / 바퀴 반지름(다이캐스트 +15% 포함))
+### 2.2 차종 5종: 형태 명세 (치수 m, L×W×H / 휠베이스 / 바퀴 반지름)
 공통 다이캐스트 문법: 오버행 ≈0.1, 바디 폭 = 트랙 − 0.05(바퀴가 살짝 튀어나옴), 필러 두께 ≥0.12, 원피스 스모크 글라스(실내 없음), 캐릭터 라인 ≤1, 차체는 로프트 케이지 + Subdivision Surface(crease)로 모서리를 둥글리고 휠 아치를 잘라 어두운 라이너를 넣는다, 그릴 없음(막힌 전면 + 램프 렌즈 + 어두운 흡기 패치), 램프는 **렌즈 패치**(앞: 어두운 하우징 + 주간등 띠 + 프로젝터 렌즈, 뒤: 붉은 후미등 렌즈; 일반화한 모양, 특정 차종 배열 복제 금지), 엠블럼·배지·문자·번호판 글자 0(번호판 자리는 글자 없는 판: 승용 뒤는 어두운 번호판 자리, 2륜 뒤는 밝은 빈 번호판).
 
 | id / 표시 | 치수 | 실루엣·면 | 램프 | 바퀴 | 재질 포인트 | 현대 디자인 언어 참고점(일반화) |
@@ -166,13 +166,13 @@ object OdoSize { val touch = 76.dp; val touchGap = 23.dp; val icon = 32.dp; val 
 | `suv` 중형 | 3.9×2.00×1.70 / 2.50 / 0.46 | 각진 사각 휠아치, 두꺼운 C필러, 루프레일 | 전 넓은 하우징 + ㄱ자 주간등 + 프로젝터 렌즈, 둥근 안개등 / 후 세로 붉은 렌즈 | 큰 바퀴, 클래딩이 아치 감쌈 | 클래딩 roughness 0.8 무광, 앞뒤 스키드 플레이트 | 각진 휠아치·클래딩·두꺼운 C필러 중 **2개 이상**만 일반화 |
 | `large` 대형 | 4.4×2.05×1.85 / 2.90 / 0.46 | 원박스 MPV, 수직 A필러, 긴 루프, 넓은 글라스, 둥근 아치 | 전 **전폭 바** + 전폭 주간등 + 양끝 프로젝터 렌즈 / 후 전폭 바 + 양끝 붉은 렌즈 | 중간 | 글라스 면적 큼 | 원박스 비례·수직 A필러·전폭 램프 바 |
 | `sedan` 세단 | 4.3×1.90×1.25 / 2.95 / 0.39 | 패스트백 루프라인, 낮은 카울, 짧은 데크, 둥근 아치 | 전 얇은 하우징 + 얇은 주간등 + 프로젝터 렌즈 / 후 전폭 어두운 바 + 양끝 붉은 렌즈 | 낮고 넓음 | 캐릭터 라인 1개(옆면 어깨) | 패스트백 루프·뒤 전폭 바·낮은 카울 |
-| `scooter` 2륜 | 1.75×0.70×1.10 / 1.30 / 0.32 | 스텝스루 전동 스쿠터, 평평한 발판, 시트, 핸들바, **라이더 없음** | 전 핸들 커버 코의 둥근 렌즈 1(어두운 베젤) / 후 꼬리 모서리를 감싸는 붉은 렌즈 1 | 2개, 작은 지름 | 시트 무광, 바디 에나멜 | 미래형 소형 모빌리티 비례·둥근 단일 램프 |
+| `scooter` 2륜 | 1.75×0.70×1.10 / 1.30 / 0.32 | 스텝스루 스쿠터, 평평한 발판, 시트, 핸들바, **라이더 없음** | 전 핸들 커버 코의 둥근 렌즈 1(어두운 베젤) / 후 꼬리 모서리를 감싸는 붉은 렌즈 1 | 2개, 작은 지름 | 시트 무광, 바디 에나멜 | 미래형 소형 모빌리티 비례·둥근 단일 램프 |
 
 Blender 재질(공통): 바디 Principled: 베이스 **백색 1.0**(틴트용), roughness 0.18, clearcoat 0.6, clearcoat roughness 0.08 · 글라스 `#0D1117` roughness 0.05, transmission 0, specular 0.4 · 타이어 `#2A2622` roughness 0.9 · 휠 허브 웜 그레이 `#9A948C` metallic 0.6 roughness 0.35(크롬 없음; 밝은·어두운 변형 `hub_bright`·`hub_dark`, 허브 바탕 `#3A3F47`) · 클래딩 `#1C2126` roughness 0.8 · 휠하우스 라이너 `#0E1013` roughness 0.95 · 사이드미러 거울면 `#B4BCC6` metallic 1.0 roughness 0.06(승용은 몸통이 차체 색 `body`, 받침이 클래딩. 2륜은 몸통이 클래딩, 대가 `hub_dark`) · 시트(2륜) `#8A5A3C` roughness 0.7 · 램프 하우징 `#1C2126` roughness 0.3 · 램프(주간등·안개등) Emission 2.0 백색(틴트용) · 2륜 전조등 렌즈 백색 roughness 0.15 Emission 0.55 · 프로젝터 렌즈 `#8E98A4` metallic 0.8 roughness 0.16(발광 없음) · 후미등 렌즈 `#FF2B1C` roughness 0.25 Emission 1.6 · 후미등 하우징 `#6A1218` clearcoat 0.6 · 루프(투톤) 백색 1.0 · 데칼 백색 1.0 · 루프박스 `#1C2126` roughness 0.85 · 번호판 자리: 승용 뒤는 램프 하우징 재질, 2륜 뒤는 빈 번호판 `#E6E3DB` roughness 0.45 · 황금 번호판 `#C9A24A` metallic 0.9 roughness 0.3, 글자 없는 민무늬 판(앞·뒤) · 바닥 shadow catcher.
 라이팅(중립 쇼룸, HDRI 없음): 월드는 노드 그라데이션, 뷰마다 면광원 리그(키·필·림·백 등). 유리 거울 방향에는 유리만 비추는 그라데이션 발광 판(`glass_card`, Cycles light linking)을 둔다. top 리그는 좌우 대칭. 값은 `vehicles.json`에 있다.
 카메라(`vehicles.json`): hero 원근 70 mm, 고도 18°, 방위 52°(정면 3/4), 거리 11 m · navi 원근 200 mm, 고도 45°, 방위 180°(차 뒤 위, 차 머리가 이미지 위), 56 px/m. 고도는 38°·45°·52°를 비교해 45°로 정했다 · top 정사영 56 px/m(차 머리가 이미지 위). 스쿠터는 navi·top을 마커 줌 1.6, hero를 줌 1.8로 굽고, 앱에서 지도 미니카를 `naviScale` 1.25배로 그린다(얇게 안 보이게).
 
-### 2.3 레이어(플레이트): 차종 5 × 뷰 3 × 레이어 14 → 165장
+### 2.3 레이어(플레이트): 레이어 14종, 차종 5 × (hero 13 + navi 10 + top 10) = 165장
 | 레이어 파일 | 내용 | 합성 |
 |---|---|---|
 | `shadow` | shadow catcher 접지 그림자만(알파) | SrcOver, alpha 0.9 |
@@ -191,7 +191,7 @@ Blender 재질(공통): 바디 Principled: 베이스 **백색 1.0**(틴트용), 
 - 레이어 패스마다 순서상 앞 레이어 객체는 holdout, 뒤 레이어 객체는 숨겨서 렌더한다(겹친 곳의 알파가 정확하다).
 - 글로 2장은 빛 색이 RGB, 알파 = max(R, G, B)인 정적 그림이다(애니메이션 없음). 매니페스트 `night`에 있는 레이어라 야간에만 읽고 그린다.
 - 뷰마다 굽지 않는 레이어(`skip`): hero `glow_tail`(뒤가 안 보인다) · navi `wheel_*`·`lamp`(앞 램프가 안 보여 램프 색은 밤 `glow_head`로만 보인다) · top `wheel_*`·`plate_gold`. 그래서 차종당 hero 13 + navi 10 + top 10 = 33장, 5종 165장(글로 25장 포함).
-- 해상도(@2×): hero **576×384 px**(288×192dp) lossy WebP `-q 85 -alpha_q 90 -sharp_yuv` · navi **256×320 px**(128×160dp) · top **256×384 px**(128×192dp) lossless WebP `-lossless -z 9 -exact` · 글로는 lossless와 q90 중 작은 쪽. 실측 바이트 합 885,867(hero 339,482 · navi 252,760 · top 291,838, 이 가운데 글로 25장 73,254 · `compose.json` 1,787), `du -sk` **1216 KiB ≤ 4096 KiB**, 가장 큰 파일 19 KiB. 경로 `app/src/main/assets/minicar/<vehicle>/<hero|navi|top>/<layer>.webp`.
+- 해상도(@2×): hero **576×384 px**(288×192dp) lossy WebP `-q 85 -alpha_q 90 -sharp_yuv -m 6 -alpha_filter best` · navi **256×320 px**(128×160dp) · top **256×384 px**(128×192dp) lossless WebP `-lossless -z 9 -exact` · 글로는 무손실 `-lossless -z 9`(-exact 없음)과 손실 `-q 90 -alpha_q 100 -sharp_yuv -m 5 -alpha_filter best` 가운데 작은 쪽. 실측 바이트 합 885,867(hero 339,482 · navi 252,760 · top 291,838, 이 가운데 글로 25장 73,254 · `compose.json` 1,787), `du -sk` **1216 KiB ≤ 4096 KiB**, 가장 큰 파일 19 KiB. 경로 `app/src/main/assets/minicar/<vehicle>/<hero|navi|top>/<layer>.webp`.
 - 매니페스트 `app/src/main/assets/minicar/compose.json`(v2; 앱은 v1 매니페스트도 읽고 top이 없으면 navi로 대신한다):
 ```json
 {"version":2,
@@ -222,7 +222,7 @@ tools/minicar/
   README.md              # 실행법·소요 시간·출처 문구
 ```
 - Cycles CPU 128 samples + OpenImageDenoise, film transparent, 레이어 패스마다 holdout(§2.3)으로 렌더(알파 정확). 실측 165장 **208.0 s / 210.5 s**(두 번 실행, `-t 6`), 변환 12 s. ≤ 10분. 실측은 README에 적는다.
-- 한 번 더 돌리면 바이트 동일(시드 고정 `seed=7`, 디노이즈 결정적): 따로 두 번 렌더한 PNG 165장이 `diff -rq`로 같았고, 변환한 166파일도 바이트까지 같았다. 실행 명령을 `NOTICE.md`와 `tools/minicar/README.md`에 둔다.
+- 같은 Blender(4.5.9 LTS)·같은 cwebp 버전으로 한 번 더 돌리면 바이트 동일(시드 고정 `seed=7`, 디노이즈 결정적): 따로 두 번 렌더한 PNG 165장이 `diff -rq`로 같았고, 변환한 166파일도 바이트까지 같았다. 실행 명령을 `NOTICE.md`와 `tools/minicar/README.md`에 둔다.
 
 ### 2.5 앱 API: `ui/vehicle/`
 ```kotlin
@@ -297,7 +297,7 @@ object CosmeticCatalog {
 | lamp | white 화이트 | Lv 1 |
 | lamp | warm 웜 | **Lv 10** |
 | lamp | ice 아이스 | Lv 20 |
-| roof | twotone 투톤 루프 | **Lv 10** "캐릭터 의상 1세트" 해석 ※확인 ① |
+| roof | twotone 투톤 루프 | **Lv 10** "캐릭터 의상 1세트" 해석(§15 ①) |
 | roof | box 루프박스(스쿠터 탑케이스) | **Lv 20** "루프박스" |
 | decal | stripe 스트라이프 | **Lv 20** "데칼" |
 | trail | ribbon 지난 길 리본 | **Lv 10** "트레일 효과" |
@@ -346,7 +346,7 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
 - 트립 경로(LatLng 목록)는 **Room에 절대 넣지 않는다**(절대 규칙: 차량 신호 원본과 위치 궤적은 차 밖으로 내보내지 않는다). `DriveUi.tripPath`(메모리)만.
 
 ### 3.6 차고(꾸미기) 흐름
-차종 탭에서 차종을 고르면 그 차종에 **기억된 슬롯**(loadout_slot)으로 미리보기가 바뀐다 → 색/휠/램프/루프/데칼/번호판 탭에서 칩 선택 → `setSlot(현재 차종, 슬롯, id)` → 미리보기 150 ms 크로스페이드(정차 중만). 잠긴 칩은 1dp `inkDim` 외곽선 + 안에 "Lv 10" 캡션, 누르면 힌트 행에 "Lv 10 로드메이트에서 열려요" 1문장(선택 안 됨, 흔들림·진동 없음). 숨긴 "?" 항목은 없고 24개 전부 보인다.
+차종 탭에서 차종을 고르면 그 차종에 **기억된 슬롯**(loadout_slot)으로 미리보기가 바뀐다 → 색/휠/램프/루프/데칼/번호판 탭에서 칩 선택 → `setSlot(현재 차종, 슬롯, id)` → 미리보기 150 ms 크로스페이드(정차 중만). 잠긴 칩은 1dp `inkDim` 외곽선 + 안에 "Lv 10" 캡션, 누르면 힌트 행에 "Lv 10 로드메이트에서 열려요" 1문장(선택 안 됨, 흔들림·진동 없음). 색 탭과 데칼 탭(데칼·트레일 묶음)의 그림 칸은 외곽선 없이 흐리게 보인다(색 견본 칠 alpha 0.38, 글리프와 이름 0.56, 이름 아래 `inkDim` "Lv N"). 숨긴 "?" 항목은 없고 24개 전부 보인다.
 
 ---
 
@@ -354,7 +354,7 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
 
 ### 4.1 데이터(빌드 전 1회, 런타임 네트워크 0)
 - 출처: OpenStreetMap Overpass API 1회 조회(bbox `37.20,127.54,37.50,128.17`, `User-Agent: odo-redesign/1.0 (contest build tool)` 필수, 없으면 406). 도로 `highway=motorway|trunk|primary|secondary|tertiary(+_link)`, 물 `natural=water|waterway=river`, 숲 `landuse=forest|natural=wood`, 시가지 `landuse=residential|commercial|industrial|retail`, 휴게소 `highway=services|rest_area`.
-- 가공: 시나리오 경로(`tools/scenario/route_yeoju_hoengseong.json`) ±4 km 복도로 클립 → Douglas-Peucker 10 m → 점 25,875개 → 로컬 미터 정수 좌표(`x=(lon−lon0)·111320·cos lat0`, `y=(lat−lat0)·111320`, 원점 = bbox 남서) → `app/src/main/assets/map/corridor.json` 399,413 B(0.40 MB, gzip ≈133 KB).
+- 가공: 시나리오 경로(`tools/scenario/route_yeoju_hoengseong.json`) ±4 km 복도로 클립 → Douglas-Peucker 10 m → 점 25,875개 → 로컬 미터 정수 좌표(`x=(lon−lon0)·111320·cos lat0`, `y=(lat−lat0)·111320`, 원점 = 조회 bbox 남서(37.20, 127.54) = `corridor.json`의 `origin`, 같은 파일의 `bbox`는 로컬 m 범위) → `app/src/main/assets/map/corridor.json` 399,413 B(0.40 MB, gzip ≈133 KB).
 - 형식:
 ```json
 {"version":1,"origin":{"lat":37.20,"lng":127.54},"attribution":"© OpenStreetMap contributors, ODbL 1.0",
@@ -373,9 +373,10 @@ class CorridorData(json: String)                // 셀(1 km) 색인, 레이어�
 @Composable fun CorridorMap(data: CorridorData, camera: MapCamera, speedKmh: Float, passed: List<LatLng>, trail: Boolean,
                             modifier: Modifier, content: DrawScope.() -> Unit = {})   // content = 미니카·점 등 오버레이
 ```
-- 그리기 순서: `ground` 채움 → urban → forest → water → 도로 케이싱(`roadCasing`, 코어+2dp) → 도로 코어(`roadCore`; 굵기 motorway 9 / trunk 7 / primary 6 / secondary 4 / tertiary 2.5 dp, 명도는 같은 색 알파 1.0/0.9/0.8/0.7/0.6) → 고속도로 중앙 파선(`ink` 12%, 1dp, 24/36dp) → 지난 길 대시(`inkDim` 50% 3dp, 8dp 선/8dp 틈; trail=true면 페인트색 45% 6dp 리본, 도로 코어보다 어두운 색은 `ink` 45%) → 경로(`routeOutline` 12dp 아래 + `route` 8dp 위) → 휴게소 픽토(36dp `surface` 원 + 1dp `line` + 20dp 컵 벡터, 1종만) → 오버레이(content) → 수평선 스크림(상단 0–80dp `ground`→투명, heading-up만).
+- 그리기 순서: `ground` 채움 → urban → forest → water → 도로 케이싱(`roadCasing`, 코어+2dp) → 도로 코어(`roadCore`; 굵기 motorway 9 / trunk 7 / primary 6 / secondary 4 / tertiary 2.5 dp, 명도는 같은 색 알파 1.0/0.9/0.8/0.7/0.6) → 고속도로 중앙 파선(`ink` 12%, 1dp, 24/36dp) → 지난 길 대시(`inkDim` 50% 3dp, 8dp 선/8dp 틈; trail=true면 페인트색 45% 6dp 리본, 도로 코어보다 어두운 색은 `ink` 45%) → 경로(`routeOutline` 12dp 아래 + `route` 8dp 위) → 휴게소 픽토(36dp `surface` 원 + 1dp `line` + 20dp 컵 벡터, 1종만) → 오버레이(content) → 수평선 스크림(상단 0~80dp `ground`→투명, heading-up만).
 - 글자: **지도 위 글자 0**(도로명·방패·ETA·제한속도·차로·카메라·교통색 없음). 정차 north-up도 글자 0(노선 방패는 2차).
 - 속도 ≥80 km/h: tertiary 숨김, 휴게소 픽토만 유지.
+- 정차 장면: 미니카 둘레 68dp(요약 × 0.8)에 걸치는 휴게소 픽토는 그리지 않고, 차가 서 있는 휴게소(300 m 안) 픽토 하나는 그 원 바로 바깥 차 옆에 옮겨 그린다.
 - 1 km 격자 컬링: 뷰포트(틸트 시 상단 확장 1.8배)와 겹치는 셀만. 3×3 km 뷰포트 점 중앙값 448(최대 1,308)이라 Canvas로 충분하다(실측).
 - 모의 미니카 2대(레이더 유지): `inkDim` 10dp 점 + 1dp `ground` 링, 경로 위 앞 500 m / 뒤 300 m(글랜스에서 미니카와 겹치지 않는 거리), **3 s마다 위치 갱신·보간 없음**(주행 중 트윈 0). 80 km/h 이상에서도 점 그대로(이미 점).
 
@@ -386,14 +387,14 @@ class CorridorData(json: String)                // 셀(1 km) 색인, 레이어�
 | 홈 | north-up | 20 | 0 | 현재(없으면 시나리오 시작점)를 띠 가운데에 둔다. 띠 = 56dp 아래부터 알림 줄·패널 위까지, 656×548에서 (328, 172)dp(알림 줄 있으면 150) | top 128×192dp(× `HOME` 1), 띠 가운데, `headingDeg` = 주행 heading → 경로 방위 → 0(북) |
 | 요약 | north-up | 트립 경로 bbox를 패널에 안 가리는 띠(짧은 변 ≥208dp)에 56dp 여백으로 맞춤. 띠가 없으면(표준 창) 끝점 중심 정지 시점 + `ground` 64% 스크림 | 0 | 띠 가운데(띠가 없으면 끝점) | top × `SUMMARY` 0.8 끝점, `headingDeg` = 마지막 진행방향(띠가 없으면 경로·미니카 없음) |
 | 업적·차고·폰 | north-up 정적 | 20 | 0 | 홈과 동일 + `ground` 64% 스크림 | 없음 |
-- heading-up 회전: `rx = dx·cos h − dy·sin h, ry = dx·sin h + dy·cos h`(h = 진행방향, 북 기준 시계방향). Kotlin에서 셀 Path를 `Matrix`로 변환. 진행방향 저역통과 α 0.3, 3 m 미만 이동은 방향 갱신 안 함.
-- 틸트: `nativeCanvas.concat(Matrix().apply { setPolyToPoly(src=뷰포트 4모서리, dst=사다리꼴(상변 폭 45%, 하변 폭 100%, 하변 y 그대로)) })`. 틸트 각 58°는 상변 폭 비율로 근사(시험 미리보기와 비교해 0.40–0.50 안에서 조정). 선 굵기는 행렬에 따라 멀수록 얇아짐(의도).
+- heading-up 회전: `rx = dx·cos h − dy·sin h, ry = dx·sin h + dy·cos h`(h = 진행방향, 북 기준 시계방향). Kotlin에서 셀 Path를 `Matrix`로 변환. 진행방향 저역통과 α 0.3, 3 m 미만 이동은 방향 갱신 안 함. 글랜스 카메라는 경로에서 30 m 안이고 heading과 45° 안이면 경로 방위(앞뒤 30 m)를 쓴다. 아니면 heading → 경로 방위 → 0(북).
+- 틸트: `nativeCanvas.concat(Matrix().apply { setPolyToPoly(src=뷰포트 4모서리, dst=사다리꼴(상변 폭 45%, 하변 폭 100%, 하변 y 그대로)) })`. 틸트 각 58°는 상변 폭 비율로 근사(시험 미리보기와 비교해 0.40~0.50 안에서 조정). 선 굵기는 행렬에 따라 멀수록 얇아짐(의도).
 - 성능 목표(에뮬레이터 swiftshader): 글랜스 프레임 **중앙값 ≤16 ms, 90p ≤33 ms** (`adb shell dumpsys gfxinfo <패키지> framestats`, 파일로 저장 후 grep). 앱 내 `FrameBudget`(창의 `FrameMetrics` `TOTAL_DURATION`, 실제로 그린 프레임만, RenderThread·GPU 대기 포함, 창 배치 뒤 첫 프레임 제외)이 2 s 창 중앙값 >50 ms(<20 fps)이면 그 트립 동안 `tiltDeg = 0`으로 폴백. 1 s 넘게 그린 프레임이 없으면 창을 비우고 다시 2 s를 본다. 재구성은 `camera`가 바뀔 때만(`derivedStateOf`), 셀 Path 캐시, `drawIntoCanvas` 1회.
 
 ### 4.4 위치·진행방향 배선(실제 코드 경로 확인 결과)
 - 신호 경로: `ScenarioSignalSource.snapshots`(샘플 1초 간격·20배속 → 실제 50 ms마다 1장) → `DriveController.onSnapshot(s: VehicleSnapshot)` → `session.onSample(s)`. 샘플에 `lat/lng`가 있어 `s.location: LatLng?`로 들어온다(`Scenario.parse`). 실차는 `LiveSignalSource`가 `PleosLocationSource`를 합쳐 같은 필드로 준다. **엔진은 손대지 않고** 컨트롤러가 UI 상태에 실어 준다.
 - `DriveUi` 추가 필드: `position: LatLng? = null`, `headingDeg: Float? = null`, `speedKmh: Float = 0f`, `tripPath: List<LatLng> = emptyList()`.
-- 새 파일 `drive/HeadingTracker.kt`(순수 Kotlin, 테스트 1개): `update(s): Unit`, `position`, `headingDeg`(α 0.3, 각도 랩 처리, 3 m 미만 무시), `path`(50 m 간격 데시메이션, 최대 2,000점), `reset()`. `DriveController.onSnapshot`에서 `tracker.update(s)`를 `session.onSample(s)` 뒤에 호출, `EngineEvent.TripStarted`에서 `tracker.reset()`; `publish()`가 네 필드를 복사. `resetDemo()`에서도 `reset()`.
+- 새 파일 `drive/HeadingTracker.kt`(순수 Kotlin, 테스트 파일 1개, 시험 7개): `update(s): Unit`, `position`, `headingDeg`(α 0.3, 각도 랩 처리, 3 m 미만 무시), `path`(50 m 간격 데시메이션, 최대 2,000점), `reset()`. `DriveController.onSnapshot`에서 `tracker.update(s)`를 `session.onSample(s)` 뒤에 호출, `EngineEvent.TripStarted`에서 `tracker.reset()`; `publish()`가 네 필드를 복사. `resetDemo()`에서도 `reset()`.
 - 위치가 null이거나 경로 주변 지도 bbox(+2 km) 밖: 글랜스 지도 영역은 `ground` + 1 km 격자(`line` 1dp) + 미니카(알파 1.0)만, 글자 없음(계기 모드).
 
 ### 4.5 국내 내비 장면 참고표 ("문법만 참고, 값·그림 복제 금지")
@@ -418,7 +419,7 @@ class CorridorData(json: String)                // 셀(1 km) 색인, 레이어�
 - `OdoPanel(shape, modifier, content)`: `surface` 채움 + 1dp `line` 테두리, 그림자 0.
 - `KeyStrip(keys: List<Key>)`: 가로 등분 셀, 셀 사이 1dp `line`, 셀 = 아이콘 32 위 + 라벨 24 + 캡션 20(선택), 눌림 = `ink` 8% 채움(리플 끔), 선택 = 하단 2dp `amber`. 차량 하드키 열처럼 읽힌다(필 버튼·텍스트 버튼 행 금지).
 - `Gauge(progress, thickness, trackColor = track, fillColor = amber, endIcon: (@Composable)? = null)`: 트윈 없음(값이 바뀌면 즉시).
-- `Medal(unlocked: Boolean, tier: Int = 0)`: 36dp 벡터, 열림 = `amber` 채움 + `onAmber` 1dp 안쪽 선, 잠김 = 1dp `inkDim` 외곽선, tier 1·2·3 = 밑 4dp 점 1–3개(거리 업적 10/100/1000 km).
+- `Medal(unlocked: Boolean, modifier, tier: Int = 0, contentDescription: String? = null)`: 36dp, 위에 V자 리본 두 가닥 + 원판 지름 22dp. 열림 = `amber` 원판 + `onAmber` 1dp 안쪽 선 + `inkDim` 4dp 리본, 잠김 = `surface` 원판 + 1dp `inkDim` 선 + 1dp 리본. tier 1·2·3 = 밑 4dp 점 1~3개(`medalTierOf`: 거리 업적 10 km → 1, 100·300 km → 2, 1000 km 이상 → 3; 카탈로그는 safe_10·safe_300·safe_1000, 밤길·빗길 10 km).
 - `Chip(label, selected, locked, swatch: Color?)`: 76dp 높이·최소 폭 120, 선택 = 2dp `amber` 테두리, 잠김 = 1dp `inkDim` 외곽선 + "Lv N" 캡션, 간격 23.
 - `NoticeLine(text, onDismiss)`: 지도 하단 1줄 40dp, `surface` + 1dp `line`, 본문 24, 6 s 뒤 자동 해제·탭으로 즉시 해제. **홈에서만** 그린다. 요약에서는 업적 줄로 대신한다(업적·차고·폰 화면에서 겹치던 버그 수정).
 - `DemoChip(text, onLongPress)`: fake 빌드 전용, `ground` 60% 바탕 + 1dp `line` 외곽선, 캡션 20, 36dp 높이, 글랜스에는 없음. `onLongPress`가 있으면 700 ms 길게 누르기에만 반응한다(주야 강제 전환, 캡처용).
@@ -430,20 +431,20 @@ class CorridorData(json: String)                // 셀(1 km) 색인, 레이어�
 │ [ODbL 출처 캡션, 좌상]   지도 north-up(20 m/dp)              [데모 20×] │ 24 (칩 우상, fake만)
 │ ─ ─ ─ ─ ─ ─ ─ ─ ─ 지도 띠 위 끝 (HOME_BAND_TOP) ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │ 56
 │                                                                          │
-│                         ▲ OdoVehicle(loadout, Top)                       │ 172 (띠 56–288 가운데,
+│                         ▲ OdoVehicle(loadout, Top)                       │ 172 (띠 56~288 가운데,
 │                           128×192dp, 현재 위치, 진행방향 회전             │      알림 줄 있으면 150)
 │                                                                          │
-│ ┌ NoticeLine 592×40 (있을 때만, 패널 위 4dp) ───────────────────────────┐│ 244–284
+│ ┌ NoticeLine 592×40 (있을 때만, 패널 위 4dp) ───────────────────────────┐│ 244~284
 ├─┴─ OdoPanel 656×260, 상단 1dp line, 모서리 0 ─────────────────────────┴┤ 288
-│  이번 주 안전 주행 (body 24, inkDim) 42 (numeralM 48) km (title 28) │ Lv 4 (numeralM 48)│ 300–352
-│  오늘 (body 24)          0 km (body 24, 우측 정렬)          │ 시동 (title 28, inkDim)│ 356–388 (오른쪽 352–388)
-│  어제                   42 km                1일째예요(캡션) │ 다음 Lv 5까지 180 XP   │ 388–420
-│  ▬▬▬▬▬▬▬▬▬░░░░░░░░ 4dp 게이지                              │ ▬▬▬░░░ 4dp XP 게이지   │ 420–424
-│  다음 업적 안전 100 km까지 58 km (캡션 20)                  │                        │ 424–450
+│  이번 주 안전 주행 (body 24, inkDim) 42 (numeralM 48) km (title 28) │ Lv 4 (numeralM 48)│ 300~352
+│  오늘 (body 24)          0 km (body 24, 우측 정렬)          │ 시동 (title 28, inkDim)│ 356~388 (오른쪽 352~388)
+│  어제                   42 km                1일째예요(캡션) │ 다음 Lv 5까지 180 XP   │ 388~420
+│  ▬▬▬▬▬▬▬▬▬░░░░░░░░ 4dp 게이지                              │ ▬▬▬░░░ 4dp XP 게이지   │ 420~424
+│  다음 업적 안전 100 km까지 58 km (캡션 20)                  │                        │ 424~450
 │ ─────────────────────────────────────────────────────────────────────────│ 455 (1dp)
-│ │ 업적 3/12 │ 차고 8/24 │ 휴대폰 연결 안 됨 │ 데모 재생 │ 초기화 │ KeyStrip 92│ 456–548
+│ │ 업적 3/12 │ 차고 8/24 │ 휴대폰 연결 안 됨 │ 데모 재생 │ 초기화 │ KeyStrip 92│ 456~548
 └──────────────────────────────────────────────────────────────────────────┘
-왼쪽 열 x 32–368, 오른쪽 열 x 400–624(폭 224). 행 격자 52 / 4 / 32 / 32 (왼쪽) · 52 / 36 / 32 (오른쪽) → 두 게이지가 같은 y 420.
+왼쪽 열 x 32~368, 오른쪽 열 x 400~624(폭 224). 행 격자 52 / 4 / 32 / 32 (왼쪽) · 52 / 36 / 32 (오른쪽) → 두 게이지가 같은 y 420.
 KeyStrip은 셀마다 캡션 줄이 있어 92dp다(76dp에 아이콘·라벨·캡션 세 줄이 안 들어간다). 패널 = 통계 167 + 헤어라인 1 + KeyStrip 92 = 260.
 ```
 - 한 화면 한 박자: "이번 주 안전 주행 42 km"(시연 대본의 홈 장면 숫자 유지). 비교 대상은 어제의 나(오늘/어제 두 줄). 스트릭은 "1일째예요" 캡션을 '어제' 줄 끝에(끊기면 "다시 1일째예요", 한 번도 시작하지 않은 새 프로필에는 캡션 없음, 위협 문구 없음).
@@ -455,7 +456,7 @@ KeyStrip은 셀마다 캡션 줄이 있어 92dp다(76dp에 아이콘·라벨·�
 ```
 0        264                                                             656
 ┌────────┬─────────────────────────────────────────────────────────────────┐ 0
-│        │ 수평선 스크림 0–80                                             │
+│        │ 수평선 스크림 0~80                                             │
 │ ┌──────┐ ← OdoPanel 264×500, shape 0/16/16/0, 상·우·하 1dp line, alpha 1.0│ 24
 │ │안전 주행│ label 32, inkDim, (24, 56)                                    │
 │ │      │                      ·  (모의 미니카 점 10dp)                   │
@@ -464,7 +465,7 @@ KeyStrip은 셀마다 캡션 줄이 있어 92dp다(76dp에 아이콘·라벨·�
 │ │km    │ label 32, inkDim, 좌측, 숫자 베이스라인에 맞춤                  │
 │ │      │               ┃ route 8dp + outline                             │
 │ │      │                      ▲ navi 128×160dp, 기준점 (460, 356)        │
-│ │▬▬▬▬░░ ◎│ 12dp 게이지 x 24–196, 메달 외곽선 36 @ 204–240, y 404–416     │
+│ │▬▬▬▬░░ ◎│ 12dp 게이지 x 24~196, 메달 외곽선 36 @ 204~240, y 404~416     │
 │ └──────┘                                                                 │ 524
 └────────┴─────────────────────────────────────────────────────────────────┘ 548
 ```
@@ -517,11 +518,11 @@ KeyStrip은 셀마다 캡션 줄이 있어 92dp다(76dp에 아이콘·라벨·�
 ┌ 지도 정적 + 스크림 ┐
 │ ┌ OdoPanel 592×484 ─────────────────────────────────────────────────────┐
 │ │ 차고 (28)   수집 8 / 24 (캡션)                          │ 홈 (76×120) │ 72
-│ │ │ 차종 │ 색 │ 휠 │ 램프 │ 루프 │ 데칼 │ 번호판 │  KeyStrip 탭 76       │ 72–148
+│ │ │ 차종 │ 색 │ 휠 │ 램프 │ 루프 │ 데칼 │ 번호판 │  KeyStrip 탭 76       │ 72~148
 │ │ ┌ hero 228×152 ┐  항목 열 약 316dp(76 높이, 간격 23, 탭마다 배치)       │
-│ │ │  미리보기     │  [하늘●] [체리● Lv 5] [민트● Lv 5]                    │ 164–240
-│ │ │              │  [라벤더● Lv 5] [귤● Lv 5] [펄 화이트● Lv 5]          │ 263–339
-│ │ └──────────────┘  [그래파이트● Lv 30] [샌드● Lv 30]                   │ 362–438
+│ │ │  미리보기     │  [하늘●] [체리● Lv 5] [민트● Lv 5]                    │ 164~240
+│ │ │              │  [라벤더● Lv 5] [귤● Lv 5] [펄 화이트● Lv 5]          │ 263~339
+│ │ └──────────────┘  [그래파이트● Lv 30] [샌드● Lv 30]                   │ 362~438
 │ │ 소형 · 하늘 · 스틸 · 화이트 · 루프 없음                                │
 │ │ (사양 줄, 캡션 20, 미리보기 아래. 잠긴 칸을 누르면 3 s 동안 힌트 1문장: │
 │ │  Lv 5 초보 딱지 뗌에서 열려요)                                          │
@@ -530,30 +531,30 @@ KeyStrip은 셀마다 캡션 줄이 있어 92dp다(76dp에 아이콘·라벨·�
 - 미리보기는 hero **228×152dp**다. hero 288×192 옆에 120dp 칩 3열(3×120 + 2×23 = 406)을 두면 패널 안쪽 560dp를 넘는다(288 + 16 + 406 > 560). 그래서 미리보기를 줄이고, 남은 항목 열(약 316dp)에는 120dp보다 좁은 칸을 쓰며 배치를 탭마다 바꾼다.
 - 탭 = KeyStrip(선택 셀 하단 2dp amber). 차종 탭 실루엣 칩 5개 2열(실루엣 48dp 벡터 + 라벨). 색 탭 이름표가 붙은 페인트 칸 8개 3열. 휠·램프·루프·번호판은 썸네일이 붙은 1열 칩. 데칼 탭은 데칼·트레일 두 묶음(그림 칸 3열). 글꼴 1.3에서 넘치면 항목 열만 세로로 스크롤한다. 고정 6행 레이아웃 금지.
 - 선택 변경 → `repo.setVehicle()` / `repo.setSlot(vehicle, slot, id)` → hero 150 ms 크로스페이드. 잠긴 칩 탭 → 힌트 문장만.
-- 상태: Lv 4(색 5종 잠김) · Lv 5(열림, 요약 후 돌아왔을 때) · 2륜 선택(루프 탭 라벨 "탑케이스"로) · 주간.
+- 상태: Lv 4(Lv 5 색 5종 · Lv 30 색 2종 잠김) · Lv 5(열림, 요약 후 돌아왔을 때) · 2륜 선택(루프 탭 라벨 "탑케이스"로) · 주간.
 
 ### 5.6 휴대폰 연결(정차 서브 화면)
 ```
 ┌ 지도 정적 + 스크림 ┐
-│ ┌ OdoPanel 592×484 ─────────────────────────────────────────────────────┐
-│ │ 휴대폰 연결 (28)                                        │ 홈 (76×120) │
-│ │ ┌ QR 판 272×272 (#D0D4DA, r 16) ┐  WDJB-MJHT (numeralM 48, tnum)        │
-│ │ │  QR 240×240 어두운 모듈        │  휴대폰 카메라로 QR을 찍어 주세요 (24)  │
-│ │ │  여백 16                       │  또는 휴대폰 앱에 코드를 넣어 주세요 (24)│
+│ ┌ OdoPanel 592×484 ───────────────────────────────────────────────────────────┐
+│ │ 휴대폰 연결 (28)                                              │ 홈 (76×120) │
+│ │ ┌ QR 판 272×272 (#D0D4DA, r 16) ┐  WDJB-MJHT (numeralM 48, tnum)            │
+│ │ │  QR 240×240 어두운 모듈       │  휴대폰 카메라로 QR을 찍어 주세요 (24)    │
+│ │ │  여백 16                      │  휴대폰 앱은 준비 중이라 (캡션 20, ink96) │
+│ │ │                               │  지금은 시연으로 연결돼요                 │
 │ │ └───────────────────────────────┘  공유함: 트립 요약·업적·미니카 꾸미기 (20)│
 │ │                                    공유 안 함: 차량 신호 원본·위치 기록 (20)│
-│ │ 휴대폰 앱은 준비 중이라 지금은 시연으로 연결돼요 (캡션 20, inkDim, 2줄) │
-│ └───────────────────────────────────────────────────────────────────────┘
+│ └─────────────────────────────────────────────────────────────────────────────┘
 ```
-- 상태 변형: `Presenting`(위) · `Confirmed` "연결을 확인했어요"(QR 자리에 36dp 체크 픽토, 1.5 s 뒤 Linked) · `Linked` "연결됨 · 11월 9일" + 공유 범위 2줄 + KeyStrip "끊기"(QR 판 자리에는 틀 없이 내 미니카 hero 272×181dp: 판 폭 272, 3:2, 앰버 없음) → 같은 자리에서 "연결을 끊을까요" + [끊기][취소] 인라인 2단계(모달 없음) · `Failed` "아직 연결되지 않았어요. 코드를 다시 보여 드릴게요"(빨강 없음) · 120 s 만료는 **표시 없이** 새 코드로 조용히 교체(카운트다운 금지).
-- 잠금(`ui.locked`) 시 라우팅이 글랜스로 바꾸므로 자동 닫힘; 돌아오면 홈(코드 재발급). 홈 KeyStrip "휴대폰" 캡션 = "연결 안 됨 / 연결됨".
+- 상태 변형: `Presenting`(위) · `Confirmed` "시연으로 연결했어요"(QR 자리에 36dp 체크 픽토, 1.5 s 뒤 Linked) · `Linked` "연결됨 · 11월 9일" + 캡션 "시연 연결이에요" + 공유 범위 2줄 + KeyStrip "끊기"(QR 판 자리에는 틀 없이 내 미니카 hero 272×181dp: 판 폭 272, 3:2, 앰버 없음) → 같은 자리에서 "연결을 끊을까요" + [끊기][취소] 인라인 2단계(모달 없음) · `Failed` "아직 연결되지 않았어요. 코드를 다시 보여 드릴게요"(빨강 없음) · 120 s 만료는 **표시 없이** 새 코드로 조용히 교체(카운트다운 금지).
+- 잠금(`ui.locked`) 시 라우팅이 글랜스로 바꾸므로 자동 닫힘; 돌아오면 홈(코드 재발급). 홈 KeyStrip "휴대폰" 캡션 = "연결 안 됨 / 시연 연결".
 
 ### 5.7 라우팅(`OdoRoot`) 변경
 `locked → Glance` · `summary != null → Summary` · `ACHIEVEMENTS / GARAGE / PHONE → 각 화면` · `else → Home`. `Screen` enum에 `PHONE` 추가, `CUSTOMIZE`는 `GARAGE`로 개명(파일명도). `NoticeLine`은 홈(`route == HOME`)에서만 그린다. 요약에서는 업적 줄로 대신한다. `OdoTheme(night)`가 루트에서 감싸고, `DriveLockOverlay()`는 그대로 최상위.
 
 ---
 
-## 6. 게이미피케이션 단계 배치 (원칙 P1–P10 ↔ 화면)
+## 6. 게이미피케이션 단계 배치 (원칙 P1~P10 ↔ 화면)
 | 화면/순간 | 보이는 것 | 원칙 |
 |---|---|---|
 | 글랜스(주행) | 축적만: 오늘 안전 km 숫자, 메달을 향한 게이지. 보상·알림·점수 0 | P1 보상은 정차 후, P3 숫자는 뒤로 안 감 |
@@ -574,12 +575,12 @@ KeyStrip은 셀마다 캡션 줄이 있어 92dp다(76dp에 아이콘·라벨·�
 ### 7.1 흐름(ASCII)
 ```
 [홈 KeyStrip 휴대폰] --잠금이 풀린 정차 중에만 진입--> [PhoneLink: Idle→startPairing()]
-      │                                           │ Presenting(code, qrPayload, expiresAt)
+      │                                           │ Presenting(code, qrPayload, expiresAtMs)
       │                                           │  QR 240 + 자음 코드 4-4, 공유 범위 2줄
       │                              120 s 경과 → 조용히 재발급(표시 없음)
-      │                                           │ (Fake: 3 s 뒤) Confirmed "연결을 확인했어요"
+      │                                           │ (Fake: 3 s 뒤) Confirmed "시연으로 연결했어요"
       │                                           ▼
-      │                                     Linked(label="휴대폰", linkedAt) → Room phone_link 저장
+      │                                     Linked(label="휴대폰", linkedAtMs) → Room phone_link 저장
       │                                           │ KeyStrip "끊기" → 인라인 2단계 → disconnect() → Idle, "연결을 끊었어요"
       └── 기어 D/R·속도>0·트립 중 N 정차 → locked → 라우팅이 글랜스로(자동 닫힘, cancelPairing()) → 정차 후 홈 "정차 후 다시 연결할 수 있어요"
 ```
@@ -654,14 +655,14 @@ class FakePhoneLink(scope: CoroutineScope, repo: OdoRepository, clock: () -> Lon
 | 차고 spec | (없음) | 소형 · 하늘 · 스틸 · 화이트 · 루프 없음 |
 | 배너 | 업적을 열었어요 / {titles} / 확인 | {title} 업적을 열었어요 (1줄, 탭 해제) |
 | 뒤로 | 홈으로 | 홈 |
-| 폰 | (없음) | 휴대폰 연결 · 휴대폰 카메라로 QR을 찍어 주세요 · 또는 휴대폰 앱에 코드를 넣어 주세요 · 연결을 확인했어요 · 연결됨 · {날짜} · 연결을 끊을까요 · 끊기 · 취소 · 연결을 끊었어요 · 아직 연결되지 않았어요. 코드를 다시 보여 드릴게요 · 정차 후 다시 연결할 수 있어요 · 휴대폰 앱은 준비 중이라 지금은 시연으로 연결돼요 · 공유함: 트립 요약·업적·미니카 꾸미기 · 공유 안 함: 차량 신호 원본·위치 기록 |
+| 폰 | (없음) | 휴대폰 연결 · 휴대폰 카메라로 QR을 찍어 주세요 · 시연으로 연결했어요 · 연결됨 · {날짜} · 시연 연결이에요 · 연결을 끊을까요 · 끊기 · 취소 · 연결을 끊었어요 · 아직 연결되지 않았어요. 코드를 다시 보여 드릴게요 · 정차 후 다시 연결할 수 있어요 · 휴대폰 앱은 준비 중이라 지금은 시연으로 연결돼요 · 공유함: 트립 요약·업적·미니카 꾸미기 · 공유 안 함: 차량 신호 원본·위치 기록 |
 | TTS | (변경 없음) | 안전 주행 N km, 오늘 상한을 채웠어요. / {title} 업적을 열었어요. |
-- 조사는 하드코딩하지 않고 `ui/text/Josa.kt`의 `josa(word, "이/가")`로(받침 판정). 모든 문자열은 `res/values/strings.xml`로 옮긴다.
+- 조사는 하드코딩하지 않고 `ui/text/Josa.kt`의 `josa(word, "이/가")`로(받침 판정). 화면 문구는 `res/values/strings.xml`에 둔다. TTS 문장은 `DriveController.kt`에, 아이템·차종·칭호·업적 이름은 각 데이터(`CosmeticCatalog.kt`·`VehicleType.kt`·`LevelTable.kt`·`achievements.json`)에 둔다.
 
 ---
 
 ## 10. 접근성
-- 터치 76×76dp, 간격 23dp(KeyStrip·칩·탭 전부). 글자 최소 20sp(정차), 32sp(주행). `font_scale 1.3` 캡처에서 줄바꿈·겹침 0.
+- 터치 76×76dp. 간격 23dp는 차고의 칩·그림 칸 사이(가로·세로)이고, KeyStrip(차고 탭 7칸 포함)은 간격 없이 1dp `line`으로 나눈 등분 셀이다. 글자 최소 20sp(정차), 32sp(주행). `font_scale 1.3` 캡처에서 줄바꿈·겹침 0.
 - 대비 §1.4(글자 ≥4.5, 비글자 ≥3). 색만으로 상태를 전하지 않음(잠김 = 외곽선 + "Lv N" 글자, 선택 = 2dp 테두리 + 체크 픽토 없음·굵기 차).
 - `contentDescription`: 메달("안전 10 km, 열림"), KeyStrip 셀, 칩("체리, Lv 5에 열려요"), 미니카("미니카 미리보기, 소형 하늘"), QR("연결 QR 코드"). 장식(격자·스티치·점)은 `semantics { invisibleToUser() }` 대신 `Canvas`로 그려 트리에서 제외.
 - 깜빡임·점멸 0, 자동 스크롤 0, 시간 제한 0(만료 재발급은 무표시).
@@ -670,7 +671,7 @@ class FakePhoneLink(scope: CoroutineScope, repo: OdoRepository, clock: () -> Lon
 ---
 
 ## 11. 하지 말 것(do-not)
-그라데이션·그림자·글로우·비네트(UI. 미니카에 구운 접지 그림자·밤 글로·붉은 후미등은 콘텐츠라 예외, §2.3) · 둥근 아이콘 타일 · 카드 속 카드 · 필 버튼·텍스트 버튼 행 · 파란 버튼 · 빨강/초록/노랑(UI) · 이모지·유니코드 글리프 아이콘 · 지도 위 글자(주행·정차 모두) · 회전 화살표·ETA·제한속도·차로·카메라·교통색 · 주행 중 "데모"·도로명·문장·버튼·트윈 · 주행 중 주야 전환 · 링 게이지·눈금 · 소수점 km · 카운트다운·만료 표시 · 흰 QR(반전) · 모델명·엠블럼·공식 색상명("~풍" 포함) · 그릴·실내·크롬 · 라이더 · 비앵커 레벨 해금 · "?" 숨김 항목 · 스태거·무한 트랜지션 · `fallbackToDestructiveMigration` · Room에 위치/경로 · 런타임 지도 타일·서버 호출 · 번들 글꼴(확인 ④ 전) · 신원 입력란·전체 순위 · "XP에서 뺐어요"류 감점 문구 · 전역 NoticeBanner.
+그라데이션·그림자·글로우·비네트(UI. 미니카에 구운 접지 그림자·밤 글로·붉은 후미등은 콘텐츠라 예외, §2.3) · 둥근 아이콘 타일 · 카드 속 카드 · 필 버튼·텍스트 버튼 행 · 파란 버튼 · 빨강/초록/노랑(UI) · 이모지·유니코드 글리프 아이콘 · 지도 위 글자(주행·정차 모두) · 회전 화살표·ETA·제한속도·차로·카메라·교통색 · 주행 중 "데모"·도로명·문장·버튼·트윈 · 주행 중 주야 전환 · 링 게이지·눈금 · 소수점 km · 카운트다운·만료 표시 · 흰 QR(반전) · 모델명·엠블럼·공식 색상명("~풍" 포함) · 그릴·실내·크롬 · 라이더 · 비앵커 레벨 해금 · "?" 숨김 항목 · 스태거·무한 트랜지션 · `fallbackToDestructiveMigration` · Room에 위치/경로 · 런타임 지도 타일·서버 호출 · 번들 글꼴(§15 ④) · 신원 입력란·전체 순위 · "XP에서 뺐어요"류 감점 문구 · 전역 NoticeBanner.
 
 ---
 
@@ -682,7 +683,7 @@ class FakePhoneLink(scope: CoroutineScope, repo: OdoRepository, clock: () -> Lon
 파일: `tools/minicar/**`, `app/src/main/assets/minicar/**`, `cosmetic/**`, `engine/LevelTable.kt`(§3.3 블록 추가만), `data/OdoDatabase.kt`·`data/OdoRepository.kt`(§3.5), `app/schemas/.../2.json`, `ui/vehicle/**`, `ui/profile/MinicarPalette.kt`(래퍼화), 테스트 `LevelTableTest`(추가 2개)·`cosmetic/LoadoutTest`, `NOTICE.md` 미니카 절, `tools/minicar/README.md`.
 
 ### 묶음 2: 드라이브 맵 장면 + 데이터 + 위치 배선
-파일: `tools/map/**`, `app/src/main/assets/map/corridor.json`, `ui/map/**`(CorridorData, MapCamera, CorridorMap, FrameBudget, 픽토 벡터), `drive/HeadingTracker.kt`(+ 테스트 1개), `drive/DriveController.kt`(§4.4 필드·호출만), `NOTICE.md` 지도 절 줄 추가, `tools/map/README.md`.
+파일: `tools/map/**`, `app/src/main/assets/map/corridor.json`, `ui/map/**`(CorridorData, MapCamera, CorridorMap, FrameBudget, 픽토 벡터), `drive/HeadingTracker.kt`(+ 테스트 파일 1개, 시험 7개), `drive/DriveController.kt`(§4.4 필드·호출만), `NOTICE.md` 지도 절 줄 추가, `tools/map/README.md`.
 화면 묶음이 쓰는 계약: `CorridorMap(...)` 시그니처(§4.2), `MapCamera`, `DriveUi.position/headingDeg/speedKmh/tripPath`.
 
 ### 묶음 3: 테마·전 화면·폰 연동·목업·통합
@@ -695,7 +696,7 @@ class FakePhoneLink(scope: CoroutineScope, repo: OdoRepository, clock: () -> Lon
 |---|---|---|
 | 1 | `./gradlew test` 로그 grep | 전부 통과, 실패 0(작성 당시인 2026-11-09에 있던 42개 포함) |
 | 2 | `spec_minicar_montage` | 5차종 × hero/navi/top, 그릴·엠블럼·문자 없음, 렌즈 램프 + 붉은 후미등, 스쿠터 라이더 없음, 야/주 두 줄(밤은 글로 포함) |
-| 3 | `du -sk app/src/main/assets/minicar` · `check_names.py` · `postprocess.py --check` | ≤4096 KB(실측 1216 KiB) · 금지어 0건 · 파일 165/165 + compose.json, 빠지거나 남는 파일 0 |
+| 3 | `du -sk app/src/main/assets/minicar` · `check_names.py` · `python3 -B tools/minicar/postprocess.py --check app/src/main/assets/minicar` | ≤4096 KB(실측 1216 KiB) · 금지어 0건 · 파일 165/165 + compose.json, 빠지거나 남는 파일 0 |
 | 4 | Blender 실행 시간(README) | ≤10분(실측 208 s, 165장), 두 번 실행 결과 바이트 동일 |
 | 5 | `spec_glance_night`(데모 탭 후 60 s) | 패널 글자 = "안전 주행"·숫자·"km" 3개뿐, 지도 글자 0, 게이지 12dp + 메달, 미니카 navi 기준점 (460,356)±8, 점 2개, "데모" 없음, 상단 스크림 |
 | 6 | `spec_glance_fontscale13`(`settings put system font_scale 1.3`) | 1줄 유지, 겹침·클리핑 0 |
@@ -727,17 +728,22 @@ app/src/main/assets/minicar/<vehicle>/<hero|navi|top>/<layer>.webp, compose.json
 app/src/main/assets/map/corridor.json
 app/schemas/com.mujimujimuji.odo.data.OdoDatabase/2.json
 app/src/main/java/com/mujimujimuji/odo/
-  cosmetic/{VehicleType.kt, Slot.kt, CosmeticItem.kt, Loadout.kt, CosmeticCatalog.kt}
-  drive/HeadingTracker.kt
+  cosmetic/{VehicleType.kt(Slot 포함), CosmeticItem.kt(Loadout 포함), CosmeticCatalog.kt}
+  drive/{HeadingTracker.kt, DriveLock.kt, GlanceGauge.kt}
   platform/PhoneLink.kt, platform/fake/FakePhoneLink.kt
-  ui/theme/{OdoTokens.kt, OdoType.kt, OdoTheme.kt, NightMode.kt}
-  ui/components/{OdoPanel.kt, KeyStrip.kt, Gauge.kt, Medal.kt, Chip.kt, NoticeLine.kt, DemoChip.kt, Icons.kt}
+  ui/theme/{OdoTokens.kt, OdoType.kt, NightMode.kt}
+  ui/components/{OdoPanel.kt, KeyStrip.kt, Gauge.kt, Medal.kt, Chip.kt, NoticeLine.kt, DemoChip.kt, Icons.kt, FitCaption.kt, Motion.kt, PanelHeader.kt}
   ui/vehicle/{OdoVehicle.kt, VehicleAssets.kt, VehicleManifest.kt}
-  ui/map/{CorridorData.kt, MapCamera.kt, CorridorMap.kt, FrameBudget.kt}
-  ui/phonelink/PhoneLinkScreen.kt, ui/profile/GarageScreen.kt, ui/text/Josa.kt
+  ui/map/{CorridorData.kt, MapCamera.kt, CorridorMap.kt, FrameBudget.kt, CorridorStore.kt, GlanceMap.kt, ParkedScenes.kt, RestPicto.kt, StandingPicto.kt, TileCache.kt}
+  ui/phonelink/{PhoneLinkScreen.kt, QrCode.kt}, ui/profile/GarageScreen.kt, ui/text/Josa.kt
+  ui/summary/{Earcons.kt, SummaryLines.kt}
+app/src/test/java/com/mujimujimuji/odo/ (단위 테스트: 새 *Test.kt 19개, 모두 26개 + 도우미 1개)
 app/src/main/res/raw/earcon_{xp,levelup,achievement}.ogg
+app/src/main/res/values/themes.xml, app/src/main/res/xml/data_extraction_rules.xml
+docs/design-spec.md
+docs/screenshots/{01_home, 02_glance, 03_summary, 04_achievements, 05_garage, 06_phone}.png
 docs/phone-mockup/{phone_01_link, phone_02_home, phone_03_summary, phone_03b_share_card, phone_04_achievements, phone_05_garage}.png, manifest.json, README.md
 ```
 
-## 15. 확인 항목(구현 전에 답이 필요한 것, 답이 없으면 괄호 기본값으로 진행)
-① "캐릭터 의상 1세트" = 투톤 루프 해석(기본: 채택; 문구는 LevelTable에 그대로 둠) ② 글랜스 왼쪽 부착 불투명 패널이 "상자"로 읽히는지 첫 캡처 판단(폴백: 패널 배경 제거, 숫자 밑 2dp `ground` 헤일로만) ③ 앰버 `#F0A83A`가 경고색으로 읽히면 `brass #D8B46A` 1줄 교체 ④ 번들 글꼴은 시스템 글꼴 가짜 볼드가 캡처로 확인될 때만(Wanted Sans OFL) ⑤ Lv 5에 휠 "다이아"·램프 "웜"을 색 5종에 덧붙이는 것(레벨 표의 Lv 5 해금 문구 "미니카 색상 5종" 밖의 추가). 2026-11-11 결정: 덧붙이지 않는다. Lv 5 해금은 색 5종뿐이고, 두 항목은 Lv 10으로 옮겼다(`cosmeticUnlocks` 2줄).
+## 15. 결정 기록
+① "캐릭터 의상 1세트"는 투톤 루프로 해석해 채택(문구는 LevelTable.kt 그대로, `roof:twotone` = Lv 10) ② 글랜스 왼쪽 불투명 패널 유지(`OdoPanel` `panelEdgeLeft` · `PanelOutline.OpenLeft`) ③ 앰버 `#F0A83A` 유지, brass로 바꾸지 않음 ④ 번들 글꼴 없음(`FontFamily.Default`) ⑤ Lv 5에 휠 "다이아"·램프 "웜"을 색 5종에 덧붙이는 것(레벨 표의 Lv 5 해금 문구 "미니카 색상 5종" 밖의 추가). 2026-11-11 결정: 덧붙이지 않는다. Lv 5 해금은 색 5종뿐이고, 두 항목은 Lv 10으로 옮겼다(`cosmeticUnlocks` 2줄).

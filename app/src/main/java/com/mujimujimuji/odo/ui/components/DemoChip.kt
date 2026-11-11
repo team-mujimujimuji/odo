@@ -25,7 +25,7 @@ import com.mujimujimuji.odo.ui.theme.OdoType
 
 /**
  * fake 빌드 전용 표시 칩(설계서 §5.0): `ground` 60 % 바탕 + 1dp `line` 외곽선, 캡션 20, 36dp. 글랜스에는 두지 않는다.
- * [onLongPress]가 있으면 700 ms 길게 누르기(주야 강제 전환, 캡처용). 화면 낭독기에는 길게 누르기 동작 "주야 바꾸기"로 알린다.
+ * [onLongPress]가 있으면 700 ms 길게 누르기(낮밤 강제 전환, 캡처용). 화면 낭독기에는 길게 누르기 동작 "낮밤 바꾸기"로 알린다.
  */
 @Composable
 fun DemoChip(text: String, modifier: Modifier = Modifier, onLongPress: (() -> Unit)? = null) {

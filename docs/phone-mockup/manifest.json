@@ -56,7 +56,7 @@
         1170,
         2532
       ],
-      "sha256": "3b24bd410da5386b3ca7b3f5cc5ffd260733ffd90139b7533eadacde8c52718e"
+      "sha256": "9ee60b8ca41b21db2edab884873a33de0ff634ab4c4864fecbb97fbe6e55d531"
     },
     {
       "file": "phone_02_home.png",
@@ -65,7 +65,7 @@
         1170,
         2532
       ],
-      "sha256": "9bde58855bb73d2a6a45678b3784160a014b366e5fb79701c5a2e8cf6e3ab3fe"
+      "sha256": "48111e48de8ec258ade6a0e1d09917df048843b4cf475c4d518ad03945454e07"
     },
     {
       "file": "phone_03_summary.png",
@@ -74,7 +74,7 @@
         1170,
         2532
       ],
-      "sha256": "d40b553c2d16474b459fa3cfe83d60121245f18f67bca01268605ba8774f1feb"
+      "sha256": "8f54a1e187d462c3f3d20c1d1c6612413d54dbe502654f9ccc60ec84ebd28c9a"
     },
     {
       "file": "phone_03b_share_card.png",
@@ -83,7 +83,7 @@
         1080,
         1080
       ],
-      "sha256": "09774ed7befac1823388fe6946176dc0e1e4f2afdd78160bea56674d882f2b7c"
+      "sha256": "543eae924fde707eeebc963e54044a1642a26116c972bbb8540c3cad11c382da"
     },
     {
       "file": "phone_04_achievements.png",
@@ -101,7 +101,7 @@
         1170,
         2532
       ],
-      "sha256": "45a418b06b5bbef1f1bc70a4c69219a649706b2231ac67a0bfc899b7553dda61"
+      "sha256": "f347d71c47c4d1ec20696c6741f839455c81d52d8a1264e11fe5bd5c5c5507a1"
     }
   ]
 }

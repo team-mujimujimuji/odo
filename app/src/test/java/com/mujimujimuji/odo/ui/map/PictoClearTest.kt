@@ -1,11 +1,23 @@
 package com.mujimujimuji.odo.ui.map
 
+import androidx.compose.ui.geometry.Offset
+import com.mujimujimuji.odo.engine.LatLng
+import com.mujimujimuji.odo.sim.Scenario
 import com.mujimujimuji.odo.ui.vehicle.VehicleMarkerScale
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
+import kotlin.math.cos
+import kotlin.math.hypot
+import kotlin.math.sin
 
-/** 정차 미니카 둘레의 휴게소 픽토 비우기([pictoHitsCar]): 픽토 원이 차 둘레 원에 걸치면 그리지 않는다. */
+/**
+ * 정차 미니카 둘레의 휴게소 픽토 비우기([pictoHitsCar]): 픽토 원이 차 둘레 원에 걸치면 그리지 않는다.
+ * 차가 서 있는 휴게소 픽토([standingPoiIndex])는 빼지 않고 차 옆으로 옮긴다([pictoBesideCar]).
+ */
 class PictoClearTest {
     private val half = 18f
     private val clear = 40f
@@ -55,5 +67,84 @@ class PictoClearTest {
         assertFalse(pictoHitsCar(carX + 1f, carY, half, carX, carY, 0f))
         // 차를 넘기지 않은 화면(글랜스·업적·차고)은 반경이 0이다.
         assertFalse(pictoHitsCar(0f, 0f, half, 0f, 0f, 0f))
+    }
+
+    @Test
+    fun `서 있는 휴게소 픽토는 차와 같은 높이로 픽토 쪽 가로에 비움 원 바로 바깥으로 옮긴다`() {
+        val r = clear + half + 1f
+        // 거리: 반경 + 픽토 반지름 + 1 = 59, 높이는 차와 같다.
+        assertEquals(Offset(carX + r, carY), pictoBesideCar(carX + 5f, carY - 20f, half, carX, carY, clear))
+        assertEquals(Offset(carX - r, carY), pictoBesideCar(carX - 5f, carY - 20f, half, carX, carY, clear))
+        assertEquals(Offset(carX - r, carY), pictoBesideCar(carX - 30f, carY + 25f, half, carX, carY, clear))
+        assertFalse(pictoHitsCar(carX + r, carY, half, carX, carY, clear))
+    }
+
+    @Test
+    fun `차 위로 비스듬한 픽토도 위로 올리지 않는다`() {
+        // 홈 지도 위 출처 캡션은 차보다 위에 있다. 차 바로 위에 가까운 픽토도 차 높이 그대로 가로로 옮긴다.
+        val clearHome = CAR_CLEAR.value * VehicleMarkerScale.HOME
+        val moved = pictoBesideCar(carX - 3f, carY - 30f, half, carX, carY, clearHome)
+        assertEquals(carY, moved.y, 0f)
+        assertEquals(carX - (clearHome + half + 1f), moved.x, 0.01f)
+    }
+
+    @Test
+    fun `차와 가로 위치가 같은 픽토는 오른쪽으로 옮긴다`() {
+        val r = clear + half + 1f
+        assertEquals(Offset(carX + r, carY), pictoBesideCar(carX, carY, half, carX, carY, clear))
+        assertEquals(Offset(carX + r, carY), pictoBesideCar(carX, carY - 30f, half, carX, carY, clear))
+        assertEquals(Offset(carX + r, carY), pictoBesideCar(carX, carY + 30f, half, carX, carY, clear))
+        assertEquals(Offset(carX - r, carY), pictoBesideCar(carX - 0.2f, carY + 0.2f, half, carX, carY, clear))
+    }
+
+    @Test
+    fun `차 둘레에 걸치지 않는 픽토는 그대로 둔다`() {
+        assertEquals(Offset(carX + 58f, carY), pictoBesideCar(carX + 58f, carY, half, carX, carY, clear))
+        assertEquals(Offset(carX - 200f, carY + 90f), pictoBesideCar(carX - 200f, carY + 90f, half, carX, carY, clear))
+        // 반경 0(차를 넘기지 않은 화면)도 그대로.
+        assertEquals(Offset(carX, carY), pictoBesideCar(carX, carY, half, carX, carY, 0f))
+    }
+
+    @Test
+    fun `어느 방향에서 옮겨도 차 둘레에 걸치지 않고 차 높이에 남는다`() {
+        val clearHome = CAR_CLEAR.value * VehicleMarkerScale.HOME
+        for (k in 0 until 8) {
+            val a = Math.toRadians(k * 45.0)
+            val sx = carX + (30.0 * cos(a)).toFloat()
+            val sy = carY + (30.0 * sin(a)).toFloat()
+            for (c in floatArrayOf(clear, clearHome, CAR_CLEAR.value * VehicleMarkerScale.SUMMARY)) {
+                val moved = pictoBesideCar(sx, sy, half, carX, carY, c)
+                assertFalse("${k * 45}° 반경 $c → $moved", pictoHitsCar(moved.x, moved.y, half, carX, carY, c))
+                assertEquals(c + half + 1f, hypot(moved.x - carX, moved.y - carY), 0.01f)
+                assertEquals(carY, moved.y, 0f)
+                assertEquals("${k * 45}° 쪽", sx < carX, moved.x < carX)
+            }
+        }
+    }
+
+    /** 데모 경로(corridor.json)와 시나리오: 출발·트립 끝 정차 지점의 휴게소를 찾고, 휴게소 밖에서는 찾지 않는다. */
+    @Test
+    fun `데모 정차 지점의 서 있는 휴게소`() {
+        val corridor = listOf("src/main/assets/", "app/src/main/assets/")
+            .map { File(it + CorridorData.ASSET_PATH) }
+            .first { it.exists() }
+            .let { CorridorData(it.readText()) }
+        val scenario = listOf("src/main/assets/", "app/src/main/assets/")
+            .map { File(it + "scenarios/gangneung_trip.json") }
+            .first { it.exists() }
+            .let { Scenario.parse(it.readText()) }
+        fun standingSrc(p: LatLng): String? =
+            standingPoiIndex(corridor.pois, corridor.localX(p), corridor.localY(p)).takeIf { it >= 0 }?.let { corridor.pois[it].src }
+        val first = scenario.samples.first().location!!
+        val last = scenario.samples.last().location!!
+        // 출발(홈): 131 m, 트립 끝 휴게소: 198 m.
+        assertEquals("OSM way 344480537", standingSrc(first))
+        assertEquals("OSM node 414680790", standingSrc(last))
+        // 트립 끝에서 2 km 떨어진 곳에는 휴게소가 없다.
+        val away = corridor.toLatLng(corridor.localX(last) + 2_000.0, corridor.localY(last))
+        assertNull(standingSrc(away))
+        // 반경을 줄이면 찾지 않는다.
+        assertEquals(-1, standingPoiIndex(corridor.pois, corridor.localX(first), corridor.localY(first), maxM = 100.0))
+        assertEquals(-1, standingPoiIndex(emptyList(), 0.0, 0.0))
     }
 }

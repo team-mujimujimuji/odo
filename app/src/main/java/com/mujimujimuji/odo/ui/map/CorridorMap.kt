@@ -49,6 +49,7 @@ import kotlin.random.Random
  * - 모의 미니카 점 2대(heading-up만): 차의 경로 진행 기준 앞 500 m·뒤 300 m. 오프셋만 3 s마다 ±30 m 안에서 새로 정하고(보간 없음) 자리는 매 프레임 다시 잡는다.
  * - [cover]: 지도를 덮는 패널 상자(캔버스 px). 휴게소 픽토가 이 상자에 걸치면 그리지 않는다(패널 가장자리에서 반쯤 잘린 픽토 방지).
  * - [car]·[carClear]: 위에 얹히는 정차 미니카의 지점과 비울 반경. 픽토가 그 원에 걸치면 그리지 않는다(차 밑에 반쯤 깔린 픽토 방지, [pictoHitsCar]).
+ *   차가 서 있는 휴게소 픽토 하나는 빼지 않고 원 바로 바깥 차 옆으로 옮겨 그린다([standingPoiIndex], [pictoBesideCar]).
  * - 속도 ≥80 km/h면 tertiary 도로를 숨긴다(휴게소 픽토는 유지).
  * - [content]: 화면 좌표 오버레이. 미니카는 호출자가 Box로 위에 올린다([NaviMinicar]).
  * 그리기 순서: ground → urban → forest → water → 강 → 도로 케이싱 → 도로 코어 → 고속도로 중앙 파선 → 지난 길(대시·리본) → 경로 → 휴게소 픽토 → 모의 미니카 점 → content → 수평선 스크림(heading-up만).
@@ -229,22 +230,46 @@ fun CorridorMap(
         // 화면 좌표 요소(원근·축척과 무관하게 같은 크기).
         // 휴게소 픽토: 이미 그린 픽토와 36dp 안에 겹치면 건너뛴다(요약 bbox 맞춤 20 m/dp 이상에서 16곳이 뭉친다).
         // 패널([cover])에 걸치는 픽토도 건너뛴다(가장자리에서 반쯤 잘려 실수처럼 보였다). 정차 미니카([car]) 밑에 깔리는 픽토도 같다.
+        // 다만 차가 서 있는 휴게소([STAND_POI_M] 안의 가장 가까운 POI) 픽토 하나는 차 밑 대신 비움 원 바로 바깥 차 옆으로 옮겨 먼저 그린다([pictoBesideCar]).
         val pad = OdoSize.picto.toPx()
         val half = pad / 2f
         val covered = cover.width > 0f && cover.height > 0f
         val carClearPx = if (car != null) carClear.toPx() else 0f
         var carX = 0f
         var carY = 0f
+        var standIdx = -1
         if (car != null && carClearPx > 0f) {
-            sc.pt[0] = d.localX(car).toFloat()
-            sc.pt[1] = d.localY(car).toFloat()
+            val carLx = d.localX(car)
+            val carLy = d.localY(car)
+            sc.pt[0] = carLx.toFloat()
+            sc.pt[1] = carLy.toFloat()
             sc.total.mapPoints(sc.pt)
             carX = sc.pt[0]
             carY = sc.pt[1]
+            standIdx = standingPoiIndex(d.pois, carLx, carLy)
         }
         val drawnPictos = sc.pictos
         var drawnCount = 0
-        for (poi in d.pois) {
+        if (standIdx >= 0) {
+            val poi = d.pois[standIdx]
+            sc.pt[0] = poi.x.toFloat()
+            sc.pt[1] = poi.y.toFloat()
+            sc.total.mapPoints(sc.pt)
+            val beside = pictoBesideCar(sc.pt[0], sc.pt[1], half, carX, carY, carClearPx)
+            val sx = beside.x
+            val sy = beside.y
+            val offScreen = sx < -pad || sx > w + pad || sy < -pad || sy > h + pad
+            val underCover = covered && sx + half > cover.left && sx - half < cover.right && sy + half > cover.top && sy - half < cover.bottom
+            if (!offScreen && !underCover) {
+                drawnPictos[0] = sx
+                drawnPictos[1] = sy
+                drawnCount = 2
+                drawRestPicto(Offset(sx, sy), colors, pictoStrokes)
+            }
+        }
+        for (i in d.pois.indices) {
+            if (i == standIdx) continue
+            val poi = d.pois[i]
             sc.pt[0] = poi.x.toFloat()
             sc.pt[1] = poi.y.toFloat()
             sc.total.mapPoints(sc.pt)
