@@ -63,6 +63,19 @@ subject to the following conditions:
   Software.
 ```
 
+## Pleos SDK 안의 암호 코드
+APK에 든 네이티브 라이브러리 `libuacore.so`는 Pleos Connect SDK가 넣는 파일이다.
+이 파일은 `ai.pleos.playground.security:universal-access` 0.6.0에 들어 있다.
+파일 안에 CRYPTOGAMS 표시가 있다.
+CRYPTOGAMS는 Andy Polyakov가 OpenSSL 프로젝트를 위해 쓴 암호 어셈블리 코드 모음이다.
+이 코드는 OpenSSL 라이선스나 CRYPTOGAMS 라이선스(BSD 계열)로 배포된다.
+SDK 배포물(POM·AAR)에는 그중 어느 쪽인지 적혀 있지 않다.
+SDK 제공사가 배포한 파일을 고치지 않고 그대로 쓴다.
+
+- OpenSSL 라이선스: https://www.openssl.org/source/license.html
+- CRYPTOGAMS: https://github.com/dot-asm/cryptogams
+- CRYPTOGAMS 라이선스: https://openssl-library.org/cryptogams/
+
 ## 이어콘·아이콘
 트립 요약의 효과음 3개(`app/src/main/res/raw/earcon_xp.ogg`, `earcon_levelup.ogg`, `earcon_achievement.ogg`)는
 `tools/audio/make_earcons.py`가 사인파로 합성한 자체 제작물이다. 외부 음원·샘플을 쓰지 않았다.

@@ -202,7 +202,7 @@ tools/
 | JUnit 4 | 단위 테스트 | EPL 1.0 |
 | org.json | 단위 테스트에서 시나리오 JSON 읽기 | Public Domain |
 | Pleos Connect SDK | 차량 신호, 위치, 내비, 음성 | Pleos 개발자 약관 |
-| Pleos SDK가 함께 가져오는 라이브러리(앱 코드는 직접 쓰지 않음): Tink 1.8.0, AndroidX Security Crypto 1.1.0-alpha06, AppCompat 1.6.1·Fragment 1.5.1·RecyclerView 1.1.0·ConstraintLayout 2.0.1 등 AndroidX, Material Components 1.10.0, Gson 2.10.1, Dagger/Hilt 2.51.1, javax.inject 1, kotlinx.serialization 1.6.3, kotlin-reflect 1.9.25, JNA 5.13.0, Error Prone annotations 2.15.0, JSR-305 3.0.2 | Pleos SDK의 전이 의존성으로 APK에 함께 들어감 | Apache 2.0. JNA만 Apache 2.0과 LGPL-2.1+ 이중 라이선스(APK에 `META-INF/AL2.0`·`META-INF/LGPL2.1` 포함). Tink·kotlin-reflect에 셰이딩된 Protocol Buffers 코드는 BSD-3-Clause, JNA 네이티브 라이브러리(`libjnidispatch.so`)에 정적 링크된 libffi는 MIT. |
+| Pleos SDK가 함께 가져오는 라이브러리(앱 코드는 직접 쓰지 않음): Tink 1.8.0, AndroidX Security Crypto 1.1.0-alpha06, AppCompat 1.6.1·Fragment 1.5.1·RecyclerView 1.1.0·ConstraintLayout 2.0.1 등 AndroidX, Material Components 1.10.0, Gson 2.10.1, Dagger/Hilt 2.51.1, javax.inject 1, kotlinx.serialization 1.6.3, kotlin-reflect 1.9.25, JNA 5.13.0, Error Prone annotations 2.15.0, JSR-305 3.0.2 | Pleos SDK의 전이 의존성으로 APK에 함께 들어감 | Apache 2.0. JNA만 Apache 2.0과 LGPL-2.1+ 이중 라이선스(APK에 `META-INF/AL2.0`·`META-INF/LGPL2.1` 포함). Tink·kotlin-reflect에 셰이딩된 Protocol Buffers 코드는 BSD-3-Clause, JNA 네이티브 라이브러리(`libjnidispatch.so`)에 정적 링크된 libffi는 MIT. Pleos SDK의 `libuacore.so`에 든 CRYPTOGAMS 코드는 [NOTICE.md](NOTICE.md)에 적었다. |
 
 앱 안 아이콘(Compose 벡터)·미니카 그림·이어콘(요약 화면 효과음 3개)은 이 저장소의 코드·스크립트로 만들었다. 런처 아이콘(`design/app_icon_512.png`, `res/mipmap-*`)은 기획서의 앱 아이콘 시안 이미지를 쓰며, 만드는 스크립트는 없다. 앱에 번들한 글꼴은 없다(시스템 글꼴 사용). `tools/phone-mockup/`의 목업 도구만 OFL·Apache 글꼴을 내려받아 쓰며 글꼴 파일은 저장소에 넣지 않는다.
 
