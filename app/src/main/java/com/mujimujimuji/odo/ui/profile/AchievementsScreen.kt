@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -97,8 +98,10 @@ private fun AchievementCell(def: AchievementDef, open: Boolean, stats: Achieveme
         Medal(unlocked = open, tier = medalTierOf(def), contentDescription = medalDesc)
         Spacer(Modifier.width(OdoSpace.m))
         Column(Modifier.weight(1f)) {
+            // 제목은 메달 설명이 이미 읽으니 글자 노드는 지운다(한 행에서 제목을 두 번 읽지 않는다).
             Text(
                 def.title,
+                Modifier.clearAndSetSemantics {},
                 style = OdoType.body,
                 color = if (open) c.ink96 else c.ink.copy(alpha = DISABLED_ALPHA),
                 maxLines = 1,

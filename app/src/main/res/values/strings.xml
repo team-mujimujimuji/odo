@@ -16,8 +16,8 @@
 
     <!-- 글랜스(주행 중) -->
     <string name="glance_label">안전 주행</string>
-    <!-- 게이지 접근성 문구(진행한 만큼). 목표가 없을 때는 home_next_goal_done을 읽는다 -->
-    <string name="glance_gauge_desc">다음 업적 진행 %1$d%%</string>
+    <!-- 게이지 접근성 문구. 진행한 만큼(퍼센트)은 게이지 상태 설명이 읽는다. 목표가 없을 때는 home_next_goal_done을 읽는다 -->
+    <string name="glance_gauge_desc">다음 업적 진행</string>
 
     <!-- 홈 -->
     <string name="home_week_title">이번 주 안전 주행</string>
@@ -98,7 +98,6 @@
     <string name="garage_none_of">%1$s 없음</string>
     <string name="garage_locked_hint">Lv\u00A0%1$d %2$s에서 열려요</string>
     <string name="garage_chip_locked_desc">%1$s, Lv %2$d에 열려요</string>
-    <string name="garage_chip_selected_desc">%1$s, 선택됨</string>
 
     <!-- 휴대폰 연결 -->
     <string name="phone_title">휴대폰 연결</string>

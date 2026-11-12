@@ -26,6 +26,10 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
@@ -154,9 +158,10 @@ fun HomeScreen(
                             .height(STATS_H)
                             .padding(start = OdoSpace.margin, end = OdoSpace.margin, top = OdoSpace.m),
                     ) {
-                        SafeKmColumn(ui, stats, Modifier.weight(1f).fillMaxHeight())
+                        // 두 열을 각각 한 묶음으로 읽는다(왼쪽 열 끝까지, 그다음 오른쪽 열). 묶지 않으면 행마다 두 열이 섞여 읽힌다.
+                        SafeKmColumn(ui, stats, Modifier.weight(1f).fillMaxHeight().semantics { isTraversalGroup = true })
                         Spacer(Modifier.width(OdoSpace.xxl))
-                        LevelColumn(ui, Modifier.width(LEVEL_W).fillMaxHeight())
+                        LevelColumn(ui, Modifier.width(LEVEL_W).fillMaxHeight().semantics { isTraversalGroup = true })
                     }
                     Hairline()
                     HomeKeys(ui, stats, onAchievements, onGarage, onPhone, onStartDemo, onResetDemo)
@@ -191,30 +196,40 @@ private fun SafeKmColumn(ui: DriveUi, stats: HomeStats, modifier: Modifier) {
         else -> stringResource(R.string.home_streak_reset)
     }
     // 행 높이는 고정(52 / 4 / 32 / 32 / 4 / 26 = 150, 위 여백 12 → 162 ≤ STATS_H). 오른쪽 열의 게이지와 같은 y(120)에 게이지가 놓인다.
+    val weekTitle = stringResource(R.string.home_week_title)
+    val weekKm = stats.weeklySafeKm.toString()
     Column(modifier) {
-        Row(Modifier.fillMaxWidth().height(TITLE_ROW_H)) {
-            Text(stringResource(R.string.home_week_title), Modifier.alignByBaseline(), style = OdoType.body, color = c.inkDim, maxLines = 1)
+        // 제목·숫자·단위를 한 덩어리("이번 주 안전 주행 42 km")로 한 번 읽는다(글자 노드는 지운다).
+        Row(Modifier.fillMaxWidth().height(TITLE_ROW_H).clearAndSetSemantics { contentDescription = "$weekTitle $weekKm $unit" }) {
+            Text(weekTitle, Modifier.alignByBaseline(), style = OdoType.body, color = c.inkDim, maxLines = 1)
             Spacer(Modifier.width(OdoSpace.l))
-            Text(stats.weeklySafeKm.toString(), Modifier.alignByBaseline(), style = OdoType.numeralM, color = c.ink96, maxLines = 1)
+            Text(weekKm, Modifier.alignByBaseline(), style = OdoType.numeralM, color = c.ink96, maxLines = 1)
             Spacer(Modifier.width(OdoSpace.s))
             Text(unit, Modifier.alignByBaseline(), style = OdoType.title, color = c.inkDim, maxLines = 1)
         }
         Spacer(Modifier.height(OdoSpace.xs))
         StatLine(stringResource(R.string.home_today), "${ui.todaySafeKm} $unit", null)
         StatLine(stringResource(R.string.home_yesterday), "${stats.yesterdaySafeKm} $unit", streak)
-        Gauge(progress = goal?.progress ?: 1f, thickness = OdoSize.gaugeParked, modifier = Modifier.fillMaxWidth())
-        FitCaption(goalCaption, goalCaptionShort)
+        // 화면 낭독기는 게이지를 캡션 글(긴 꼴)로 부르고 진행률은 상태로 읽는다. 같은 말을 두 번 읽지 않게 캡션 글자는 지운다.
+        Gauge(progress = goal?.progress ?: 1f, thickness = OdoSize.gaugeParked, modifier = Modifier.fillMaxWidth(), contentDescription = goalCaption)
+        FitCaption(goalCaption, goalCaptionShort, Modifier.clearAndSetSemantics {})
     }
 }
 
 /**
  * 오늘/어제 한 줄(설계서 §5.1): 라벨 body 24 `inkDim` + 값 body 24를 고정 폭 열에 오른쪽 정렬(tnum이라 "0 km"와 "42 km"의 km가 세로로 맞는다).
  * 두 열 모두 최소 폭이라 큰 글꼴에서는 글자만큼 넓어진다(자르지 않음). 스트릭 캡션은 줄 끝.
+ * 화면 낭독기는 줄 하나를 한 번에 읽는다(글자 노드는 지운다).
  */
 @Composable
 private fun StatLine(label: String, value: String, trailing: String?) {
     val c = LocalOdoColors.current
-    Row(Modifier.fillMaxWidth().height(STAT_ROW_H), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        Modifier.fillMaxWidth().height(STAT_ROW_H).clearAndSetSemantics {
+            contentDescription = if (trailing != null) "$label $value, $trailing" else "$label $value"
+        },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Text(label, Modifier.widthIn(min = STAT_LABEL_W), style = OdoType.body, color = c.inkDim, maxLines = 1, softWrap = false)
         Text(
             value,
@@ -258,9 +273,10 @@ private fun LevelColumn(ui: DriveUi, modifier: Modifier) {
             Text(LevelTable.titleForLevel(level), style = OdoType.title, color = c.inkDim, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Row(Modifier.fillMaxWidth().height(STAT_ROW_H), verticalAlignment = Alignment.CenterVertically) {
-            Text(caption, style = OdoType.caption, color = c.inkDim, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // 캡션 글은 아래 게이지의 이름으로 읽는다(글자는 지워 두 번 읽지 않는다).
+            Text(caption, Modifier.clearAndSetSemantics {}, style = OdoType.caption, color = c.inkDim, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        Gauge(progress = progress, thickness = OdoSize.gaugeParked, modifier = Modifier.fillMaxWidth())
+        Gauge(progress = progress, thickness = OdoSize.gaugeParked, modifier = Modifier.fillMaxWidth(), contentDescription = caption)
     }
 }
 

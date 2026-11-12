@@ -22,8 +22,8 @@
 
 합성 규칙(OdoVehicle 과 같음): compose.json 의 order 순서, wheel→wheel_<휠>, 루프·데칼·번호판은 꾸미기에 따라,
 뷰의 skip 은 건너뜀, night 목록(glow_head, glow_tail)은 밤에만. body=차 색 곱하기, spec=Screen,
-lamp=램프 색 곱하기(알파 낮 0.55/밤 1.0), 투톤·데칼=보조색 곱하기, glow_head=램프 색 곱한 뒤 Screen, glow_tail=Screen,
-그림자 알파 0.9, 밤에는 차 색·보조색을 0.85배. 의존은 Pillow 하나.
+lamp=램프 색 곱하기(알파 낮 0.55/밤 1.0), 투톤=지붕색 곱하기, 데칼=보조색 곱하기, glow_head=램프 색 곱한 뒤 Screen,
+glow_tail=Screen, 그림자 알파 0.9, 밤에는 차 색·보조색·지붕색을 0.85배. 의존은 Pillow 하나.
 """
 import argparse
 import json
@@ -42,8 +42,10 @@ CATALOG = os.path.join(REPO, "app", "src", "main", "java", "com", "mujimujimuji"
 # ── OdoVehicle.kt 와 같은 값 ───────────────────────────────────────────────────
 SHADOW_ALPHA = 0.9
 LAMP_ALPHA = {False: 0.55, True: 1.0}       # 낮 / 밤
-NIGHT_TINT = 0.85                            # 밤: 차 색·보조색을 이만큼 어둡게
-ACCENT_LUMA = 0.35                           # 차 색이 이보다 밝으면 보조색 graphite, 아니면 pearl
+NIGHT_TINT = 0.85                            # 밤: 차 색·보조색·지붕색을 0.85배로 어둡게
+ACCENT_LUMA = 0.35                           # 차 색이 이보다 밝으면 보조색 graphite·지붕색 밝은 진회색, 아니면 둘 다 pearl
+ROOF_ON_BRIGHT = (0x6B, 0x72, 0x7D)          # 투톤 지붕색: 밝은 차 위 밝은 진회색(graphite보다 밝다)
+ROOF_ON_DARK = (0xF1, 0xF3, 0xF6)            # 투톤 지붕색: 어두운 차 위 pearl(보조색과 같은 값)
 PX_TO_DP = 0.5                               # 에셋 px → dp
 
 # CosmeticCatalog.kt 를 못 읽을 때만 쓰는 값(72ec74d 기준)
@@ -163,8 +165,9 @@ class Minicar:
         paint, lamp = self.pal["color"][lo["color"]], self.pal["lamp"][lo["lamp"]]
         luma = (0.2126 * paint[0] + 0.7152 * paint[1] + 0.0722 * paint[2]) / 255
         accent = self.pal["color"]["graphite" if luma > ACCENT_LUMA else "pearl"]
+        roof = ROOF_ON_BRIGHT if luma > ACCENT_LUMA else ROOF_ON_DARK
         if night:
-            paint, accent = (tuple(round(v * NIGHT_TINT) for v in col) for col in (paint, accent))
+            paint, accent, roof = (tuple(round(v * NIGHT_TINT) for v in col) for col in (paint, accent, roof))
         blend = self.m["blend"]
         region = dst.crop(box).convert("RGB")
         for name, fname in self.layers_for(view, lo, night):
@@ -175,7 +178,7 @@ class Minicar:
             mode = blend.get(name)
             tint = None
             if mode == "modulate":
-                tint = {"body": paint, "lamp": lamp}.get(name, accent)
+                tint = {"body": paint, "lamp": lamp, "roof_twotone": roof}.get(name, accent)
             elif name == "glow_head":
                 tint = lamp
             if tint is not None:

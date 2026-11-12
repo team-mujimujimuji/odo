@@ -14,8 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.onLongClick
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.mujimujimuji.odo.R
 import com.mujimujimuji.odo.ui.theme.LocalOdoColors
@@ -39,7 +41,11 @@ fun DemoChip(text: String, modifier: Modifier = Modifier, onLongPress: (() -> Un
                 val timedOut = withTimeoutOrNull(LONG_PRESS_MS) { waitForUpOrCancellation(); true } == null
                 if (timedOut) onLongPress()
             }
-        }.semantics(mergeDescendants = true) { onLongClick(label = actionLabel) { onLongPress(); true } }
+        }.clearAndSetSemantics {
+            // 길게 누르기 대상 노드가 제 글자를 갖는다(이름 있는 노드). 안쪽 글자 노드는 지운다.
+            this.text = AnnotatedString(text)
+            onLongClick(label = actionLabel) { onLongPress(); true }
+        }
     } else {
         Modifier
     }

@@ -20,9 +20,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -131,7 +131,9 @@ private fun KeyCell(key: Key, reserveCaption: Boolean, compact: Boolean, tabRow:
                     drawLine(c.amber, Offset(0f, size.height - t / 2f), Offset(size.width, size.height - t / 2f), strokeWidth = t)
                 }
             }
-            .semantics(mergeDescendants = true) {
+            // 셀 노드 하나가 이름·역할·상태를 모두 갖는다. 안쪽 글자를 지워야 설명과 라벨을 두 번 읽지 않고,
+            // 역할(버튼·탭)도 가짜 자식이 아니라 이 노드에 붙는다. 바깥 clickable의 동작·역할은 그대로 남는다.
+            .clearAndSetSemantics {
                 contentDescription = description
                 if (tabRow) selected = key.selected
             }

@@ -14,10 +14,16 @@
   얇은 덧칠(OVERLAY_GROUPS: 투톤·스트라이프, 차체 위 2~3 mm 껍질)은 차체 바로 뒤에 그리고 다른 패스에서는
   holdout 대신 숨긴다(가림은 그 아래 차체 holdout 이 똑같이 한다). 덧칠이 레일·유리·박스 밑에 온전히 깔리고
   앞 물체가 나중에 그려지므로 경계에 차체 색이 새지 않고, 고르지 않은 꾸미기가 다른 꾸미기에 구멍·그림자를 내지 않는다.
+  투톤은 스트라이프 위에 그린다: 둘을 같이 켜면 4륜은 지붕 줄을 투톤이 덮어 후드·앞뒤 면 줄(세단은 트렁크)만 남고,
+  2륜은 레그실드·앞 펜더 줄을 투톤이 덮어 핸들 커버·뒤 몸체 옆면 줄만 남는다.
   뷰가 skip 하는 레이어의 그룹은 그 뷰의 모든 패스에서 숨긴다(앱이 그리지 않으므로 가리지도 않는다).
 차종별 조정(vehicles.json 차종 항목): hero_zoom(hero 카메라 당김), marker_zoom(navi·top 배율. 2륜을 지도에서
   알아보게 키운다. 앵커 자리는 그대로), view_overrides.<뷰>(그 뷰 설정 위에 깊게 덮어씀, 예: 2륜 글로 웅덩이 크기.
   값이 null 이면 그 키를 지운다).
+뷰 조정(views.<뷰>, 그 뷰를 렌더하는 동안만 쓰고 되돌린다):
+  glass_skip_body = fixed 패스에서 차체를 반사 광선에서 뺀다(유리에 흰 바탕 차체가 비쳐 칠한 차 위에 밝은 띠가 남지 않게).
+  wheel_dx_m = 4륜 바퀴(타이어·허브·휠)를 좌우 바깥으로 미는 거리(m). 내려다보는 뷰에서 타이어가 차체 옆으로 보이게.
+  tire_hex = 타이어 색. 어두운 지도 바탕에서 타이어가 묻히지 않게.
 뷰 glow: head/tail = 바닥 스폿(없으면 렌즈 번짐만), bloom_gain = 번짐 세기, bloom_scale = 번짐 반경 배수.
   hero 는 바닥 스폿을 두지 않는다(18° 카메라가 앞 오버행 밑 바닥까지 보는데 차 밖 스폿은 거기를 못 비춰
   빛 웅덩이가 범퍼에서 떨어져 보인다 → 렌즈 번짐만).
@@ -25,6 +31,7 @@ shadow: 바닥 shadow catcher + 차량 visible_camera=False. 뷰의 shadow_light
   world 가림(접지 그림자)만 남긴다. 뷰의 shadow_gain 은 그림자 알파 배수(번짐은 world 의 shadow 램프가 정한다).
 조명 receivers: "glass" 인 리그 조명은 유리 재질(M["glass"]) 객체만 비춘다(Cycles 라이트 링킹). 유리(반사율 약 3%)에
   하늘 반사를 넣을 만큼 밝은 조명이 도장(5~7%, 클리어코트)을 하얗게 날리지 않게 하려는 것.
+  receivers "noglass" 는 거꾸로 유리만 빼고 비춘다. 키 조명이 유리에 거울처럼 비쳐 유리가 차체만큼 밝아질 때 쓴다.
 조명 kind "glass_card": 유리 한 면(front|rear|side, 카메라를 향한 유리 면을 법선 방향으로 가름)의 거울 방향에 세로
   그라디언트 발광 판을 놓는다(add_glass_card). 면 조명은 반사에서 고른 밝기라 평평한 유리를 한 색으로만 칠하므로,
   유리 아래 끝 → 위 끝이 판의 ramp 0 → 1 에 맞게 판 크기·자리를 형상에서 잰다(형상이 바뀌어도 그대로 맞는다).
@@ -52,7 +59,7 @@ from mathutils import Euler, Vector
 HERE = os.path.dirname(os.path.abspath(__file__))
 LAYERS = ["shadow", "body", "spec", "fixed", "wheel_steel", "wheel_dia", "wheel_aero", "lamp",
           "roof_twotone", "roof_box", "decal_stripe", "plate_gold", "glow_head", "glow_tail"]
-ORDER = ["shadow", "body", "spec", "roof_twotone", "decal_stripe", "fixed", "wheel", "lamp", "roof_box",
+ORDER = ["shadow", "body", "spec", "decal_stripe", "roof_twotone", "fixed", "wheel", "lamp", "roof_box",
          "plate_gold", "glow_head", "glow_tail"]
 OVERLAY_GROUPS = ("roof_twotone", "decal_stripe")  # 차체에 붙은 얇은 덧칠: 다른 패스에서 holdout 하지 않는다
 GLOW = {"glow_head": "head", "glow_tail": "tail"}  # 레이어 → Parts.marks 키
@@ -303,12 +310,20 @@ def receiver_sets(P, M):
                 coll.objects.link(o)
     if not len(coll.objects):  # 빈 묶음이면 receivers glass 조명은 아무것도 비추지 않는다(glass_card 는 건너뜀)
         print("  WARN 유리 재질 객체가 없다: receivers glass 조명·glass_card 는 효과 없음", flush=True)
-    return {"glass": coll}
+    # noglass = 같은 유리 객체를 '제외'로만 담은 묶음: 그 조명은 유리 말고 모두를 비춘다. 유리가 없으면 None(제한 없음).
+    ex = None
+    if len(coll.objects):
+        ex = bpy.data.collections.new("lk_noglass")
+        for o in coll.objects:
+            ex.objects.link(o)
+        for co in ex.collection_objects:
+            co.light_linking.link_state = "EXCLUDE"
+    return {"glass": coll, "noglass": ex}
 
 
 def add_area(cfg, receivers=None):
     """면 조명. size_m 이 [가로, 세로]면 직사각형(가로 = 수평 방향). diffuse/glossy 로 어느 광선에 보일지 고른다.
-    receivers 이름이 있으면 그 묶음의 객체만 비춘다(receiver_sets)."""
+    receivers 이름이 있으면 그 묶음대로 비춘다(glass = 유리만, noglass = 유리 빼고 모두. receiver_sets)."""
     data = bpy.data.lights.new(cfg["name"], "AREA")
     size = cfg["size_m"]
     if isinstance(size, (int, float)):
@@ -327,7 +342,9 @@ def add_area(cfg, receivers=None):
     ob.visible_diffuse = cfg.get("diffuse", True)
     ob.visible_glossy = cfg.get("glossy", True)
     if "receivers" in cfg:
-        ob.light_linking.receiver_collection = receivers[cfg["receivers"]]
+        rc = receivers[cfg["receivers"]]
+        if rc is not None:  # noglass 인데 유리가 없으면 제한 없이 모두 비춘다
+            ob.light_linking.receiver_collection = rc
     return ob
 
 
@@ -623,6 +640,11 @@ def configure(layer, P, hidden, baked, floor, M, S, rig, rig_cfg, world, view):
     mat = M["body_spec"] if layer == "spec" else M["body_white"] if layer == "shadow" else M["body_diffuse"]
     for o in P.g["body"]:
         o.data.materials[0] = mat
+    # 차체는 이 패스에서 흰 무광(앱이 색을 입힌다)이라, 앞유리처럼 비스듬히 보이는 유리가 그 흰 면을 비추면
+    # 칠한 차 위에 밝은 띠가 남는다. 뷰가 glass_skip_body 를 켜면 fixed 패스에서 차체를 반사 광선에서 뺀다.
+    if not glow and layer == "fixed" and view.get("glass_skip_body"):
+        for o in P.g["body"]:
+            o.visible_glossy = False
     world_only = layer == "shadow" and view.get("shadow_lights", "all") == "world"
     for lt, cfg in rig:
         lt.hide_render = glow or world_only or (layer == "shadow" and not cfg.get("shadow_pass", True))
@@ -632,6 +654,29 @@ def configure(layer, P, hidden, baked, floor, M, S, rig, rig_cfg, world, view):
         world.set(rig_cfg.get("world_shadow"), 0.0, shadow=True)
     else:
         world.set(rig_cfg.get("world_diffuse"), rig_cfg.get("world_glossy"))
+
+
+def view_tweaks(view, v, P, M):
+    """뷰 하나에만 쓰는 조정. 끝나면 되돌리는 함수를 돌려준다(다른 뷰의 그림은 그대로).
+    wheel_dx_m: 4륜 바퀴(타이어·허브·휠)를 바깥쪽으로 민다. tire_hex: 타이어 색."""
+    moved = []
+    dx = view.get("wheel_dx_m", 0.0)
+    if dx and v.get("style") != "scooter":
+        for o in P.objects():
+            nm = o.name
+            if nm.startswith("wheel_") and len(nm) > 8 and nm[6] in "fr" and nm[7] in "lr" and nm[8] == "_":
+                moved.append((o, o.location.x))  # 원래 값을 그대로 되돌려 놓는다(빼기로 되돌리면 float32 끝자리가 남을 수 있다)
+                o.location.x += -dx if nm[7] == "l" else dx
+    tire_in = M["tire"].node_tree.nodes["Principled BSDF"].inputs["Base Color"]
+    old = tuple(tire_in.default_value)
+    if view.get("tire_hex"):
+        tire_in.default_value = (*hex_lin(view["tire_hex"]), 1.0)
+
+    def restore():
+        for o, x in moved:
+            o.location.x = x
+        tire_in.default_value = old
+    return restore
 
 
 def render(sc, path):
@@ -907,6 +952,7 @@ def main():
             # 휠 3종을 모두 건너뛰는 뷰(navi·top)에서는 휠을 고를 수 없으므로 기본 휠(타이어 포함)을 fixed 에 함께 굽는다.
             baked = {"wheel_steel": "fixed"} if {g for g in P.g if g.startswith("wheel")} <= skip else {}
             hidden = {g for g in P.g if g in skip and g not in baked}
+            restore = view_tweaks(view, v, P, M)
             outdir = os.path.join(args.out, vid, view_name)
             os.makedirs(outdir, exist_ok=True)
             for layer in layers:
@@ -929,6 +975,7 @@ def main():
                         extra += " " + image_stats(path, layer)
                 count += 1
                 print(f"[{vid}/{view_name}/{layer}] {time.time() - t0:.1f}s{extra}", flush=True)
+            restore()
             remove_lights([lt for lt, _ in rig])
             bpy.data.objects.remove(cam, do_unlink=True)
     with open(os.path.join(args.out, "render_meta.json"), "w", encoding="utf-8") as f:

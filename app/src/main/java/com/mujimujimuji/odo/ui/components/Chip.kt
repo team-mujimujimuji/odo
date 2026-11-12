@@ -24,8 +24,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mujimujimuji.odo.ui.theme.LocalOdoColors
@@ -70,7 +70,8 @@ fun Chip(
             .selectable(selected, interaction, indication = null, role = Role.RadioButton, onClick = onClick)
             .background(if (pressed) c.ink.copy(alpha = PRESSED_ALPHA) else c.ink.copy(alpha = 0f))
             .border(borderWidth, borderColor, OdoShape.chip)
-            .semantics(mergeDescendants = true) { this.contentDescription = description }
+            // 칩 노드 하나가 이름·라디오 역할·선택 상태를 갖는다(안쪽 글자는 지워 두 번 읽지 않는다).
+            .clearAndSetSemantics { this.contentDescription = description }
             .padding(horizontal = OdoSpace.m),
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -7,9 +7,9 @@
 흰 레이어에 `Modulate`/`Screen` 틴트를 얹는다(설계서 §2).
 
 ## 출처·금지
-- 현대차 디자인 언어에서 영감을 받아 **자체 제작한 스타일라이즈드 모델**이다. 특정 차종·엠블럼·명칭을 재현하지 않으며
-  로고·글자·그릴 무늬·실내·라이더(2륜)는 모델링하지 않는다. 비례는 일반적인 해치백/SUV/미니밴/패스트백/스쿠터다.
-  같은 문구가 `compose.json`의 `provenance`와 `NOTICE.md`에 있다.
+- 특정 차종을 본뜨지 않고 차급 비례를 일반화해 **자체 제작한 스타일라이즈드 모델**이다. 엠블럼·명칭을 재현하지 않으며
+  로고·글자·그릴 무늬·실내·라이더(2륜)는 모델링하지 않는다. 비례는 일반적인 해치백/SUV/미니밴/노치백 세단/스쿠터다.
+  같은 뜻의 문구가 `compose.json`의 `provenance`와 `NOTICE.md`에 있다.
 - 파일명·레이어명·주석·문서에 실제 모델명(한/영)·공식 색상명·"~풍"을 쓰지 않는다. `check_names.py`가 `denylist.txt`로
   `app/ tools/ docs/ NOTICE.md` 가운데 **공개 저장소에 들어가는 파일**(git이 추적하거나, 아직 추적 안 했지만 `.gitignore`에
   걸리지 않는 파일)을 훑어 **0건**이어야 한다. `.gitignore`로 빠지는 내부 문서는 건너뛰고 그 수를 `skipped`로 알린다
@@ -19,13 +19,17 @@
 | 파일 | 역할 |
 |---|---|
 | `vehicles.json` | 차종 5종(compact 소형 / suv 중형 / large 대형 / sedan 세단 / scooter 2륜)의 치수·단면 표(`shape`)·재질, 뷰 3개의 카메라(`views`), 조명(`lighting`). `seed: 7`. |
-| `models.py` | 형상·재질(Blender bmesh + numpy). 차 4종은 단면 표로 만든 로프트 케이지 → Subdivision Surface(crease) → 휠 아치를 파고 어두운 휠하우스 라이너를 넣는다. 유리·클래딩·투톤·데칼·램프·번호판은 차체 면을 복제해 살짝 띄운 겉껍질. |
+| `models.py` | 형상·재질(Blender bmesh + numpy). 차 4종은 단면 표로 만든 로프트 케이지 → Subdivision Surface(crease) → 휠 아치를 파고 어두운 휠하우스 라이너를 넣는다. 유리·클래딩·투톤·데칼·램프·번호판·문 틈·트렁크 뚜껑 틈은 차체 면을 복제해 살짝 띄운 겉껍질. |
 | `models_scooter.py` | 2륜 형상(`models.build_vehicle`이 부른다). 둥근 부품은 초타원 단면 로프트 + Subdivision Surface. |
 | `build_minicar.py` | Blender 헤드리스 장면 스크립트. 카메라 3뷰, 조명, 레이어별 가림 패스, 밤 글로 패스(Cycles CPU, OIDN, film transparent) → PNG + `render_meta.json`. |
 | `postprocess.py` | PNG → WebP, 그림자 알파 바닥 잡음 제거, 글로 형식 변환, `compose.json` 생성, `--check`(장수·크기·용량·계약 검사). |
 | `preview.py` | 앱과 같은 순서·블렌드·밤 규칙으로 레이어를 합성해 보는 도구(contact sheet, 지도 캡처 위 합성). Pillow만 쓴다. |
 | `check_names.py`, `denylist.txt` | 금지어 검사(검사 전용 목록; 목록의 단어는 어디에도 쓰이지 않는다). |
 | `render_meta.json` | 마지막 렌더의 기준점 기록(뷰별 `origin_px`·`px_per_m`·bbox, `samples`·`seed`·`navi_pitch_deg`). 렌더는 `<out>/`에 쓰므로 저장소로 복사한다(아래). |
+
+- 문 틈과 트렁크 뚜껑 틈은 `shape`의 선택 키다. `doors`는 옆면 세로 띠(`y` 자리 목록, `lean` 기울기(도, 수 하나 또는 틈마다 목록),
+  `w` 폭, `off` 띄움, `mat` 재질), `trunk`는 뒷유리 밑동 뒤 가로 띠와 데크 어깨를 따라가는 세로 띠 둘(`y` 앞 끝, `x` 세로 띠의 |x|,
+  `w`, `off`, `mat`)이다. 둘 다 `fixed`에 굽는다. 세단만 써서(문 틈 3줄 + 트렁크 뚜껑 틈) 4도어 노치백으로 읽히게 한다.
 
 ## 뷰 3개 (`compose.json` `views`)
 | 뷰 | PNG(px) | 앱(dp) | 기준점(px) | 카메라 | 쓰는 곳 | 만들지 않는 레이어 |
@@ -38,6 +42,9 @@
 - navi·top에서는 기본 휠(`wheel_steel`)을 `fixed`에 구워 넣는다(그 크기에서는 휠 디자인이 구분되지 않는다).
 - 2륜은 navi·top만 `marker_zoom` 1.6으로 크게 렌더한다(지도에서 알아보게. 기준점 자리는 그대로). 앱의 차종 배율 `naviScale`은 2륜 1.25, 나머지 1.0.
 - navi 고도 45°는 38°/45°/52° 후보를 견주어 골랐다(`--navi-pitch`, `build_minicar.py`의 `NAVI_PITCH_DEG` 주석).
+- navi는 그 뷰를 렌더하는 동안만 4륜 바퀴를 좌우 바깥으로 8 cm 밀고(`views.navi.wheel_dx_m`), 타이어를 `#6E6963`으로 조금 밝히고
+  (`tire_hex`), `fixed` 패스에서 차체를 유리 반사에서 뺀다(`glass_skip_body`). 내려다보는 각도에서 타이어가 차체 옆으로 보이고,
+  앞유리에 흰 차체가 비쳐 지붕 위에 밝은 띠가 남지 않게 한다. 뷰가 끝나면 되돌리므로 hero·top 그림은 그대로다.
 
 ## 레이어 14개
 `shadow`(접지 그림자) · `body`(흰 디퓨즈, 차 색 Modulate) · `spec`(광택 하이라이트, Screen) ·
@@ -46,14 +53,18 @@
 `roof_twotone`(투톤 루프/레그실드) · `roof_box`(루프박스/탑케이스) · `decal_stripe`(스트라이프) · `plate_gold`(황금 번호판) ·
 `glow_head`(밤 전조등 빛: 렌즈 번짐 + 앞 바닥 빛, 램프 색 틴트 후 Screen) · `glow_tail`(밤 후미등 붉은 번짐 + 뒤 바닥 빛, Screen).
 
-- 그리는 순서(`order`): `shadow, body, spec, roof_twotone, decal_stripe, fixed, wheel, lamp, roof_box, plate_gold, glow_head, glow_tail`.
+- 그리는 순서(`order`): `shadow, body, spec, decal_stripe, roof_twotone, fixed, wheel, lamp, roof_box, plate_gold, glow_head, glow_tail`.
   순서가 앞인 레이어의 물체는 가림(holdout), 뒤인 레이어의 물체는 숨김으로 렌더해 아래 레이어가 늘 온전한 면이 되게 한다
   (SrcOver 합성에 이음새가 없다). 투톤·스트라이프는 차체 위 2~3 mm 껍질이라 다른 패스에서는 가리지 않고 숨긴다.
+  투톤이 스트라이프 위라 둘을 같이 켜면 4륜은 지붕 줄을 투톤이 덮어 후드·앞뒤 면 줄(세단은 트렁크)만 남고,
+  2륜은 레그실드·앞 펜더 줄을 투톤이 덮어 핸들 커버·뒤 몸체 옆면 줄만 남는다.
 - `night` 목록(`glow_head`, `glow_tail`)은 밤에만 그린다. 정지 이미지이고 애니메이션은 없다(주행 중 화면에 연출을 두지 않는 안전 규칙).
 - 글로 렌더 원본은 검은 배경 위 RGB이고, `postprocess.py`가 앱 형식(RGB = 빛 색, 알파 = 세기 = max(R,G,B))으로 바꾼다.
 - 인코딩: hero 손실(`-q 85 -alpha_q 90 -sharp_yuv`), navi·top 무손실(`-lossless -z 9 -exact`), 글로는 무손실과 손실(-q 90) 가운데 작은 쪽.
 - 조명: 노드 그라데이션 world + 뷰별 면 조명(key/fill/rim, 반사용 소프트박스). 유리에는 라이트 링킹으로 유리만 비추는
   하늘 반사 판(`glass_card`)을 둔다. 외부 HDRI는 쓰지 않는다. top 조명은 좌우 대칭이라 지도에서 돌려도 한쪽만 밝아 보이지 않는다.
+  navi 키 조명은 거꾸로 유리만 빼고 비추고(`"receivers": "noglass"`, 키 조명이 유리에 비쳐 유리가 차체만큼 밝아지지 않게),
+  navi 림 조명은 18 W다.
 
 ## 실행
 ```sh
@@ -97,16 +108,16 @@ du -sk app/src/main/assets/minicar
 - 시드 7, Cycles CPU, OIDN(CPU), PNG 스탬프 메타데이터 끔, `use_persistent_data=False` + 렌더 직전 `view_layer.update()`.
   같은 기기·같은 입력이면 PNG가 바이트까지 같다. 형상 코드는 난수·시간·집합 순회 순서에 기대지 않는다.
 - `postprocess.py`는 같은 PNG·같은 cwebp 버전이면 WebP·`compose.json`이 바이트까지 같다.
-- 확인(2026-11-11): 같은 코드로 따로 두 번 전체 렌더한 PNG 165장이 `diff -rq`로 전부 같았고(`render_meta.json`도 같음),
+- 확인(2026-11-12): 같은 코드로 따로 두 번 전체 렌더한 PNG 165장이 `diff -rq`로 전부 같았고(`render_meta.json`도 같음),
   두 번째 렌더를 `postprocess.py --dst`로 다른 폴더에 뽑은 166파일이 앱 에셋 폴더와 바이트까지 같았다.
 
-## 실측(2026-11-11, Apple M4 CPU, Blender 4.5.9 LTS, 128 samples, `-t 6`)
-- 렌더 전체 165장: **208.0 s / 210.5 s**(두 번 실행, 벽시계). v1 120장은 46.8 s였다. 뷰·레이어가 늘고, 세분화한 차체와
+## 실측(2026-11-12, Apple M4 CPU, Blender 4.5.9 LTS, 128 samples, `-t 6`)
+- 렌더 전체 165장: **222 s / 210 s**(두 번 실행, 벽시계). v1 120장은 46.8 s였다. 뷰·레이어가 늘고, 세분화한 차체와
   유리 반사 판, 밤 글로 패스(선형 EXR + 렌즈 번짐)가 더해졌다. 변환(`postprocess.py`, cwebp 4개 동시) 12 s.
-- 에셋: 165장 + `compose.json` = **1216 KiB**(`du -sk`, 한도 4096), 바이트 합 885,867(hero 65장 339,482 · navi 50장 252,760 ·
-  top 50장 291,838 · 이 가운데 글로 25장 73,254 · `compose.json` 1,787). 가장 큰 파일 19 KiB(large/hero/shadow).
+- 에셋: 165장 + `compose.json` = **1240 KiB**(`du -sk`, 한도 4096), 바이트 합 890,436(hero 65장 339,672 · navi 50장 255,822 ·
+  top 50장 293,156 · 이 가운데 글로 25장 73,318 · `compose.json` 1,786). 가장 큰 파일 18,944 B(large/hero/shadow).
   v1(728 KiB)보다 커진 이유: top 뷰가 새로 생기고(+50장), navi 판이 192×192 → 256×320 px로 커지고, 밤 글로 25장이 더해졌다.
-- 앱 글랜스 프레임 시간(에뮬레이터, SwiftShader) 중앙값 18.3 ms로, v1 에셋 때의 18.5 ms와 같은 수준이다.
+- 앱 글랜스 프레임 시간(2026-11-11 측정, 에뮬레이터, SwiftShader) 중앙값 18.3 ms로, v1 에셋 때의 18.5 ms와 같은 수준이다.
 
 ## 앞 버전(v1)에서 바뀐 것
 - v1은 뷰 2개(hero, 뒤에서 45°로 내려다본 navi 192×192 하나를 기울인 지도와 north-up 지도 양쪽에 씀) × 레이어 12 = 120장이었다.

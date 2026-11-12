@@ -92,23 +92,45 @@ class VehiclePaint private constructor(
         private const val LAMP_ALPHA_NIGHT = 1f
         private const val LAMP_ALPHA_DAY = 0.55f
 
+        /** 투톤 지붕색: 밝은 차 위의 밝은 진회색(graphite보다 밝다). 어두운 차 위는 pearl. */
+        private const val ROOF_ON_BRIGHT = 0xFF6B727DL
+
         fun of(loadout: Loadout, night: Boolean): VehiclePaint {
-            val bodyArgb = argbOf(Slot.COLOR, loadout.colorId)
+            val tints = tintsOf(loadout.colorId, night)
             val lampArgb = argbOf(Slot.LAMP, loadout.lampId)
-            // 투톤 루프: 바디 휘도 > 0.35 → graphite, 아니면 pearl. 데칼: 바디가 밝으면 graphite 줄, 어두우면 pearl 줄.
-            val bright = luma(bodyArgb) > LUMA_SPLIT
-            val graphite = argbOf(Slot.COLOR, "graphite")
-            val pearl = argbOf(Slot.COLOR, "pearl")
-            val accent = if (bright) graphite else pearl
-            val shade: (Long) -> Long = { if (night) darken(it, NIGHT_DARKEN) else it }
             return VehiclePaint(
-                body = VehicleAssets.tint(shade(bodyArgb), BlendMode.Modulate),
+                body = VehicleAssets.tint(tints.body, BlendMode.Modulate),
                 lamp = VehicleAssets.tint(lampArgb, BlendMode.Modulate),
                 lampAlpha = if (night) LAMP_ALPHA_NIGHT else LAMP_ALPHA_DAY,
-                roof = VehicleAssets.tint(shade(accent), BlendMode.Modulate),
-                decal = VehicleAssets.tint(shade(accent), BlendMode.Modulate),
+                roof = VehicleAssets.tint(tints.roof, BlendMode.Modulate),
+                decal = VehicleAssets.tint(tints.decal, BlendMode.Modulate),
             )
         }
+
+        /**
+         * 몸·투톤 지붕·데칼 층에 거는 색(ARGB). [of]가 이 값으로 색 필터를 만든다.
+         * 지붕색·데칼색은 바디 밝기로 고르고([roofArgb], [decalArgb]), 밤에는 셋을 같이 0.85배로 어둡게 한다.
+         */
+        internal fun tintsOf(colorId: String, night: Boolean): VehicleTints {
+            val bodyArgb = argbOf(Slot.COLOR, colorId)
+            val shade: (Long) -> Long = { if (night) darken(it, NIGHT_DARKEN) else it }
+            return VehicleTints(
+                body = shade(bodyArgb),
+                roof = shade(roofArgb(bodyArgb)),
+                decal = shade(decalArgb(bodyArgb)),
+            )
+        }
+
+        /** 바디가 밝은 차인지: sRGB 휘도([luma])가 0.35보다 크면 밝다. 지붕색·데칼색을 이것으로 고른다. */
+        internal fun isBright(bodyArgb: Long): Boolean = luma(bodyArgb) > LUMA_SPLIT
+
+        /** 투톤 지붕색(밤에 어둡게 하기 전): 밝은 차 위는 밝은 진회색([ROOF_ON_BRIGHT]), 어두운 차 위는 pearl. */
+        internal fun roofArgb(bodyArgb: Long): Long =
+            if (isBright(bodyArgb)) ROOF_ON_BRIGHT else argbOf(Slot.COLOR, "pearl")
+
+        /** 데칼 줄 색(밤에 어둡게 하기 전): 밝은 차 위는 graphite, 어두운 차 위는 pearl. */
+        internal fun decalArgb(bodyArgb: Long): Long =
+            argbOf(Slot.COLOR, if (isBright(bodyArgb)) "graphite" else "pearl")
 
         private fun argbOf(slot: Slot, id: String): Long =
             CosmeticCatalog.item(slot, id).argb ?: CosmeticCatalog.defaultOf(slot).argb ?: 0xFFFFFFFFL
@@ -130,6 +152,9 @@ class VehiclePaint private constructor(
         }
     }
 }
+
+/** 몸·투톤 지붕·데칼 층의 색(ARGB, 밤이면 어둡게 한 값). [VehiclePaint.tintsOf]가 만든다. */
+internal data class VehicleTints(val body: Long, val roof: Long, val decal: Long)
 
 private const val SHADOW_ALPHA = 0.9f
 

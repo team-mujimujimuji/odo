@@ -34,8 +34,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpSize
@@ -129,8 +131,9 @@ fun SummaryScreen(
                 .pointerInput(Unit) { detectTapGestures { if (beat < 2) beat = 2 } },
         ) {
             Row(Modifier.fillMaxSize().padding(horizontal = OdoSpace.l)) {
-                Facts(summary, Modifier.width(LEFT_W).fillMaxHeight().padding(vertical = OdoSpace.l))
-                Column(Modifier.width(RIGHT_W).fillMaxHeight()) {
+                // 두 열을 각각 한 묶음으로 읽는다(왼쪽 열 끝까지, 그다음 오른쪽 열과 홈 키). 묶지 않으면 행마다 두 열이 섞여 읽힌다.
+                Facts(summary, Modifier.width(LEFT_W).fillMaxHeight().padding(vertical = OdoSpace.l).semantics { isTraversalGroup = true })
+                Column(Modifier.width(RIGHT_W).fillMaxHeight().semantics { isTraversalGroup = true }) {
                     Spacer(Modifier.height(OdoSpace.l))
                     if (leveledUp) LevelUpCard(summary, loadout.vehicle, visible = beat >= 1, motion) else NextLevel(summary.levelAfter, totalXp)
                     Spacer(Modifier.height(OdoSpace.l))
@@ -208,7 +211,9 @@ private fun XpNoteCaption(note: XpNote) {
 @Composable
 private fun FactNumber(label: String, value: String, unit: String?) {
     val c = LocalOdoColors.current
-    Column {
+    val description = listOfNotNull(label, value, unit).joinToString(" ")
+    // 라벨·숫자·단위를 한 덩어리("안전 주행 65 km")로 한 번 읽는다(글자 노드는 지운다).
+    Column(Modifier.clearAndSetSemantics { contentDescription = description }) {
         Text(label, style = OdoType.caption, color = c.inkDim)
         Row {
             Text(value, Modifier.alignByBaseline(), style = OdoType.numeralM, color = c.ink96, maxLines = 1)
@@ -294,14 +299,17 @@ private fun NextLevel(level: Int, totalXp: Int) {
         if (span != null) {
             val (start, next) = span
             val progress = if (next > start) ((totalXp - start).toFloat() / (next - start)).coerceIn(0f, 1f) else 1f
+            val caption = stringResource(R.string.summary_next_level, level + 1, (next - totalXp).coerceAtLeast(0))
+            // 캡션 글은 아래 게이지의 이름으로 읽는다(글자는 지워 두 번 읽지 않는다).
             Text(
-                stringResource(R.string.summary_next_level, level + 1, (next - totalXp).coerceAtLeast(0)),
+                caption,
+                Modifier.clearAndSetSemantics {},
                 style = OdoType.caption,
                 color = c.inkDim,
                 maxLines = 1,
             )
             Spacer(Modifier.height(OdoSpace.xs))
-            Gauge(progress = progress, thickness = OdoSize.gaugeParked, modifier = Modifier.fillMaxWidth())
+            Gauge(progress = progress, thickness = OdoSize.gaugeParked, modifier = Modifier.fillMaxWidth(), contentDescription = caption)
         } else {
             Text(stringResource(R.string.home_max_level), style = OdoType.caption, color = c.inkDim, maxLines = 1)
         }
@@ -319,9 +327,9 @@ private fun AchievementRows(items: List<AchievementDef>, visible: Boolean, motio
     Column(modifier.graphicsLayer { this.alpha = alpha }.verticalScroll(rememberScrollState())) {
         items.forEachIndexed { i, def ->
             if (i > 0) Hairline()
-            val desc = stringResource(R.string.medal_desc_open, def.title)
             Row(Modifier.fillMaxWidth().heightIn(min = ROW_H).padding(vertical = OdoSpace.xs), verticalAlignment = Alignment.CenterVertically) {
-                Medal(unlocked = true, tier = medalTierOf(def), contentDescription = desc)
+                // 메달은 장식이라 설명을 두지 않는다: 옆 제목을 한 번만 읽는다(이 목록은 이번 트립에 연 업적뿐이다).
+                Medal(unlocked = true, tier = medalTierOf(def))
                 Spacer(Modifier.width(OdoSpace.m))
                 Column(Modifier.weight(1f)) {
                     Text(def.title, style = OdoType.body, color = c.ink96, maxLines = 1, overflow = TextOverflow.Ellipsis)

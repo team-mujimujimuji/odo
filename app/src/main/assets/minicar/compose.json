@@ -60,8 +60,8 @@
   "shadow",
   "body",
   "spec",
-  "roof_twotone",
   "decal_stripe",
+  "roof_twotone",
   "fixed",
   "wheel",
   "lamp",
@@ -121,7 +121,7 @@
   "glow_head",
   "glow_tail"
  ],
- "provenance": "현대차 디자인 언어에서 영감을 받아 자체 제작한 스타일라이즈드 모델. 특정 차종·엠블럼·명칭을 재현하지 않음.",
+ "provenance": "특정 차종을 본뜨지 않고 차급 비례를 일반화해 자체 제작한 스타일라이즈드 모델. 엠블럼·명칭을 재현하지 않음.",
  "generator": "tools/minicar/build_minicar.py",
  "blender": "4.5.9",
  "samples": 128

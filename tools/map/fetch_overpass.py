@@ -22,7 +22,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-BBOX = "37.20,127.54,37.50,128.17"  # 남위,서경,북위,동경. 여주~횡성 시나리오 복도를 덮는 상자
+BBOX = "37.20,127.54,37.50,128.17"  # 남쪽 위도, 서쪽 경도, 북쪽 위도, 동쪽 경도(Overpass bbox 순서). 여주~횡성 시나리오 복도를 덮는 상자
 USER_AGENT = "odo-redesign/1.0 (contest build tool)"  # 없으면 Overpass가 406을 돌려준다
 DEFAULT_ENDPOINT = "https://overpass-api.de/api/interpreter"
 

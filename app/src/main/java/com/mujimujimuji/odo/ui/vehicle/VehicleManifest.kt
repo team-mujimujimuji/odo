@@ -85,10 +85,11 @@ data class VehicleManifest(
 
         /**
          * 계약 v2의 그리기 순서(깊이 순). 매니페스트를 아직 못 읽었을 때의 기본값.
-         * 차체에 붙은 덧칠(투톤·스트라이프)이 차체 바로 위, 그 앞에 놓이는 부품·휠·램프·루프 박스가 뒤에 온다.
+         * 차체에 붙은 덧칠(스트라이프·투톤)이 차체 바로 위에 오고, 투톤이 스트라이프 위다.
+         * 그 앞에 놓이는 부품·휠·램프·루프 박스가 뒤에 온다.
          */
         val DEFAULT_ORDER: List<String> = listOf(
-            "shadow", "body", "spec", "roof_twotone", "decal_stripe", "fixed", "wheel", "lamp",
+            "shadow", "body", "spec", "decal_stripe", "roof_twotone", "fixed", "wheel", "lamp",
             "roof_box", "plate_gold", "glow_head", "glow_tail",
         )
 

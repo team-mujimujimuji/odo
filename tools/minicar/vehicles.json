@@ -7,6 +7,7 @@
              "skip": ["glow_tail"],
              "glow": {"bloom_gain": 0.5}},
     "navi": {"px": [256, 320], "camera": "persp", "focal_mm": 200, "elev_deg": 45, "azimuth_deg": 180, "px_per_m": 56, "origin_px": [128, 200], "shadow_lights": "world", "shadow_gain": 1.15, "shadow_edge_fade_px": 24,
+             "glass_skip_body": true, "wheel_dx_m": 0.08, "tire_hex": "#6E6963",
              "skip": ["wheel_steel", "wheel_dia", "wheel_aero", "lamp"],
              "glow": {"head": {"center": true, "axis_m": 0.7, "reach_m": 1.5, "level_w": 6.0, "spread": 1.6},
                       "tail": {"center": true, "axis_m": 0.0, "reach_m": 0.55, "level_w": 4.0, "spread": 1.8}}},
@@ -37,10 +38,10 @@
         {"name": "glass_side", "kind": "glass_card", "glass": "side", "distance_m": 2.0, "margin_m": 0.3, "hex": "#CFE0F2", "ramp": [[0.0, 0.5], [1.0, 2.6]], "shadow_pass": false}
       ]},
       "navi": {"world_diffuse": 0.58, "lights": [
-        {"name": "key", "azimuth_deg": 180, "elev_deg": 62, "distance_m": 7.0, "size_m": 4.0, "energy_w": 190},
+        {"name": "key", "azimuth_deg": 180, "elev_deg": 62, "distance_m": 7.0, "size_m": 4.0, "energy_w": 190, "receivers": "noglass"},
         {"name": "side_l", "azimuth_deg": 100, "elev_deg": 30, "distance_m": 7.0, "size_m": [4.0, 1.5], "energy_w": 52},
         {"name": "side_r", "azimuth_deg": -100, "elev_deg": 30, "distance_m": 7.0, "size_m": [4.0, 1.5], "energy_w": 52},
-        {"name": "rim", "azimuth_deg": 0, "elev_deg": 30, "distance_m": 7.0, "size_m": [5.0, 0.9], "energy_w": 100, "diffuse": false},
+        {"name": "rim", "azimuth_deg": 0, "elev_deg": 30, "distance_m": 7.0, "size_m": [5.0, 0.9], "energy_w": 18, "diffuse": false},
         {"name": "glass_sky_top", "azimuth_deg": 0, "elev_deg": 90, "distance_m": 7.0, "size_m": [4.0, 6.0], "energy_w": 150, "hex": "#CFE0F2", "diffuse": false, "receivers": "glass"},
         {"name": "glass_bl", "kind": "glass_card", "glass": "rear", "distance_m": 2.0, "margin_m": 0.3, "hex": "#CFE0F2", "ramp": [[0.0, 0.6], [1.0, 4.4]], "shadow_pass": false}
       ]},
@@ -274,7 +275,7 @@
     },
     "sedan": {
       "label": "세단",
-      "style": "fastback",
+      "style": "notchback",
       "dims": [4.3, 1.9, 1.25],
       "wheelbase": 2.95,
       "wheel_r": 0.39,
@@ -307,14 +308,17 @@
           [0.88, "cowl", 0.95, 0.16, 0.87, 0.9, null, null, 0.06, [0.0, 0.05]],
           [0.05, "roof_f", 0.95, 0.16, 0.88, 1.25, 0.63, 1.15, 0.08, [0.08, 0.06]],
           [-0.5, "roof", 0.95, 0.16, 0.89, 1.245, 0.63, 1.14, 0.0, 0],
-          [-0.82, "roof_r", 0.95, 0.16, 0.9, 1.22, 0.61, 1.12, 0.0, [0.05, 0.0]],
-          [-1.62, "base", 0.94, 0.17, 0.91, 0.95, null, null, -0.02, 0],
-          [-1.98, "deck", 0.91, 0.2, 0.89, 0.94, null, null, 0.0, 0],
-          [-2.15, "tail", 0.85, 0.26, 0.84, 0.9, null, null, 0.0, 0]
+          [-0.84, "roof_r", 0.95, 0.16, 0.9, 1.22, 0.61, 1.12, 0.0, [0.05, 0.0]],
+          [-1.15, "base", 0.95, 0.16, 0.88, 0.925, null, null, -0.02, 0],
+          [-1.55, "deck", 0.945, 0.17, 0.875, 0.915, null, null, 0.0, 0],
+          [-1.98, "deck", 0.91, 0.2, 0.86, 0.905, null, null, 0.0, 0],
+          [-2.15, "tail", 0.85, 0.26, 0.84, 0.88, null, null, 0.0, 0]
         ],
-        "crease": {"R": 0.3, "S": 0.9, "G": 0.8, "E": 0.6, "T": 0.3, "nose": 0.5, "tail": 0.7, "cowl": 0.8, "roof_f": 0.6, "roof_r": 0.4, "base": 0.7, "deck": 0.6, "hood": 0.0},
+        "crease": {"R": 0.3, "S": 0.9, "G": 0.8, "E": 0.6, "T": 0.3, "nose": 0.5, "tail": 0.7, "cowl": 0.8, "roof_f": 0.6, "roof_r": 0.4, "base": 0.9, "deck": 0.6, "hood": 0.0},
         "arch": {"gap": 0.03, "wide": 0.03, "n": 2.0, "flare": 0.045, "falloff": 0.2, "flare_lo": [0.0, 0.2], "tire_inset": 0.015, "rear": {"flare": 0.075, "tire_inset": 0.022}},
-        "glass": {"a_y": 0.78, "a_lean": 0, "b_y": -0.28, "b_w": 0.07, "b_lean": 4, "c_y": -0.92, "c_lean": 38},
+        "glass": {"a_y": 0.78, "a_lean": 0, "b_y": -0.15, "b_w": 0.07, "b_lean": 4, "c_y": -0.93, "c_lean": 34},
+        "doors": {"y": [0.8, -0.15, -0.849], "w": 0.016, "lean": [0, 0, -11.5], "off": 0.0035, "mat": "liner"},
+        "trunk": {"y": -1.21, "x": 0.76, "w": 0.04, "off": 0.0035, "mat": "liner"},
         "clad": {"band": 0.06},
         "stripe": [[-0.24, -0.11], [0.11, 0.24]],
         "mirror": {"t": 0.3, "w": 0.16, "d": 0.08, "h": 0.09},

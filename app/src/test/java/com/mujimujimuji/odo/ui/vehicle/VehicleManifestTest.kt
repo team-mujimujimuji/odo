@@ -24,13 +24,13 @@ import kotlin.math.sin
  * - 계약 fixture([V2_JSON]) 테스트: 파싱, 뷰별 skip, night, 그리기 순서 해석, 크기·기준점·회전([VehiclePose]), 홈 배치(순수 함수).
  *   에셋 폴더 상태와 상관없이 통과한다.
  * - `실제 에셋…` 테스트: 에셋 폴더(app/src/main/assets/minicar)를 JVM에서 직접 읽는다.
- *   "계약 v2와 같다", "165장" 두 개는 v2 에셋이 들어와야 통과한다(v1 에셋에서는 실패).
+ *   "계약 v2와 같다", "165장", "투톤은 스트라이프 위" 세 개는 v2 에셋이 들어와야 통과한다(v1 에셋에서는 실패).
  *   환경 변수 `ODO_MINICAR_ASSETS`에 폴더를 주면 그 폴더(예: 후처리 후보)를 대신 검사한다. 앱에 넣기 전에 돌려 볼 때 쓴다.
  */
 class VehicleManifestTest {
 
     private companion object {
-        const val PROVENANCE = "현대차 디자인 언어에서 영감을 받아 자체 제작한 스타일라이즈드 모델. 특정 차종·엠블럼·명칭을 재현하지 않음."
+        const val PROVENANCE = "특정 차종을 본뜨지 않고 차급 비례를 일반화해 자체 제작한 스타일라이즈드 모델. 엠블럼·명칭을 재현하지 않음."
 
         /** 에셋 계약 v2의 compose.json(provenance만 지금 문구를 채웠다). */
         val V2_JSON = """
@@ -41,7 +41,7 @@ class VehicleManifestTest {
               "navi": {"px": [256, 320], "dp": [128, 160], "anchor": [128, 200], "skip": ["wheel_steel", "wheel_dia", "wheel_aero", "lamp"]},
               "top":  {"px": [256, 384], "dp": [128, 192], "anchor": [128, 192], "skip": ["wheel_steel", "wheel_dia", "wheel_aero", "plate_gold"]}
              },
-             "order": ["shadow", "body", "spec", "roof_twotone", "decal_stripe", "fixed", "wheel", "lamp", "roof_box", "plate_gold", "glow_head", "glow_tail"],
+             "order": ["shadow", "body", "spec", "decal_stripe", "roof_twotone", "fixed", "wheel", "lamp", "roof_box", "plate_gold", "glow_head", "glow_tail"],
              "blend": {"body": "modulate", "spec": "screen", "lamp": "modulate", "roof_twotone": "modulate", "decal_stripe": "modulate", "glow_head": "screen", "glow_tail": "screen"},
              "night": ["glow_head", "glow_tail"],
              "vehicles": {"compact": {"label": "소형", "naviScale": 1.0}, "suv": {"label": "중형", "naviScale": 1.0}, "large": {"label": "대형", "naviScale": 1.0}, "sedan": {"label": "세단", "naviScale": 1.0}, "scooter": {"label": "2륜", "naviScale": 1.25}},
@@ -158,15 +158,15 @@ class VehicleManifestTest {
         assertEquals(listOf("shadow", "body", "spec", "fixed", "lamp"), v2.layersFor(plain, VehicleView.Top, night = false))
 
         assertEquals(
-            listOf("shadow", "body", "spec", "roof_twotone", "decal_stripe", "fixed", "wheel_dia", "lamp", "plate_gold"),
+            listOf("shadow", "body", "spec", "decal_stripe", "roof_twotone", "fixed", "wheel_dia", "lamp", "plate_gold"),
             v2.layersFor(full, VehicleView.Hero, night = false),
         )
         assertEquals(
-            listOf("shadow", "body", "spec", "roof_twotone", "decal_stripe", "fixed", "plate_gold"),
+            listOf("shadow", "body", "spec", "decal_stripe", "roof_twotone", "fixed", "plate_gold"),
             v2.layersFor(full, VehicleView.Navi, night = false),
         )
         assertEquals(
-            listOf("shadow", "body", "spec", "roof_twotone", "decal_stripe", "fixed", "lamp"),
+            listOf("shadow", "body", "spec", "decal_stripe", "roof_twotone", "fixed", "lamp"),
             v2.layersFor(full, VehicleView.Top, night = false),
         )
 
@@ -482,6 +482,18 @@ class VehicleManifestTest {
         assertEquals("vehicles.naviScale", v2.naviScale, real.naviScale)
         assertEquals("provenance", PROVENANCE, real.provenance)
         assertEquals(v2, real)
+    }
+
+    @Test
+    fun `실제 에셋과 기본 순서에서 투톤은 스트라이프 위다`() {
+        // 둘을 같이 켜면 투톤이 겹치는 자리(4륜 지붕, 2륜 레그실드·앞 펜더)의 줄을 덮는다. 순서가 뒤집히면 줄이 투톤 위로 올라온다.
+        for ((where, order) in listOf("DEFAULT_ORDER" to VehicleManifest.DEFAULT_ORDER, "compose.json" to real.order)) {
+            val stripe = order.indexOf("decal_stripe")
+            val twotone = order.indexOf("roof_twotone")
+            assertTrue("$where: decal_stripe 없음", stripe >= 0)
+            assertTrue("$where: roof_twotone 없음", twotone >= 0)
+            assertTrue("$where: roof_twotone($twotone)이 decal_stripe($stripe)보다 뒤(위)여야 한다", twotone > stripe)
+        }
     }
 
     @Test

@@ -7,11 +7,11 @@ Pleos Connect(Android Automotive OS) 차량 신호로 트립을 자동으로 시
 
 ## 화면
 
-아래 APK를 Pleos Connect 에뮬레이터에 설치해 시나리오 재생으로 찍었다. 멀티윈도우 오른쪽 창(658×552 px)의 앱 화면만 잘랐고, 데모 프로필이라 개인정보는 없다.
+이 저장소 소스로 빌드한 시나리오 재생 모드 APK(`USE_FAKE_SIGNALS=true`)를 Pleos Connect 에뮬레이터에 설치해 찍었다. 화면(1024×768) 오른쪽의 Pleos Connect 앱 영역(실측 창 658×552 px)만 잘랐고, 데모 프로필이라 개인정보는 없다. 화면 배치는 표준 창 656×548 dp([설계서](docs/design-spec.md) §5)를 기준으로 잡았다.
 
 | 홈 (정차) | 글랜스 (주행 중) |
 |---|---|
-| <img src="docs/screenshots/01_home.png" width="400" alt="홈: 오프라인 드라이브 맵 위의 3D 미니카, 이번 주 안전 주행 42 km, Lv 4"> | <img src="docs/screenshots/02_glance.png" width="400" alt="글랜스: 진행 방향이 위인 기울인 지도, 안전 주행 33 km와 게이지 1개"> |
+| <img src="docs/screenshots/01_home.png" width="400" alt="홈: 오프라인 드라이브 맵 위의 3D 미니카, 이번 주 안전 주행 42 km, Lv 4"> | <img src="docs/screenshots/02_glance.png" width="400" alt="글랜스: 진행 방향이 위인 기울인 지도, 안전 주행 32 km와 게이지 1개"> |
 | 북쪽이 위인 오프라인 드라이브 맵 위에 내 미니카(3D 렌더). 이번 주 안전 km·레벨·다음 업적, 아래 키 열(업적·차고·휴대폰·데모 재생·초기화) | 진행 방향이 위로 오게 58° 기울인 지도에 내 차와 모의 미니카 점 2개. 숫자 1개(오늘 안전 km)와 다음 업적 게이지 1개만 보이고 터치는 막힌다 |
 | **트립 요약 (정차 직후)** | **업적** |
 | <img src="docs/screenshots/03_summary.png" width="400" alt="트립 요약: 안전 65 km, +300 XP, Lv 4에서 5, 업적 2개"> | <img src="docs/screenshots/04_achievements.png" width="400" alt="업적: 12개 중 5개 달성"> |
@@ -24,6 +24,7 @@ Pleos Connect(Android Automotive OS) 차량 신호로 트립을 자동으로 시
 
 - 저장소 [`apk/무지무지무지_오도_release.apk`](apk/무지무지무지_오도_release.apk) (release 빌드, 서명됨, 약 43 MB)
 - 이 APK는 **시나리오 재생 모드**(`USE_FAKE_SIGNALS=true`)로 빌드했다. 에뮬레이터에 차량 신호를 따로 넣지 않아도 시연 흐름 전체를 볼 수 있다. 단, 에뮬레이터의 실제 기어는 P(기본값)여야 한다(아래 '시나리오 재생 방법').
+- 실제 차량 신호로 도는 APK는 따로 올리지 않았다. 실제 SDK 모드는 소스에서 빌드한다(아래 '`USE_FAKE_SIGNALS` 전환').
 
 ## 실행 방법
 
@@ -43,7 +44,7 @@ adb shell am start -n com.mujimujimuji.odo/.MainActivity
 ### 소스에서 빌드
 
 ```bash
-./gradlew testDebugUnitTest          # 단위 테스트 224개 (engine·sim·cosmetic·drive·platform, ui/components·map·summary·theme·vehicle·text)
+./gradlew testDebugUnitTest          # 단위 테스트 234개 (engine·sim·cosmetic·drive·platform, ui/components·map·summary·theme·vehicle·text)
 ./gradlew assembleDebug              # app/build/outputs/apk/debug/
 ./gradlew assembleRelease            # app/build/outputs/apk/release/
 ```
@@ -56,7 +57,7 @@ adb shell am start -n com.mujimujimuji.odo/.MainActivity
 | 항목 | 값 |
 |---|---|
 | 에뮬레이터 | Pleos Connect 에뮬레이터 `release_connect_v2.1.0` (Android 14, API 34, arm64-v8a) |
-| 화면 | 1024×768, 160 dpi. 앱은 멀티윈도우 오른쪽 창(658×552 px)에서 동작 확인 |
+| 화면 | 1024×768, 160 dpi(1 dp = 1 px). 앱은 오른쪽 Pleos Connect 앱 영역(실측 창 658×552 px)에서 동작 확인. 화면 배치 기준은 표준 창 656×548 dp |
 | 빌드 | AGP 8.7.3, Gradle 8.11.1, Kotlin 2.0.21, minSdk 28, targetSdk 34 |
 | Pleos SDK | Vehicle 2.3.2, FusedLocation 1.1.3, NaviHelper 3.0.5, TextToSpeech 3.3.1, SpeechToText 3.3.1(의존성만, 1차 미사용) |
 
@@ -125,7 +126,7 @@ Windows·Linux에서는 [개발 환경 설정 문서](https://document.pleos.ai/
 4. 그대로 두면 휴게소 체류 10분(재생 기준 약 30초) 뒤 "강원도 첫 방문" 업적이 열리고 TTS가 나온다. 홈에 있으면 알림 1줄로도 보인다.
 5. **홈** → **차고**의 **색** 탭에서 레벨 5로 열린 색 5종(체리·민트·라벤더·귤·펄 화이트) 중 하나를 고르면 미니카 색이 바뀐다. 같은 화면에 차종(소형·중형·대형·세단·2륜)·휠·램프·루프·데칼·번호판 탭이 있고, 잠긴 항목에는 여는 레벨이 적혀 있다.
 6. 다시 보려면 먼저 **초기화**를 누른다. 데모 프로필로 돌아가고, 고른 색·차종과 휴대폰 연결도 처음으로 돌아간다. 같은 날 초기화 없이 **데모 재생**을 다시 누르면 그날의 두 번째 트립이 된다. 오늘 상한 300 XP와 두 업적이 이미 차 있어 요약은 +0 XP(상한을 채웠다는 줄)·레벨 그대로이고, 음성 없이 주행만 재생된다.
-7. 시나리오 재생 빌드에서는 오른쪽 위 **데모** 칩을 길게 누르면 야간/주간 테마를 강제로 바꿀 수 있다(기본은 시계 기준 18:30~06:30 야간). 주행 중에는 테마가 바뀌지 않는다.
+7. 시나리오 재생 빌드에서는 오른쪽 위 **데모** 칩을 길게 누르면 야간/주간 테마를 강제로 바꿀 수 있다(기본은 기기 시계 기준 18:30~06:30 야간). 주행 중에는 테마가 바뀌지 않는다. 재생은 그날 10:00에 출발하는 가상 시계(시나리오 시각대로 흘러 재생 1초가 20초, 휴게소 도착은 약 10:40)로 돌아서 야간 보너스와 하루 상한이 기기 시계와 상관없다. 그래서 초기화한 뒤에는 언제 재생해도 요약 숫자가 같고, 기기 시계를 따르는 것은 테마와 날짜(화면에 보이는 날짜, 오늘·어제·이번 주를 가르는 경계)뿐이다.
 
 TTS가 나간 기록은 `adb logcat -s OdoVoice`로 볼 수 있다.
 
@@ -195,9 +196,9 @@ tools/
 | [Roboto](https://github.com/googlefonts/roboto-2) v2.138 | 폰 목업 PNG의 숫자·로마자 (위와 같음) | Apache 2.0 |
 | [QR Code generator](https://github.com/nayuki/QR-Code-generator) (Project Nayuki, 파이썬 판) | 폰 목업 PNG의 QR 인코더(`tools/phone-mockup/render.py`의 `qr_matrix`). 알고리즘을 바이트 모드·버전 1~6만 남기고 줄여 옮겼다. 목업 도구에만 쓰고 앱에 포함 안 됨. 저작권·허가 문구는 [NOTICE.md](NOTICE.md) | MIT |
 | [Pillow](https://python-pillow.org/) | 폰 목업 PNG 그리기(`tools/phone-mockup/render.py`), 미니카 그림자 알파 처리(`tools/minicar/postprocess.py`). 도구로만 사용 | MIT-CMU (HPND) |
-| AndroidX (Core, Lifecycle, Activity, Room) | 앱 기반, 로컬 저장 | Apache 2.0 |
+| AndroidX (Core, Lifecycle, Activity, Room 등. Compose가 함께 가져오는 AndroidX 포함), Guava ListenableFuture 1.0(AndroidX가 함께 가져옴) | 앱 기반, 로컬 저장 | Apache 2.0 |
 | Jetpack Compose, Material 3 | UI | Apache 2.0 |
-| Kotlin, kotlinx.coroutines | 언어, 비동기 처리 | Apache 2.0 |
+| Kotlin, kotlinx.coroutines, JetBrains Annotations 23.0.0(이 둘이 함께 가져옴) | 언어, 비동기 처리 | Apache 2.0 |
 | JUnit 4 | 단위 테스트 | EPL 1.0 |
 | org.json | 단위 테스트에서 시나리오 JSON 읽기 | Public Domain |
 | Pleos Connect SDK | 차량 신호, 위치, 내비, 음성 | Pleos 개발자 약관 |
@@ -218,10 +219,10 @@ tools/
 
 ### 3D 미니카 (`tools/minicar/`)
 
-- 외부 모델·텍스처 없이 `vehicles.json`의 치수·단면 값만으로 Blender가 차종 5종(소형·중형·대형·세단·2륜)을 절차 생성한다(로프트 케이지 + Subdivision Surface). 현대차 디자인 언어에서 영감을 받은 자체 스타일라이즈드 모델이고, 엠블럼·차명·그릴은 없다. `check_names.py`가 저장소에 실제 차명 같은 금지어가 0건인지 검사한다.
+- 외부 모델·텍스처 없이 `vehicles.json`의 치수·단면 값만으로 Blender가 차종 5종(소형·중형·대형·세단·2륜)을 절차 생성한다(로프트 케이지 + Subdivision Surface). 특정 차종을 본뜨지 않고 차급 비례를 일반화한 자체 스타일라이즈드 모델이고, 엠블럼·차명·그릴은 없다. `check_names.py`가 저장소에 실제 차명 같은 금지어가 0건인지 검사한다.
 - 뷰 3개(차고·휴대폰 연결의 hero 576×384 px, 글랜스 지도의 navi 256×320 px, 홈·요약 지도의 top 256×384 px)마다 레이어(접지 그림자, 흰 차체, 반사광, 투톤 루프, 스트라이프, 유리·타이어·후미등 같은 고정부, 휠 3종, 램프, 루프박스, 황금 번호판, 밤 전조등·후미등 글로 가운데 그 뷰에서 보이는 것)를 알파 PNG로 렌더한다. `postprocess.py`가 이것을 WebP 165장과 합성 정보 `compose.json`(합계 약 0.9 MB)으로 묶는다.
 - 색·램프·투톤·데칼은 렌더하지 않는다. 앱(`ui/vehicle/OdoVehicle.kt`)이 흰 레이어에 Modulate·Screen 블렌드로 틴트를 얹어 합성하므로, 색을 늘려도 에셋은 늘지 않는다.
-- Apple M4 CPU 기준 165장 렌더에 약 3.5분(208 s, 6스레드) 걸리고, 두 번 돌려도 PNG가 바이트까지 같다.
+- Apple M4 CPU 기준 165장 렌더에 약 3.7분(222 s, 6스레드) 걸리고, 두 번 돌려도 PNG가 바이트까지 같다.
 
 ```sh
 blender -b -t 6 --python-exit-code 1 -P tools/minicar/build_minicar.py -- --vehicle all --view all --layers all --out <렌더 폴더> --samples 128

@@ -13,7 +13,7 @@ build_minicar.py(장면·카메라·조명·레이어 패스)가 import 해서 �
   - +y 가 차 앞, +x 가 차 오른쪽, 바닥 z=0, 차체 바운딩 박스의 x·y 중앙이 원점, 치수 m.
   - body 그룹 객체는 재질 슬롯이 정확히 1개다(패스마다 materials[0] 을 바꿔 끼운다).
   - 같은 입력이면 같은 정점을 같은 순서로 만든다. 난수·시간·집합 순회 순서에 기대지 않는다.
-  - 로고·엠블럼·글자·그릴 무늬 없음. 일반적인 해치백/SUV/미니밴/패스트백/스쿠터 비례이고 특정 차를 본뜨지 않았다.
+  - 로고·엠블럼·글자·그릴 무늬 없음. 일반적인 해치백/SUV/미니밴/노치백 세단/스쿠터 비례이고 특정 차를 본뜨지 않았다.
 
 만드는 법 (차 4종)
   1. 스테이션 표(vehicles.json 의 차종별 "shape")로 링 15점짜리 로프트 케이지를 만든다.
@@ -725,6 +725,60 @@ def _glass(skin, feat, sh, M, P):
         P.add("fixed", ob)
 
 
+def _doors(skin, sh, M, P):
+    """문 틈: 옆면(띠 1·2, 로커에서 어깨까지)에 y 마다 얇은 세로 띠를 띄워 붙인다.
+    shape.doors = {"y": [...], "w": 띠 폭, "lean": 기울기(도), "off": 띄움, "mat": 재질}.
+    틈의 선은 y(z) = y0 + tan(lean)(z - 0.5) 이다(양수면 위쪽이 앞으로, 음수면 위쪽이 뒤로 간다).
+    lean 은 수 하나(모든 틈) 또는 y 와 같은 길이의 목록(틈마다)이다."""
+    dr = sh.get("doors")
+    if not dr:
+        return
+    w = dr.get("w", 0.014) / 2
+    lean = dr.get("lean", 0.0)
+    leans = lean if isinstance(lean, list) else [lean] * len(dr["y"])
+    assert len(leans) == len(dr["y"]), "doors.lean 목록 길이가 doors.y 와 다르다"
+    side = np.isin(skin.strip, (1, 2)) & (skin.zone != ZONES["capf"]) & (skin.zone != ZONES["capr"])
+    for i, (y, ln) in enumerate(zip(dr["y"], leans)):
+        a = math.radians(ln)
+        nn = np.array((0.0, math.cos(a), -math.sin(a)))
+        yz = y + math.tan(a) * (skin.cen[:, 2] - 0.5)
+        mask = side & (np.abs(skin.cen[:, 1] - yz) < w + 0.15)
+        bm = _patch_bm(skin, mask, dr.get("off", 0.0035))
+        slab = (np.array([(0.0, y + w, 0.5), (0.0, y - w, 0.5)], float), np.array([nn, -nn]))
+        keep = set(_carve(bm, bm.faces[:], slab))
+        bmesh.ops.delete(bm, geom=[f for f in bm.faces if f not in keep], context="FACES")
+        ob = _patch_obj("door_seam%d" % i, bm, M[dr.get("mat", "liner")])
+        if ob:
+            P.add("fixed", ob)
+
+
+def _trunk(skin, sh, M, P):
+    """트렁크 뚜껑 틈: 뒷유리 밑동 뒤 가로 띠 하나와 데크 어깨를 따라 뒤로 가는 세로 띠 둘(위에서 보면 ㄷ 자).
+    shape.trunk = {"y": 앞 끝 y, "x": 세로 띠의 |x|, "w": 띠 폭, "off": 띄움, "mat": 재질}."""
+    tk = sh.get("trunk")
+    if not tk:
+        return
+    w = tk.get("w", 0.014) / 2
+    y, xs = tk["y"], tk["x"]
+    up = skin.sel(("bl", "deck"), (3, 4, 5, 6)) & (skin.fno[:, 2] > 0.3)
+    ex, ey = np.array((1.0, 0, 0)), np.array((0, 1.0, 0))
+    parts = [(up & (np.abs(skin.cen[:, 1] - y) < w + 0.15) & (np.abs(skin.cen[:, 0]) < xs + w + 0.15),
+              (np.array([(0, y + w, 0), (0, y - w, 0), (xs + w, 0, 0), (-xs - w, 0, 0)], float),
+               np.array([ey, -ey, ex, -ex])))]
+    deck = up & (skin.zone == ZONES["deck"]) & (skin.cen[:, 1] < y + w + 0.15)
+    for s in (1.0, -1.0):
+        parts.append((deck & (np.abs(skin.cen[:, 0] - s * xs) < w + 0.15),
+                      (np.array([(s * xs + w, 0, 0), (s * xs - w, 0, 0), (0, y - w, 0)], float),
+                       np.array([ex, -ex, ey]))))
+    for i, (mask, planes) in enumerate(parts):
+        bm = _patch_bm(skin, mask, tk.get("off", 0.0035))
+        keep = set(_carve(bm, bm.faces[:], planes))
+        bmesh.ops.delete(bm, geom=[f for f in bm.faces if f not in keep], context="FACES")
+        ob = _patch_obj("trunk_seam%d" % i, bm, M[tk.get("mat", "liner")])
+        if ob:
+            P.add("fixed", ob)
+
+
 def _twotone(skin, M, P):
     ob = _patch_obj("roof_twotone", _patch_bm(skin, skin.sel(("ws", "roof", "bl"), (5, 6)), 0.002), M["overlay_white"])
     if ob:
@@ -1121,6 +1175,8 @@ def _build_car(v, M, P):
     x_in = {s: t_out[s] - tw - 0.06 for s in (1, -1)}
     _glass(skin, feat, sh, M, P)
     _cladding(skin, arches, sh, v, M, P)
+    _doors(skin, sh, M, P)
+    _trunk(skin, sh, M, P)
     _decor(skin, sh.get("decor", []), M, P)
     _twotone(skin, M, P)
     _stripe(skin, sh, M, P)

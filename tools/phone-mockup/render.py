@@ -493,6 +493,7 @@ def lamp_swatch(img, cx, cy, r, rgb, alpha=1.0, k=S):
 # ── 미니카(OdoVehicle.kt 합성 규칙을 옮김) ─────────────────────────────────
 
 WHEEL_PAD = 3   # 휠 썸네일: 가까운 앞바퀴 알파 bbox 둘레 여백(hero 플레이트 px)
+ROOF_ON_BRIGHT = (0x6B, 0x72, 0x7D)   # 밝은 차 위 투톤 지붕색(밝은 진회색). OdoVehicle.kt와 같은 값
 
 
 class Minicar:
@@ -541,7 +542,8 @@ class Minicar:
 
     def draw(self, dst, box, lo, k=S, night=False):
         """box(dp) 가운데에 놓고 min(W/576, H/384)배. 그림자 0.9, body·lamp·투톤·데칼은 곱하기, spec·글로는 스크린
-        (glow_head 는 램프 색을 곱한 뒤 스크린). 글로는 밤에만."""
+        (glow_head 는 램프 색을 곱한 뒤 스크린). 글로는 밤에만.
+        투톤 지붕색은 밝은 차(휘도 0.35 초과) 위 ROOF_ON_BRIGHT, 어두운 차 위 pearl. 밤에는 차 색·보조색·지붕색을 0.85배."""
         x, y, w, h = box
         base = self.layer(lo['vehicle'], 'body')
         iw, ih = base.size
@@ -553,8 +555,9 @@ class Minicar:
         lamp_rgb = APP.item('lamp', lo['lamp'])['rgb']
         luma = (0.2126 * paint_rgb[0] + 0.7152 * paint_rgb[1] + 0.0722 * paint_rgb[2]) / 255
         accent = APP.item('color', 'graphite' if luma > 0.35 else 'pearl')['rgb']
+        roof = ROOF_ON_BRIGHT if luma > 0.35 else APP.item('color', 'pearl')['rgb']
         if night:
-            paint_rgb, accent = (tuple(round(v * 0.85) for v in c) for c in (paint_rgb, accent))
+            paint_rgb, accent, roof = (tuple(round(v * 0.85) for v in c) for c in (paint_rgb, accent, roof))
         blend = self.compose['blend']
         region = dst.crop((ox, oy, ox + cw, oy + ch))
         for base_name, name in self.layers_for(lo, night):
@@ -571,7 +574,7 @@ class Minicar:
                 region = ImageChops.screen(region, Image.merge('RGB', [ImageChops.multiply(c, a) for c in (r, g, b)]))
                 continue
             if mode == 'modulate':
-                tint = {'body': paint_rgb, 'lamp': lamp_rgb}.get(base_name, accent)
+                tint = {'body': paint_rgb, 'lamp': lamp_rgb, 'roof_twotone': roof}.get(base_name, accent)
                 rgb = Image.merge('RGB', [c.point([round(v * t / 255) for v in range(256)]) for c, t in zip((r, g, b), tint)])
                 if base_name == 'lamp' and not night:
                     a = a.point([round(v * 0.55) for v in range(256)])

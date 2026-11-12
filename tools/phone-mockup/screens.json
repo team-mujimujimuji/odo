@@ -1,6 +1,6 @@
 {
-  "_note": "폰 목업의 데모 값. 차 앱 데모(DemoSeed 820 XP·어제 42 km·업적 3개 + 11월 9일 트립 안전 65 km·+300 XP·업적 2개, 끝에 체리로 색 변경)를 지난 상태와 같다. 레벨·칭호·다음 레벨 XP는 render.py가 LevelTable로 계산하고, 차와 겹치는 문구는 strings.xml에서 읽는다. 실명·계정·연락처·위치 기록은 넣지 않는다.",
-  "date": "11월 9일",
+  "_note": "폰 목업의 데모 값. 차 앱 데모(DemoSeed 820 XP·어제 42 km·업적 3개 + 11월 12일 트립 안전 65 km·+300 XP·업적 2개, 끝에 체리로 색 변경)를 지난 상태와 같다. 씨앗 업적 3개는 씨앗의 어제 트립 날짜, 트립 업적 2개는 트립 날짜에 열린다. 시각은 데모 시나리오의 가상 시각(10:00 출발, 10:40 트립 끝, 10:51 재생 끝)을 따르고, 연결은 트립 뒤다. 레벨·칭호·다음 레벨 XP는 render.py가 LevelTable로 계산하고, 차와 겹치는 문구는 strings.xml에서 읽는다. 실명·계정·연락처·위치 기록은 넣지 않는다.",
+  "date": "11월 12일",
   "xp": 1120,
   "week": {"km": 107, "todayKm": 65, "yesterdayKm": 42, "streakDays": 2},
   "safeTotalKm": 107,
@@ -9,14 +9,14 @@
   "nextAchievement": "safe_300",
   "loadout": {"vehicle": "compact", "color": "cherry", "wheel": "steel", "lamp": "white", "roof": "none", "decal": "none", "plate": "none", "trail": "none"},
   "unlocked": {
-    "first_trip": "11월 8일",
-    "safe_10": "11월 8일",
-    "place_yeoju_rest": "11월 8일",
-    "road_yeongdong_yeoju_hoengseong": "11월 9일",
-    "place_gangwon_first": "11월 9일"
+    "first_trip": "11월 11일",
+    "safe_10": "11월 11일",
+    "place_yeoju_rest": "11월 11일",
+    "road_yeongdong_yeoju_hoengseong": "11월 12일",
+    "place_gangwon_first": "11월 12일"
   },
   "trip": {
-    "title": "11월 9일 트립",
+    "title": "11월 12일 트립",
     "safeKm": 65,
     "distanceKm": 66,
     "excluded": 1,
@@ -39,5 +39,5 @@
     "achGoing": "진행 중",
     "achLocked": "잠긴 업적"
   },
-  "time": {"link": "9:56", "home": "11:05", "summary": "11:06", "achievements": "11:07", "garage": "11:08"}
+  "time": {"link": "10:55", "home": "11:05", "summary": "11:06", "achievements": "11:07", "garage": "11:08"}
 }

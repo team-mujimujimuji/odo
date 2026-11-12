@@ -60,11 +60,11 @@ JOBS = 4                # cwebp 동시 실행 수
 
 def manifest(samples=128):
     """compose.json v2. 키 이름은 이 파일 머리말의 '계약 v2' 그대로. order 는 build_minicar.ORDER 와 같아야 한다
-    (2026-11-11: 깊이 순서에 맞춰 덧칠 roof_twotone·decal_stripe 를 spec 바로 뒤로, roof_box 를 lamp 뒤로 옮겼다)."""
+    (덧칠 decal_stripe·roof_twotone 은 spec 바로 뒤, 투톤이 스트라이프 위. roof_box 는 lamp 뒤)."""
     return {
         "version": 2,
         "views": {k: dict(v) for k, v in VIEWS.items()},
-        "order": ["shadow", "body", "spec", "roof_twotone", "decal_stripe", "fixed", "wheel", "lamp", "roof_box",
+        "order": ["shadow", "body", "spec", "decal_stripe", "roof_twotone", "fixed", "wheel", "lamp", "roof_box",
                   "plate_gold", "glow_head", "glow_tail"],
         "blend": {"body": "modulate", "spec": "screen", "lamp": "modulate", "roof_twotone": "modulate",
                   "decal_stripe": "modulate", "glow_head": "screen", "glow_tail": "screen"},
@@ -73,7 +73,7 @@ def manifest(samples=128):
                      "large": {"label": "대형", "naviScale": 1.0}, "sedan": {"label": "세단", "naviScale": 1.0},
                      "scooter": {"label": "2륜", "naviScale": 1.25}},
         "layers": list(LAYERS),
-        "provenance": "현대차 디자인 언어에서 영감을 받아 자체 제작한 스타일라이즈드 모델. 특정 차종·엠블럼·명칭을 재현하지 않음.",
+        "provenance": "특정 차종을 본뜨지 않고 차급 비례를 일반화해 자체 제작한 스타일라이즈드 모델. 엠블럼·명칭을 재현하지 않음.",
         "generator": "tools/minicar/build_minicar.py",
         "blender": "4.5.9",
         "samples": samples,

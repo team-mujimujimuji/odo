@@ -44,8 +44,12 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -193,7 +197,8 @@ private fun Preview(loadout: Loadout, roofTab: String, hint: String?, modifier: 
         }
         Spacer(Modifier.height(OdoSpace.m))
         if (hint != null) {
-            Text(hint, style = OdoType.caption, color = c.ink96)
+            // 잠긴 칸을 누르면 뜨는 안내: 화면 낭독기가 지금 읽던 말을 끊지 않고 이어서 한 번 읽는다.
+            Text(hint, Modifier.semantics { liveRegion = LiveRegionMode.Polite }, style = OdoType.caption, color = c.ink96)
         } else {
             SpecLines(sheet, c.inkDim)
         }
@@ -250,7 +255,7 @@ private fun ItemPane(
             Slot.DECAL -> for ((index, slot) in listOf(Slot.DECAL, Slot.TRAIL).withIndex()) {
                 if (index > 0) Spacer(Modifier.height(OdoSpace.l))
                 val title = if (slot == Slot.DECAL) R.string.garage_tab_decal else R.string.garage_tab_trail
-                Text(stringResource(title), style = OdoType.caption, color = c.inkDim)
+                Text(stringResource(title), Modifier.semantics { heading() }, style = OdoType.caption, color = c.inkDim)
                 Spacer(Modifier.height(OdoSpace.xs))
                 CellGrid(slot, loadout, level, onSelect, onLocked)
             }
@@ -310,7 +315,7 @@ private fun ItemChip(
         modifier = modifier,
         swatch = if (slot == Slot.LAMP) item.argb?.let { Color(it) } else null,
         lockedCaption = stringResource(R.string.level_short, item.unlockLevel),
-        contentDescription = itemDescription(label, item.unlockLevel, selected, locked),
+        contentDescription = itemDescription(label, item.unlockLevel, locked),
         leading = glyph,
     )
 }
@@ -363,7 +368,14 @@ private fun PictoCell(
     val c = LocalOdoColors.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
-    val description = itemDescription(item.label, item.unlockLevel, selected, locked)
+    // 데칼 탭에는 "없음" 칸이 데칼·트레일 묶음에 하나씩 있어, 낭독 이름에 묶음 이름을 붙여 나눈다(보이는 글자는 "없음" 그대로).
+    val name = when {
+        item.id != CosmeticCatalog.NONE -> item.label
+        item.slot == Slot.DECAL -> stringResource(R.string.garage_none_of, stringResource(R.string.garage_tab_decal))
+        item.slot == Slot.TRAIL -> stringResource(R.string.garage_none_of, stringResource(R.string.garage_tab_trail))
+        else -> item.label
+    }
+    val description = itemDescription(name, item.unlockLevel, locked)
     Column(
         modifier
             .heightIn(min = OdoSize.touch)
@@ -371,7 +383,8 @@ private fun PictoCell(
             // 칸을 clip하지 않는다: clip하면 칸보다 긴 이름("그래파이트" @1.0, "지난 길 리본" @1.3)이 칸 가장자리에서 잘린다.
             // 눌림 채움만 둥근 모양으로 그린다.
             .background(if (pressed) c.ink.copy(alpha = PRESSED_ALPHA) else Color.Transparent, OdoShape.chip)
-            .semantics(mergeDescendants = true) { contentDescription = description },
+            // 칸 노드 하나가 이름·라디오 역할·선택 상태를 갖는다(안쪽 글자는 지워 두 번 읽지 않는다).
+            .clearAndSetSemantics { contentDescription = description },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -427,12 +440,10 @@ private fun NoneGlyph(color: Color) {
     }
 }
 
+/** 선택 여부는 넣지 않는다: 라디오 칸의 선택 상태는 Compose가 상태 설명("선택됨")으로 따로 알린다. */
 @Composable
-private fun itemDescription(label: String, unlockLevel: Int, selected: Boolean, locked: Boolean): String = when {
-    locked -> stringResource(R.string.garage_chip_locked_desc, label, unlockLevel)
-    selected -> stringResource(R.string.garage_chip_selected_desc, label)
-    else -> label
-}
+private fun itemDescription(label: String, unlockLevel: Int, locked: Boolean): String =
+    if (locked) stringResource(R.string.garage_chip_locked_desc, label, unlockLevel) else label
 
 /** 칩·사양 줄의 항목 이름. 2륜은 루프 자리가 레그실드·탑케이스라 같은 항목을 다른 이름으로 부른다(설계서 §2.3 레이어 표: roof_twotone→레그실드, roof_box→탑케이스). */
 @Composable
@@ -448,9 +459,9 @@ private val PANEL_H = 484.dp
 private val PREVIEW_W = 228.dp
 private val PREVIEW_H = 152.dp
 private val SILHOUETTE = 48.dp
-// 그림 칸: 28dp 상자(페인트 점 24dp 또는 20dp 글리프, 선택이면 바깥 2dp 테두리) + 줄 높이 24 두 줄 = 76.
+// 그림 칸: 28dp 상자(페인트 점 20dp, 선택 테두리와 2dp 틈 또는 20dp 글리프, 선택이면 바깥 2dp 테두리) + 줄 높이 24 두 줄 = 76.
 private val PICTO_BOX = 28.dp
-private val DOT_RADIUS = 12.dp
+private val DOT_RADIUS = 10.dp
 private val TILE_GLYPH = 20.dp
 private val TILE_SHAPE = RoundedCornerShape(6.dp)
 private val SELECTED_RING = 2.dp

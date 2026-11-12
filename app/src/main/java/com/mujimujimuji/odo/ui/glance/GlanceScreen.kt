@@ -16,8 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.mujimujimuji.odo.R
 import com.mujimujimuji.odo.cosmetic.Loadout
@@ -65,11 +65,12 @@ private fun GlancePanel(ui: DriveUi, modifier: Modifier) {
     val label = stringResource(R.string.glance_label)
     val unit = stringResource(R.string.unit_km)
     val numberDesc = "$label $km $unit"
-    // 접근성 문구만(보이는 글 없음). 목표가 없으면(거리 업적을 다 열었으면) 홈과 같은 말로 읽고, 메달은 같은 말을 두 번 읽지 않게 설명을 두지 않는다.
+    // 접근성 문구만(보이는 글 없음). 백분율은 게이지 상태 설명이 한 번 읽으므로 문구에 넣지 않는다.
+    // 목표가 없으면(거리 업적을 다 열었으면) 홈과 같은 말로 읽고, 메달은 같은 말을 두 번 읽지 않게 설명을 두지 않는다.
     val gaugeDesc = if (gauge.medalOpen) {
         stringResource(R.string.home_next_goal_done)
     } else {
-        stringResource(R.string.glance_gauge_desc, (progress * 100).toInt().coerceIn(0, 100))
+        stringResource(R.string.glance_gauge_desc)
     }
     OdoPanel(modifier, shape = OdoShape.panelEdgeLeft, outline = PanelOutline.OpenLeft) {
         Column(
@@ -77,10 +78,12 @@ private fun GlancePanel(ui: DriveUi, modifier: Modifier) {
                 .fillMaxSize()
                 .padding(start = OdoSpace.xl, end = OdoSpace.xl, top = OdoSpace.xxl, bottom = BOTTOM_INSET),
         ) {
-            Text(label, style = OdoType.label, color = c.inkDim, maxLines = 1, softWrap = false)
+            // 라벨은 아래 숫자 설명("안전 주행 14 km")에 들어 있어 화면 낭독기에는 따로 읽지 않는다.
+            Text(label, Modifier.clearAndSetSemantics {}, style = OdoType.label, color = c.inkDim, maxLines = 1, softWrap = false)
             Spacer(Modifier.weight(GAP_LABEL_TO_NUMBER))
             // 단위는 숫자 뒤 같은 기준선(한국어 어순 "30 km"). 숫자는 tnum이라 자릿수가 같으면 km가 흔들리지 않는다.
-            Row(Modifier.fillMaxWidth().semantics(mergeDescendants = true) { contentDescription = numberDesc }) {
+            // 숫자·단위 글자는 지우고 설명 한 번만 읽는다.
+            Row(Modifier.fillMaxWidth().clearAndSetSemantics { contentDescription = numberDesc }) {
                 Text(km.toString(), Modifier.alignByBaseline(), style = OdoType.numeralL, color = c.ink96, maxLines = 1, softWrap = false)
                 Spacer(Modifier.width(OdoSpace.s))
                 Text(unit, Modifier.alignByBaseline(), style = OdoType.label, color = c.inkDim, maxLines = 1, softWrap = false)
